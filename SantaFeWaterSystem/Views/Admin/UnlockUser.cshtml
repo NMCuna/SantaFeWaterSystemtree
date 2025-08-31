@@ -15,7 +15,8 @@
                 </div>
                 <div class="card-body">
                     <p class="text-muted">
-                        You are about to <strong class="text-success">unlock</strong> this user's account. This will allow the user to log in again.
+                        You are about to <strong class="text-success">unlock</strong> this user's account.
+                        This will allow the user to log in again.
                     </p>
 
                     <div class="mb-3">
@@ -28,10 +29,18 @@
                         <div class="form-control bg-light">@Model.Username</div>
                     </div>
 
-                    <form asp-action="UnlockUser" method="post">
+                    <form asp-action="UnlockUserConfirmed" method="post">
                         <input type="hidden" name="id" value="@Model.Id" />
+                        <input type="hidden" name="roleFilter" value="@ViewData["RoleFilter"]" />
+                        <input type="hidden" name="searchTerm" value="@ViewData["SearchTerm"]" />
+                        <input type="hidden" name="page" value="@ViewData["Page"]" />
+
                         <div class="d-flex justify-content-end gap-2">
-                            <a asp-action="ManageUsers" class="btn btn-outline-secondary">
+                            <a asp-action="ManageUsers"
+                               asp-route-roleFilter="@ViewData["RoleFilter"]"
+                               asp-route-searchTerm="@ViewData["SearchTerm"]"
+                               asp-route-page="@ViewData["Page"]"
+                               class="btn btn-outline-secondary">
                                 <i class="bi bi-x-circle"></i> Cancel
                             </a>
                             <button type="submit" class="btn btn-success">

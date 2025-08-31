@@ -33,17 +33,19 @@ public class AccountController(
 
 
 
-    ///////////////////////////
-    /////ADMIN/STAFF LOGIN ////
-    ///////////////////////////
-   
+    //////////////////////////////////
+    //      ADMIN/STAFF LOGIN     ////
+    //////////////////////////////////
+    
+    // ================== AdminLogin/ ADMIN AND STAFF CAN USE BUT BY PERMISSION ==================
+
     [HttpGet]
         public IActionResult AdminLogin(string token)
         {
-            // ✅ Load token from config file
+            // Load token from config file
             var requiredToken = _configuration["AdminAccess:LoginViewToken"];
 
-            // ✅ Validate the token from query string
+            // Validate the token from query string
             if (string.IsNullOrEmpty(token) || token != requiredToken)
             {
                 TempData["Error"] = "Unauthorized access.";
@@ -58,7 +60,6 @@ public class AccountController(
         }
 
 
-  
     [HttpPost]
         public async Task<IActionResult> AdminLogin(AdminLoginViewModel model)
         {
@@ -80,74 +81,77 @@ public class AccountController(
             var phTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Singapore Standard Time");
             var unlockTimePH = TimeZoneInfo.ConvertTimeFromUtc(user.LockoutEnd.Value, phTimeZone);
 
-            ViewBag.UnlockTime = unlockTimePH.ToString("yyyy-MM-ddTHH:mm:ss"); // JS-friendly ISO format
-            ViewBag.UnlockTimeDisplay = unlockTimePH.ToString("f"); // e.g., Monday, July 15, 2025 8:45 PM
-            ViewBag.Role = user.Role; // ✅ Pass role to view
+            ViewBag.UnlockTime = unlockTimePH.ToString("yyyy-MM-ddTHH:mm:ss"); // JS-friendly ISO format //
+            ViewBag.UnlockTimeDisplay = unlockTimePH.ToString("f"); // e.g., Monday, July 15, 2025 8:45 PM //
+            ViewBag.Role = user.Role; // Pass role to view //
 
             await _audit.LogAsync("Locked Out", $"Login attempt while locked out - Role: {user.Role}, Username: {user.Username}", user.Username);
 
-            return View("TemporaryLocked", user); // 👈 Show lockout page
+            return View("TemporaryLocked", user); // Show lockout page //
         }
 
 
-        bool passwordValid;
-            try
+        // Password validation (Identity or BCrypt)
+        bool passwordValid = !string.IsNullOrEmpty(user?.PasswordHash) &&
+            (
+                _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, model.Password) == PasswordVerificationResult.Success
+                || BCrypt.Net.BCrypt.Verify(model.Password, user.PasswordHash)
+            );
+
+        // Invalid password
+        if (!passwordValid)
+        {
+            if (user == null) return View(model); // safety fallback
+
+            user.AccessFailedCount++;
+
+            if (user.AccessFailedCount >= 5)
             {
-                var result = _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, model.Password);
-                passwordValid = result == PasswordVerificationResult.Success;
+                user.LockoutEnd = DateTime.UtcNow.AddMinutes(15);
+                await _audit.LogAsync("Account Locked", $"User {user.Username} locked out after 5 failed attempts.", user.Username);
+                ModelState.AddModelError("", "Account locked due to too many failed attempts. Try again after 15 minutes.");
             }
-            catch
+            else
             {
-                passwordValid = BCrypt.Net.BCrypt.Verify(model.Password, user.PasswordHash);
-            }
-
-            if (!passwordValid)
-            {
-                user.AccessFailedCount++;
-
-                if (user.AccessFailedCount >= 5)
-                {
-                    user.LockoutEnd = DateTime.UtcNow.AddMinutes(15);
-                    await _audit.LogAsync("Account Locked", $"User {user.Username} locked out after 5 failed attempts.", user.Username);
-                    ModelState.AddModelError("", "Account locked due to too many failed attempts. Try again after 15 minutes.");
-                }
-                else
-                {
-                    await _audit.LogAsync("Failed Login", $"Invalid password attempt for user: {user.Username}", user.Username);
-                    ModelState.AddModelError("", "Invalid username or password.");
-                }
-
-                _context.Users.Update(user);
-                await _context.SaveChangesAsync();
-                return View(model);
+                await _audit.LogAsync("Failed Login", $"Invalid password attempt for user: {user.Username}", user.Username);
+                ModelState.AddModelError("", "Invalid username or password.");
             }
 
-            // ✅ Password valid — reset failed count and lockout
-            user.AccessFailedCount = 0;
-            user.LockoutEnd = null;
             _context.Users.Update(user);
             await _context.SaveChangesAsync();
-
-            // ✅ Store user ID in session for 2FA
-            HttpContext.Session.SetInt32("2FA_UserId", user.Id);
-            HttpContext.Session.SetString("2FA_Expiry", DateTime.UtcNow.AddMinutes(5).ToString("o"));
-
-
-            // Log login before redirecting to 2FA
-            await _audit.LogAsync("Login Success", $"User {user.Username} passed login and redirected to 2FA.", user.Username);
-
-            // ✅ Go to Setup or Verification
-            if (!user.IsMfaEnabled)
-                return RedirectToAction("Setup2FAAdmin", "Account");
-
-            return RedirectToAction("Verify2FAAdmin", "Account");
+            return View(model);
         }
 
+        //  Valid password → reset failed count & lockout
+        if (user == null) return View(model); // safety fallback
+        user.AccessFailedCount = 0;
+        user.LockoutEnd = null;
+        _context.Users.Update(user);
+        await _context.SaveChangesAsync();
+
+        // Store user ID in session for 2FA
+        HttpContext.Session.SetInt32("2FA_UserId", user.Id);
+        HttpContext.Session.SetString("2FA_Expiry", DateTime.UtcNow.AddMinutes(5).ToString("o"));
+
+        // Log successful login
+        await _audit.LogAsync("Login Success", $"User {user.Username} passed login and redirected to 2FA.", user.Username);
+
+        // Redirect to 2FA setup or verification
+        if (!user.IsMfaEnabled)
+            return RedirectToAction("Setup2FAAdmin", "Account");
+
+        return RedirectToAction("Verify2FAAdmin", "Account");
+    }
 
 
 
 
-    // GET: /Account/RegisterAdmin
+    /////////////////////////////////////
+    /////ADMIN/STAFF/STAFF REGISTER ////
+    ///////////////////////////////////
+
+    // ================== RegisterAdmin/ FOR ADMIN ONLY ,CAN CREATE ADMIN AND STAFF ==================
+
     [Authorize(Roles = "Admin")]
     [HttpGet]
         public IActionResult RegisterAdmin() => View();
@@ -170,9 +174,9 @@ public class AccountController(
             // Normalize username for consistent check
             var normalizedUsername = username.Trim().ToLower();
 
-            // Check if username exists (case-insensitive)
-            bool usernameExists = _context.Users.Any(u => u.Username.ToLower() == normalizedUsername);
-            if (usernameExists)
+        // Check if username exists (case-insensitive)
+        bool usernameExists = _context.Users.Any(u => u.Username != null && u.Username.Equals(normalizedUsername, StringComparison.OrdinalIgnoreCase));
+        if (usernameExists)
             {
                 ViewBag.Error = "Username already exists.";
                 return View();
@@ -189,7 +193,7 @@ public class AccountController(
             _context.Users.Add(user);
             _context.SaveChanges();
 
-            // ✅ Log audit trail
+            // Log audit trail //
             var performedBy = User.Identity?.Name ?? "Unknown";
             var details = $"New user registered. Username: {user.Username}, Role: {user.Role}";
 
@@ -210,7 +214,8 @@ public class AccountController(
 
 
 
-    // GET: /Account/RegisterUser
+    // ================== RegisterUser/ACTION FOR ADMIN,STAFF TO CREATE USER ==================
+    
     [Authorize(Roles = "Admin,Staff")]
     [HttpGet]
         public IActionResult RegisterUser()
@@ -254,7 +259,7 @@ public class AccountController(
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
 
-            // ✅ Log audit trail
+            // Log audit trail //
             var performedBy = User.Identity?.Name ?? "Unknown";
             var audit = new AuditTrail
             {
@@ -284,16 +289,16 @@ public class AccountController(
 
 
 
-        ///////////////////////////
-        /////Account/UserLogin////
-        ///////////////////////////
+    ///////////////////////////
+    /////Account/UserLogin////
+    ///////////////////////////
 
-        // GET: /Account/UserLogin
+    // ================== UserLogin ==================
 
-        [HttpGet]
+    [HttpGet]
         public IActionResult UserLogin()
         {
-            return View(new UserLoginViewModel());  // pass empty model to ensure no values
+            return View(new UserLoginViewModel());  // pass empty model to ensure no values //
         }
 
 
@@ -313,7 +318,7 @@ public class AccountController(
                 await _audit.LogAsync("Failed Login", "Failed login attempt: account not found or incorrect role.", model.AccountNumber ?? "Unknown");
                 return View(model);
             }
-       //lockuser///
+       //lockuser//
         if (user.IsLocked)
         {
            
@@ -321,7 +326,7 @@ public class AccountController(
             return View("AccountLocked", user); // pass the user to a custom view
 
         }
-        // Lockout: 5 failed login attempts
+        // Lockout: 5 failed login attempts //
         if (user.LockoutEnd.HasValue && user.LockoutEnd > DateTime.UtcNow)
         {
             var phTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Singapore Standard Time");
@@ -329,11 +334,11 @@ public class AccountController(
 
             ViewBag.UnlockTime = unlockTimePH.ToString("yyyy-MM-ddTHH:mm:ss"); // For countdown timer (JS)
             ViewBag.UnlockTimeDisplay = unlockTimePH.ToString("f"); // Human-readable (e.g. July 16, 2025 8:00 PM)
-            ViewBag.Role = user.Role; // ✅ Pass user role to view
+            ViewBag.Role = user.Role; //  Pass user role to view //
 
             await _audit.LogAsync("Locked Out", $"Login attempt blocked due to lockout. Try again at {unlockTimePH:f} (PH time).", user.AccountNumber);
 
-            return View("TemporaryLocked", user); //  View handles display + countdown
+            return View("TemporaryLocked", user); //  View handles display + countdown //
         }
 
 
@@ -372,7 +377,7 @@ public class AccountController(
                 return View(model);
             }
 
-            // ✅ Reset failed count
+            //  Reset failed count //
             user.AccessFailedCount = 0;
             user.LockoutEnd = null;
             _context.Users.Update(user);
@@ -385,7 +390,7 @@ public class AccountController(
                 return RedirectToAction("Verify2FAUser");
             }
 
-            // ✅ Sign in
+            //  Sign in //
             var claims = new List<Claim>
     {
         new Claim(ClaimTypes.Name, user.AccountNumber ?? user.Username ?? ""),
@@ -429,25 +434,28 @@ public class AccountController(
 
 
 
+    /////////////////////////////////////
+    /////ADMIN/STAFF/USER LOGOUT ////
+    ///////////////////////////////////
 
-
-        [HttpPost]
+    // ================== Logout/USE BY USER,ADMIN,STAFF ==================
+    [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Logout()
         {
-            // Get the currently logged-in user's name or ID for audit
+            // Get the currently logged-in user's name or ID for audit //
             var username = User.Identity?.Name ?? "Unknown";
 
-            // Sign out and clear auth cookie
+            // Sign out and clear auth cookie //
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
 
             // Clear session
             HttpContext.Session.Clear();
-
-            // ✅ Log logout action via service
+        
+            //  Log logout action via service //
             await _audit.LogAsync("Logout", "User logged out successfully.", username);
 
-            // Redirect to homepage or login
+            // Redirect to homepage or login //
             return RedirectToAction("Index", "Home");
         }
 
@@ -461,79 +469,86 @@ public class AccountController(
 
 
 
+    /////////////////////////////////////////////////
+    ///// CONSUMER RESET PASS/ IN  MANAGE USER  /////
+    ////////////////////////////////////////////////
 
 
-
-
-    ////////////User Consumer in Manage user////////////////////
-    // GET: Admin/ResetPassword/5
+    // ================== ResetPassword/ADMIN ACTION TO RESET USER PASS IF USER SAID SO ==================
     [Authorize(Roles = "Admin,Staff")]
     [HttpGet]
-        public IActionResult ResetPassword(int id)
+    public IActionResult ResetPassword(int id, int page = 1, string? roleFilter = null, string? searchTerm = null)
+    {
+        var user = _context.Users.FirstOrDefault(u => u.Id == id);
+        if (user == null)
+            return NotFound();
+
+        // keep navigation info for POST and View
+        ViewBag.Page = page;
+        ViewBag.RoleFilter = roleFilter;
+        ViewBag.SearchTerm = searchTerm;
+
+        return View("ResetPassword", user);
+    }
+
+
+    // POST: AdminAction/ResetPassword
+    [Authorize(Roles = "Admin,Staff")]
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ResetPassword(
+        int id, string NewPassword, string ConfirmPassword,
+        int page = 1, string? roleFilter = null, string? searchTerm = null)
+    {
+        if (NewPassword != ConfirmPassword)
         {
-            var user = _context.Users.FirstOrDefault(u => u.Id == id);
+            ModelState.AddModelError(string.Empty, "Passwords do not match.");
+            var user = await _context.Users.FindAsync(id);
             if (user == null)
                 return NotFound();
 
-            return View("ResetPassword", user); // Loads ResetPassword.cshtml with User model
+            // keep navigation info in case of validation failure
+            ViewBag.Page = page;
+            ViewBag.RoleFilter = roleFilter;
+            ViewBag.SearchTerm = searchTerm;
+
+            return View(user);
         }
 
-    // POST: Admin/ResetPassword/5
-    [Authorize(Roles = "Admin,Staff")]
-    [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ResetPassword(int id, string NewPassword, string ConfirmPassword)
+        var userToReset = await _context.Users.FindAsync(id);
+        if (userToReset == null)
+            return NotFound();
+
+        // Hash the new password
+        userToReset.PasswordHash = _passwordHasher.HashPassword(userToReset, NewPassword);
+
+        await _context.SaveChangesAsync();
+
+        // Add AuditTrail
+        _context.AuditTrails.Add(new AuditTrail
         {
-            if (NewPassword != ConfirmPassword)
-            {
-                ModelState.AddModelError(string.Empty, "Passwords do not match.");
-                var user = await _context.Users.FindAsync(id);
-                if (user == null)
-                    return NotFound();
+            Action = "Reset Password",
+            PerformedBy = User.Identity?.Name ?? "Unknown",
+            Timestamp = DateTime.Now,
+            Details = $"Password for user '{GetUserIdentifier(userToReset)}' was reset."
+        });
 
-                return View(user);
-            }
+        await _context.SaveChangesAsync();
 
-            var userToReset = await _context.Users.FindAsync(id);
-            if (userToReset == null)
-                return NotFound();
+        TempData["Message"] = $"Password for {GetUserIdentifier(userToReset)} has been reset successfully.";
 
-            // ✅ Hash the new password
-            userToReset.PasswordHash = _passwordHasher.HashPassword(userToReset, NewPassword);
-
-            await _context.SaveChangesAsync();
-
-            // ✅ Add AuditTrail
-            _context.AuditTrails.Add(new AuditTrail
-            {
-                Action = "Reset Password",
-                PerformedBy = User.Identity?.Name ?? "Unknown",
-                Timestamp = DateTime.Now,
-                Details = $"Password for user '{GetUserIdentifier(userToReset)}' was reset."
-            });
-
-            await _context.SaveChangesAsync();
-
-            TempData["Message"] = $"Password for {GetUserIdentifier(userToReset)} has been reset successfully.";
-
-            // Redirect based on role
-            if (userToReset.Role == "Admin" || userToReset.Role == "Staff")
-            {
-                return RedirectToAction("ManageUsers", "Admin", new { roleFilter = "Admin" });
-            }
-            else if (userToReset.Role == "User")
-            {
-                return RedirectToAction("ManageUsers", "Admin", new { roleFilter = "User" });
-            }
-            else
-            {
-                return RedirectToAction("ManageUsers", "Admin");
-            }
-        }
+        // Redirect back to same tab, page, and search term
+        return RedirectToAction("ManageUsers", "Admin", new
+        {
+            roleFilter = roleFilter ?? userToReset.Role, // fallback to role
+            page = page,
+            searchTerm = searchTerm
+        });
+    }
 
 
-        // Utility: get identifier string for message
-        private string GetUserIdentifier(User user)
+    // Utility: get identifier string for message
+    private string GetUserIdentifier(User user)
         {
             if (user.Role == "User")
                 return user.AccountNumber ?? "Unknown Account Number";
@@ -564,10 +579,11 @@ public class AccountController(
 
 
 
+    /////////////////////////////////////////////////
+    //    CONSUMER FORGOT PASS/ IN USERLOGIN      //
+    ////////////////////////////////////////////////
 
-
-    ////////////User Consumer in  User in Login Forgot pass////////////////////
-    // GET: /Account/ForgotPasswordUser
+    // ================== ForgotPasswordUser/POST WILL SEND LINK TO GMAIL ==================
     [HttpGet]
     public IActionResult ForgotPasswordUser()
     {
@@ -632,7 +648,7 @@ public class AccountController(
         // Step 5: Send email
         await _emailSender.SendEmailAsync(consumer.Email, "Reset Password - Santa Fe Water Billing System", emailBody);
 
-        // ✅ AuditTrail
+        // AuditTrail
         _context.AuditTrails.Add(new AuditTrail
         {
             Action = "Forgot Password Request",
@@ -648,8 +664,7 @@ public class AccountController(
 
 
 
-
-    // GET: /Account/ForgotPasswordUserConfirmation
+    // ================== ForgotPasswordUserConfirmation ==================
     [HttpGet]
         public IActionResult ForgotPasswordUserConfirmation()
         {
@@ -665,8 +680,9 @@ public class AccountController(
             return Convert.ToBase64String(bytes).Replace("+", "").Replace("/", "").Replace("=", "");
         }
 
-        // GET: /Account/ResetPasswordUser?token=xyz
-        [HttpGet]
+
+    // ================== ResetPasswordUser/LINK IN GMAIL ==================
+    [HttpGet]
         public async Task<IActionResult> ResetPasswordUser(string token)
         {
             if (string.IsNullOrEmpty(token))
@@ -688,10 +704,12 @@ public class AccountController(
 
 
 
+    /////////////////////////////////////////////////////////   
+    //    CONSUMER AFTER FORGOT PASS/ IN GMAIL LINK       //
+    ////////////////////////////////////////////////////////
 
 
-    ////////////User Consumer in Profile user////////////////////
-    // POST: /Account/ResetPasswordUser
+    // ================== ResetPasswordUser ==================
     [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ResetPasswordUser(ResetPasswordUserViewModel model)
@@ -717,7 +735,7 @@ public class AccountController(
 
             await _context.SaveChangesAsync();
 
-            // ✅ Add Audit Trail
+            //  Add Audit Trail
             _context.AuditTrails.Add(new AuditTrail
             {
                 Action = "Reset Password (User)",
@@ -732,21 +750,17 @@ public class AccountController(
         }
 
 
-        // GET: /Account/ResetPasswordUserConfirmation
-        [HttpGet]
+    // ================== ResetPasswordUserConfirmation ==================
+    [HttpGet]
         public IActionResult ResetPasswordUserConfirmation()
         {
             return View();
         }
 
 
-
-
-
-
-
-        //HELPER FOR AUDITS//
-        private async Task LogAudit(string action, string details)
+    // ================== LogAudit ==================
+    //HELPER FOR AUDITS//
+    private async Task LogAudit(string action, string details)
         {
             var username = User.Identity?.IsAuthenticated == true
                 ? User.Identity.Name
@@ -767,27 +781,12 @@ public class AccountController(
 
 
 
+    //////////////////////////////////////////////////////////
+    //            ACCOUNT / ADMIN/STAFF 2FA                 //
+    //////////////////////////////////////////////////////////
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        ///////////////////////////
-        /////Account/ADMIN2FA////
-        ///////////////////////////
-
-
-        [HttpGet]
+    // ================== Setup2FAAdmin ==================
+    [HttpGet]
         public async Task<IActionResult> Setup2FAAdmin()
         {
             var userId = HttpContext.Session.GetInt32("2FA_UserId");
@@ -828,30 +827,29 @@ public class AccountController(
             _context.Users.Update(user);
             await _context.SaveChangesAsync();
 
-            // ❌ Do NOT sign in the user here
-            // ✅ Keep session (2FA_UserId) active so Verify2FAAdmin can finish login
+            //  Do NOT sign in the user here
+            //  Keep session (2FA_UserId) active so Verify2FAAdmin can finish login
 
             TempData["Success"] = "2FA setup complete. Please verify your code to continue.";
             return RedirectToAction("Verify2FAAdmin", "Account");
         }
 
 
-
-
-        [HttpGet]
+    // ================== Verify2FAAdmin ==================
+    [HttpGet]
         public IActionResult Verify2FAAdmin()
         {
-            // ✅ Get the user ID from session (set during login)
+            // Get the user ID from session (set during login)
             var userId = HttpContext.Session.GetInt32("2FA_UserId");
 
-            // ✅ NEW: Get the 2FA expiry timestamp
+            //  NEW: Get the 2FA expiry timestamp
             var expiryStr = HttpContext.Session.GetString("2FA_Expiry");
 
-            // ✅ NEW: Check if userId or expiry is missing or expired
+            //  NEW: Check if userId or expiry is missing or expired
             if (userId == null || string.IsNullOrEmpty(expiryStr) ||
                 !DateTime.TryParse(expiryStr, out var expiryTime) || DateTime.UtcNow > expiryTime)
             {
-                // ✅ NEW: Cleanup session keys if expired
+                //  NEW: Cleanup session keys if expired
                 HttpContext.Session.Remove("2FA_UserId");
                 HttpContext.Session.Remove("2FA_Expiry");
 
@@ -859,7 +857,7 @@ public class AccountController(
                 return RedirectToAction("AdminLogin");
             }
 
-            // ✅ All good, render the 2FA verification page
+            //  Render the 2FA verification page
             return View(new TwoFactorViewModel
             {
                 UserId = userId.Value,
@@ -881,7 +879,7 @@ public class AccountController(
                 return View(model);
             }
 
-            // ✅ Build claims
+            //  Build claims
             var claims = new List<Claim>
     {
         new Claim(ClaimTypes.Name, user.Username!),
@@ -889,7 +887,7 @@ public class AccountController(
         new Claim("UserId", user.Id.ToString())
     };
 
-            // ✅ Role-based permissions
+            // Role-based permissions
             if (user.Role == "Admin")
             {
                 var adminPermissions = new List<string>
@@ -924,15 +922,15 @@ public class AccountController(
                     claims.Add(new Claim("Permission", permission));
             }
 
-            // ✅ Sign in the user
+            // Sign in the user
             var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
             var principal = new ClaimsPrincipal(identity);
             await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
 
-            // ✅ Clear 2FA session temp ID
+            // Clear 2FA session temp ID
             HttpContext.Session.Remove("2FA_UserId");
 
-            // ✅ Audit the success (use your audit service)
+            // Audit the success (use your audit service)
             await _audit.LogAsync("2FA Verified", $"Admin/Staff {user.Username} completed 2FA and signed in.", user.Username);
 
             TempData["Success"] = "2FA verified. Welcome!";
@@ -940,11 +938,12 @@ public class AccountController(
         }
 
 
-        [HttpPost]
+    // ================== Reset2FAAdmin ==================
+    [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Reset2FAAdmin()
         {
-            // ✅ Use the same claim as in login: "UserId"
+            // Use the same claim as in login: "UserId"
             var userIdClaim = User.FindFirst("UserId")?.Value;
             if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
                 return RedirectToAction("AdminLogin");
@@ -953,16 +952,16 @@ public class AccountController(
             if (user == null || (user.Role != "Admin" && user.Role != "Staff"))
                 return Unauthorized();
 
-            // ✅ Clear 2FA settings
+            //  Clear 2FA settings
             user.IsMfaEnabled = false;
             user.MfaSecret = null;
 
             _context.Users.Update(user);
             await _context.SaveChangesAsync();
 
-            // ✅ Log reset action
+            // Log reset action
             await _audit.LogAsync("2FA Reset", $"Admin/Staff {user.Username} reset their 2FA settings.", user.Username);
-            // ✅ Sign out for security
+            // Sign out for security
             await HttpContext.SignOutAsync();
 
             TempData["Success"] = "Two-Factor Authentication has been reset. Please log in again.";
@@ -974,22 +973,12 @@ public class AccountController(
 
 
 
+    //////////////////////////////////////////////////////////
+    //                  ACCOUNT / USER  2FA                 //
+    //////////////////////////////////////////////////////////
 
-
-
-
-
-
-
-
-
-
-
-        ///////////////////////////
-        /////Account/USER2FA////
-        ///////////////////////////
-
-        [HttpGet]
+    // ================== Setup2FAUser ==================
+    [HttpGet]
         public async Task<IActionResult> Setup2FAUser()
         {
             var userId = int.Parse(User.FindFirst("UserId")!.Value);
@@ -1035,8 +1024,8 @@ public class AccountController(
         }
 
 
-
-        [HttpGet]
+    // ================== Verify2FAUser ==================
+    [HttpGet]
         public IActionResult Verify2FAUser()
         {
             var userId = HttpContext.Session.GetInt32("2FA_UserId");
@@ -1058,7 +1047,7 @@ public class AccountController(
                 return View(model);
             }
 
-            // ✅ Sign in with claims
+            // Sign in with claims
             var claims = new List<Claim>
     {
         new Claim(ClaimTypes.Name, user.AccountNumber!),
@@ -1070,7 +1059,7 @@ public class AccountController(
             var principal = new ClaimsPrincipal(identity);
             await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
 
-            // ✅ Audit using central logging service
+            // Audit using central logging service
             string performedBy = $"{user.AccountNumber} ({user.Username})";
             await _audit.LogAsync("2FA Verified", "User completed 2FA and logged in successfully.", performedBy);
 
@@ -1078,8 +1067,8 @@ public class AccountController(
             return RedirectToAction("Dashboard", "User");
         }
 
-
-        [HttpPost]
+    // ================== Reset2FAUser ==================
+    [HttpPost]
         public async Task<IActionResult> Reset2FAUser()
         {
             var userId = int.Parse(User.FindFirst("UserId")!.Value);
@@ -1093,7 +1082,7 @@ public class AccountController(
             _context.Users.Update(user);
             await _context.SaveChangesAsync();
 
-            // ✅ Audit log
+            // Audit log
             string performedBy = $"{user.AccountNumber} ({user.Username})";
             await _audit.LogAsync("2FA Reset", "User disabled 2FA on their account.", performedBy);
 
@@ -1114,11 +1103,11 @@ public class AccountController(
 
 
 
+    //////////////////////////////////////////////////////////
+    //      ACCOUNT / BACKUP RESET PASSADMIN  2FA           //
+    //////////////////////////////////////////////////////////
 
-
-    ///////////////////////////
-    /////Backup ResetPassAdmin////
-    ///////////////////////////
+    // ================== MySecretEmergenceResetPasswordforAdmin ==================
     [HttpGet]
     [AllowAnonymous]
     public IActionResult MySecretEmergenceResetPasswordforAdmin(string token)
@@ -1154,13 +1143,13 @@ public class AccountController(
 
 
 
-    // ✅ POST: Handle Reset Password
+    // POST: Handle Reset Password
     [HttpPost]
         [AllowAnonymous]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> MySecretEmergenceResetPasswordforAdmin(string NewPassword, string ConfirmPassword)
         {
-            // ✅ Optional: token validation (recheck)
+            //token validation (recheck)
             string token = TempData["ValidToken"] as string; // from GET
             var today = DateTime.Today.DayOfWeek.ToString();
             var expectedToken = _configuration[$"AdminResetTokens:{today}"];
@@ -1185,7 +1174,7 @@ public class AccountController(
             return RedirectToAction("MySecretEmergenceResetPasswordforAdmin", new { token });
         }
 
-        // ✅ Update password securely
+        // Update password securely
         admin.PasswordHash = BCrypt.Net.BCrypt.HashPassword(NewPassword);
             admin.PasswordResetToken = null;
             admin.PasswordResetExpiry = null;

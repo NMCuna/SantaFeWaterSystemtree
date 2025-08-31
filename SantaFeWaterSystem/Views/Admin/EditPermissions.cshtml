@@ -50,6 +50,9 @@
 
     <form asp-action="EditPermissions" method="post" class="permission-group">
         <input type="hidden" asp-for="StaffId" />
+        <input type="hidden" asp-for="SelectedRole" />
+        <input type="hidden" asp-for="SearchTerm" />
+        <input type="hidden" asp-for="CurrentPage" />
 
         <div class="row">
             @for (int i = 0; i < Model.Permissions.Count; i++)
@@ -61,7 +64,7 @@
                                name="Permissions[@i].IsAssigned"
                                value="true"
                                id="perm_@i"
-                        @(Model.Permissions[i].IsAssigned ? "checked" : "") />
+                               @(Model.Permissions[i].IsAssigned ? "checked" : "") />
 
                         <input type="hidden" name="Permissions[@i].PermissionId" value="@Model.Permissions[i].PermissionId" />
                         <input type="hidden" name="Permissions[@i].Name" value="@Model.Permissions[i].Name" />
@@ -78,7 +81,11 @@
             <button type="submit" class="btn btn-success me-2">
                 <i class="bi bi-check-circle"></i> Save Permissions
             </button>
-            <a asp-action="ManageUsers" class="btn btn-outline-secondary">
+            <a asp-action="ManageUsers"
+               asp-route-roleFilter="@Model.SelectedRole"
+               asp-route-searchTerm="@Model.SearchTerm"
+               asp-route-page="@Model.CurrentPage"
+               class="btn btn-outline-secondary">
                 <i class="bi bi-arrow-left-circle"></i> Cancel
             </a>
         </div>

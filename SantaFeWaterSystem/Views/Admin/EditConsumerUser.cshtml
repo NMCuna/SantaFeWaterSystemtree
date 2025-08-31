@@ -59,8 +59,14 @@
         @Html.AntiForgeryToken()
         @Html.ValidationSummary(true, "", new { @class = "text-danger mb-3" })
 
+        <!-- Required IDs -->
         <input type="hidden" asp-for="Id" />
         <input type="hidden" asp-for="Role" />
+
+        <!-- NEW: Hidden fields to keep filter/search/page -->
+        <input type="hidden" asp-for="RoleFilter" />
+        <input type="hidden" asp-for="SearchTerm" />
+        <input type="hidden" asp-for="CurrentPage" />
 
         <div class="mb-3">
             <label asp-for="Username" class="form-label">
@@ -89,7 +95,11 @@
             <button type="submit" class="btn btn-success shadow-sm">
                 <i class="bi bi-save"></i> Save Changes
             </button>
-            <a asp-action="ManageUsers" class="btn btn-outline-secondary">
+            <a asp-action="ManageUsers"
+               asp-route-roleFilter="@Model.RoleFilter"
+               asp-route-searchTerm="@Model.SearchTerm"
+               asp-route-page="@Model.CurrentPage"
+               class="btn btn-outline-secondary">
                 <i class="bi bi-arrow-left-circle"></i> Cancel
             </a>
         </div>

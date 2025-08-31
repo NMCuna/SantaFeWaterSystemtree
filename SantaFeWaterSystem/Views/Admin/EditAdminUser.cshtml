@@ -70,6 +70,11 @@
                         <input type="hidden" asp-for="Id" />
                         <input type="hidden" asp-for="Role" />
 
+                        <!-- ✅ Keep pagination + filters after submit -->
+                        <input type="hidden" name="roleFilter" value="@Context.Request.Query["roleFilter"]" />
+                        <input type="hidden" name="searchTerm" value="@Context.Request.Query["searchTerm"]" />
+                        <input type="hidden" name="page" value="@Context.Request.Query["page"]" />
+
                         <div class="mb-3">
                             <label asp-for="Username" class="form-label">
                                 <i class="fas fa-user-tag form-icon"></i> Username
@@ -97,7 +102,11 @@
                             <button type="submit" class="btn btn-success shadow-sm">
                                 <i class="fas fa-save me-1"></i> Save Changes
                             </button>
-                            <a asp-action="ManageUsers" class="btn btn-outline-secondary">
+                            <a asp-action="ManageUsers"
+                               asp-route-roleFilter="@Context.Request.Query["roleFilter"]"
+                               asp-route-searchTerm="@Context.Request.Query["searchTerm"]"
+                               asp-route-page="@Context.Request.Query["page"]"
+                               class="btn btn-outline-secondary">
                                 <i class="fas fa-arrow-left me-1"></i> Cancel
                             </a>
                         </div>

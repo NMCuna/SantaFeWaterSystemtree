@@ -1,5 +1,4 @@
-﻿// File: ViewModels/EditConsumerUserViewModel.cs
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace SantaFeWaterSystem.ViewModels
 {
@@ -9,15 +8,21 @@ namespace SantaFeWaterSystem.ViewModels
 
         [Required]
         [Display(Name = "Username")]
-        public string Username { get; set; }
+        public string? Username { get; set; }
 
         [Required]
         [Display(Name = "Account Number")]
-        public string AccountNumber { get; set; }
+        public string? AccountNumber { get; set; }
 
         [Display(Name = "Enable Two-Factor Authentication")]
         public bool IsMfaEnabled { get; set; }
 
-        public string Role { get; set; } // Will be preserved in a hidden input
+        public string? Role { get; set; }
+
+
+      
+        public string? RoleFilter { get; set; }
+        public string? SearchTerm { get; set; }
+        public int CurrentPage { get; set; }
     }
 }

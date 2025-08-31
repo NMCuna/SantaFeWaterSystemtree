@@ -22,11 +22,20 @@ namespace SantaFeWaterSystem.Controllers
             _configuration = configuration;
         }
 
+
+
+        // ================== Index  ==================
+
         // GET: Backup Dashboard
         public IActionResult Index()
         {
             return View();
         }
+
+
+
+
+        // ================== BackupDatabase  ==================
 
         // Backup database
         public async Task<IActionResult> BackupDatabase()
@@ -70,6 +79,11 @@ namespace SantaFeWaterSystem.Controllers
 
             return RedirectToAction("Index");
         }
+
+
+
+        // ================== RestoreDatabase  ==================
+
 
         // Restore database - GET
         [HttpGet]
@@ -140,6 +154,9 @@ namespace SantaFeWaterSystem.Controllers
             return RedirectToAction("Index");
         }
 
+
+        // ================== ManageBackups  ==================
+
         // List existing backups
         public IActionResult ManageBackups()
         {
@@ -155,6 +172,11 @@ namespace SantaFeWaterSystem.Controllers
             return View(backups);
         }
 
+
+
+        // ================== DownloadBackup  ==================
+
+
         // Download backup
         public IActionResult DownloadBackup(string fileName)
         {
@@ -166,6 +188,10 @@ namespace SantaFeWaterSystem.Controllers
 
             return PhysicalFile(filePath, "application/octet-stream", fileName);
         }
+
+
+
+        // ================== DeleteBackup  ==================
 
         // Delete backup
         public IActionResult DeleteBackup(string fileName)
@@ -179,6 +205,10 @@ namespace SantaFeWaterSystem.Controllers
             TempData["Success"] = $"Backup {fileName} deleted.";
             return RedirectToAction("ManageBackups");
         }
+
+
+
+        // ================== BackupHistory  ==================
 
         // Backup history logs
         public IActionResult BackupHistory()
@@ -197,6 +227,7 @@ namespace SantaFeWaterSystem.Controllers
 
 
 
+        // ================== ScheduledBackup  ==================
 
 
         [NonAction] // Prevent direct HTTP access
@@ -234,7 +265,7 @@ namespace SantaFeWaterSystem.Controllers
             }
             catch (Exception ex)
             {
-                // Optional: log error
+                // log error
             }
         }
 

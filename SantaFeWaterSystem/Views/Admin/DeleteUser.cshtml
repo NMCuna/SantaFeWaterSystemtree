@@ -27,8 +27,17 @@
         }
     </dl>
 
-    <form asp-action="DeleteUser" asp-route-id="@Model.Id" method="post">
+    <form asp-action="DeleteUser" method="post">
+        <input type="hidden" name="id" value="@Model.Id" />
+        <input type="hidden" name="roleFilter" value="@ViewBag.RoleFilter" />
+        <input type="hidden" name="searchTerm" value="@ViewBag.SearchTerm" />
+        <input type="hidden" name="page" value="@ViewBag.Page" />
         <button type="submit" class="btn btn-danger">Delete</button>
-        <a asp-action="ManageUsers" class="btn btn-secondary">Cancel</a>
+        <a asp-action="ManageUsers"
+           asp-route-roleFilter="@ViewBag.RoleFilter"
+           asp-route-searchTerm="@ViewBag.SearchTerm"
+           asp-route-page="@ViewBag.Page"
+           class="btn btn-secondary">Cancel</a>
     </form>
+
 </div>

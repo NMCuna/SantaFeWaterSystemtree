@@ -9,52 +9,130 @@
         .OrderByDescending(b => b.ActionDate)
         .FirstOrDefault();
 
-    // Use stored local time directly (no extra conversion)
     DateTime? lastBackupPh = lastBackup?.ActionDate;
-
-    // Auto-calculate next backup (24 hours after last backup or now)
     DateTime nextBackupPh = lastBackup != null
         ? lastBackup.ActionDate.AddHours(24)
         : DateTime.Now.AddHours(24);
+
+    var totalBackups = _context.BackupLogs.Count();
 }
 
 <h3 class="mb-4 text-primary">
     <i class="bi bi-hdd-rack me-2"></i> Backup Dashboard
 </h3>
 
+<!-- Backup Info Card -->
 <div class="card mb-4 shadow-sm border-primary">
     <div class="card-body">
-        <h5 class="card-title text-secondary">
-            <i class="bi bi-clock-history me-2"></i> Backup Info
+        <h5 class="card-title text-secondary mb-3">
+            <i class="bi bi-hdd-rack me-2"></i> Backup Information
         </h5>
-        <p class="card-text mb-2">
-            <i class="bi bi-clock-history me-1 text-success"></i>
-            <strong class="text-success">Last Backup:</strong>
-            <span class="text-dark">@lastBackupPh?.ToString("yyyy-MM-dd hh:mm tt")</span>
-        </p>
-        <p class="card-text">
-            <i class="bi bi-calendar-check me-1 text-warning"></i>
-            <strong class="text-warning">Next Scheduled Backup:</strong>
-            <span class="text-dark">@nextBackupPh.ToString("yyyy-MM-dd hh:mm tt")</span>
-        </p>
+        <div class="row text-dark">
+            <div class="col-md-4 mb-3 d-flex align-items-center">
+                <i class="bi bi-stack me-2 text-primary fs-4"></i>
+                <div>
+                    <div class="text-muted small">Total Backups</div>
+                    <strong>@totalBackups</strong>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3 d-flex align-items-center">
+                <i class="bi bi-clock-history me-2 text-success fs-4"></i>
+                <div>
+                    <div class="text-muted small">Last Backup</div>
+                    <strong>@lastBackupPh?.ToString("yyyy-MM-dd hh:mm tt")</strong>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3 d-flex align-items-center">
+                <i class="bi bi-calendar-check me-2 text-warning fs-4"></i>
+                <div>
+                    <div class="text-muted small">Next Scheduled</div>
+                    <strong>@nextBackupPh.ToString("yyyy-MM-dd hh:mm tt")</strong>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
-<div class="d-flex flex-wrap gap-2 mb-4">
-    <a asp-action="BackupDatabase" class="btn btn-success d-flex align-items-center">
-        <i class="bi bi-cloud-arrow-up-fill me-2"></i> Backup Now
-    </a>
-    <a asp-action="RestoreDatabase" class="btn btn-danger d-flex align-items-center">
-        <i class="bi bi-cloud-arrow-down-fill me-2"></i> Restore Database
-    </a>
-    <a asp-action="ManageBackups" class="btn btn-primary d-flex align-items-center">
-        <i class="bi bi-gear-fill me-2"></i> Manage Backups
-    </a>
-    <a asp-action="BackupHistory" class="btn btn-info d-flex align-items-center">
-        <i class="bi bi-clock-fill me-2"></i> Backup History
-    </a>
+<!-- Big Card Buttons -->
+<div class="card mb-4 shadow-sm border-secondary p-4">
+    <div class="row g-3">
+        <!-- Backup Now -->
+        <div class="col-md-3">
+            <a href="#" class="btn btn-success w-100 py-4 d-flex flex-column align-items-center justify-content-center" data-bs-toggle="modal" data-bs-target="#confirmBackupModal">
+                <i class="bi bi-cloud-arrow-up-fill fs-2 mb-2"></i>
+                <strong>Backup Now</strong>
+                <small class="text-light mt-1 text-center">
+                    Create a manual backup of the database immediately to ensure your data is safe.
+                </small>
+            </a>
+        </div>
+
+        <!-- Restore Database -->
+        <div class="col-md-3">
+            <a asp-action="RestoreDatabase" class="btn btn-danger w-100 py-4 d-flex flex-column align-items-center justify-content-center">
+                <i class="bi bi-cloud-arrow-down-fill fs-2 mb-2"></i>
+                <strong>Restore Database</strong>
+                <small class="text-light mt-1 text-center">
+                    Restore your database from the latest backup to recover lost or corrupted data.
+                </small>
+            </a>
+        </div>
+
+        <!-- Manage Backups -->
+        <div class="col-md-3">
+            <a asp-action="ManageBackups" class="btn btn-primary w-100 py-4 d-flex flex-column align-items-center justify-content-center">
+                <i class="bi bi-gear-fill fs-2 mb-2"></i>
+                <strong>Manage Backups</strong>
+                <small class="text-light mt-1 text-center">
+                    Configure automatic backup settings, retention policies, and storage options.
+                </small>
+            </a>
+        </div>
+
+        <!-- Backup History -->
+        <div class="col-md-3">
+            <a asp-action="BackupHistory" class="btn btn-info w-100 py-4 d-flex flex-column align-items-center justify-content-center">
+                <i class="bi bi-clock-fill fs-2 mb-2"></i>
+                <strong>Backup History</strong>
+                <small class="text-light mt-1 text-center">
+                    View detailed logs of past backups including date, time, and status.
+                </small>
+            </a>
+        </div>
+    </div>
 </div>
 
+<!-- Backup Confirmation Modal -->
+<div class="modal fade" id="confirmBackupModal" tabindex="-1" aria-labelledby="confirmBackupModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-success shadow-lg">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="confirmBackupModalLabel">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i> Confirm Backup
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body d-flex align-items-center">
+                <i class="bi bi-cloud-arrow-up-fill text-success fs-2 me-3"></i>
+                <span class="fs-6">
+                    Are you sure you want to <strong>backup the database</strong> now?
+                </span>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle me-1"></i> Cancel
+                </button>
+                <form asp-action="BackupDatabase" method="post">
+                    <button type="submit" class="btn btn-success">
+                        <i class="bi bi-cloud-arrow-up-fill me-1"></i> Yes, Backup Now
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Alerts -->
 @if (TempData["Success"] != null)
 {
     <div class="alert alert-success d-flex align-items-center mt-2">

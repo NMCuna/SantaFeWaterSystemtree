@@ -54,9 +54,11 @@ public class AdminController(PermissionService permissionService, ApplicationDbC
         }
 
 
-    ///////////////////////////
-    /////DASHBOARD CONTROLLER////
-    ///////////////////////////
+    /////////////////////////////
+    //  DASHBOARD CONTROLLER  //
+    ////////////////////////////
+
+    // ================== Dashboard ==================
 
     [Authorize(Roles = "Admin,Staff")]
     public async Task<IActionResult> Dashboard()
@@ -66,7 +68,7 @@ public class AdminController(PermissionService permissionService, ApplicationDbC
             ViewBag.TotalPayments = await _context.Payments.SumAsync(p => (decimal?)p.AmountPaid) ?? 0m;
             ViewBag.UnverifiedPayments = await _context.Payments.CountAsync(p => !p.IsVerified);
 
-        // ✅ Calculate consumers with 2 or more overdue unpaid bills
+        //  Calculate consumers with 2 or more overdue unpaid bills
         var today = DateTime.Today;
 
         var pendingDisconnections = await _context.Billings
@@ -100,7 +102,7 @@ public class AdminController(PermissionService permissionService, ApplicationDbC
 
             ViewBag.UserPermissions = await GetUserPermissionsAsync();
 
-            // ✅ Fix NullReferenceException on user ID
+            //  Fix NullReferenceException on user ID
             var userIdClaim = User.FindFirst("UserId");
             if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
             {
@@ -115,9 +117,18 @@ public class AdminController(PermissionService permissionService, ApplicationDbC
 
 
 
+
+
+
+
+
+
     ///////////////////////////
     //     USER MANAGEMENT   //
     ///////////////////////////
+
+    // ================== ManageUsers ==================
+
     // GET: Admin/UserList
     [Authorize(Roles = "Admin,Staff")]
     public async Task<IActionResult> ManageUsers(string? searchTerm, string? roleFilter, int page = 1, int pageSize = 5)
@@ -210,12 +221,12 @@ public class AdminController(PermissionService permissionService, ApplicationDbC
 
 
 
-
+    // ================== EditConsumerUser ==================
 
     // GET: Admin/EditConsumerUser/5
     [Authorize(Roles = "Admin,Staff")]
     [HttpGet]
-    public async Task<IActionResult> EditConsumerUser(int id)
+    public async Task<IActionResult> EditConsumerUser(int id, string roleFilter, string searchTerm, int page = 1)
     {
         var user = await _context.Users.FindAsync(id);
         if (user == null || user.Role != "User")
@@ -227,7 +238,12 @@ public class AdminController(PermissionService permissionService, ApplicationDbC
             Username = user.Username,
             AccountNumber = user.AccountNumber,
             IsMfaEnabled = user.IsMfaEnabled,
-            Role = user.Role
+            Role = user.Role,
+
+            // Keep list state
+            RoleFilter = roleFilter,
+            SearchTerm = searchTerm,
+            CurrentPage = page
         };
 
         return View("EditConsumerUser", model);
@@ -246,7 +262,7 @@ public class AdminController(PermissionService permissionService, ApplicationDbC
         if (user == null || user.Role != "User")
             return NotFound();
 
-        // Check for duplicate account number
+        // Duplicate check
         bool accountChanged = user.AccountNumber?.Trim() != model.AccountNumber?.Trim();
         if (accountChanged)
         {
@@ -301,7 +317,14 @@ public class AdminController(PermissionService permissionService, ApplicationDbC
 
             await transaction.CommitAsync();
             TempData["SuccessMessage"] = "Consumer user updated successfully.";
-            return RedirectToAction("ManageUsers");
+
+            // Keep filters/search/page
+            return RedirectToAction("ManageUsers", new
+            {
+                roleFilter = model.RoleFilter,
+                searchTerm = model.SearchTerm,
+                page = model.CurrentPage
+            });
         }
         catch (DbUpdateException)
         {
@@ -317,6 +340,10 @@ public class AdminController(PermissionService permissionService, ApplicationDbC
         return View("EditConsumerUser", model);
     }
 
+
+
+
+    // ================== EditAdmin/Staff User ==================
 
 
     // GET: Admin/EditAdminUser/5
@@ -341,12 +368,11 @@ public class AdminController(PermissionService permissionService, ApplicationDbC
     }
 
 
-    ////////////User Admin in Manage user edity for satff and admin user////////////////////
     // POST: Admin/EditAdminUser/5
     [Authorize(Roles = "Admin")]
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> EditAdminUser(int id, EditAdminUserViewModel model)
+    public async Task<IActionResult> EditAdminUser(int id, EditAdminUserViewModel model, string roleFilter, string searchTerm, int page = 1)
     {
         if (id != model.Id)
             return BadRequest();
@@ -394,7 +420,9 @@ public class AdminController(PermissionService permissionService, ApplicationDbC
 
             await transaction.CommitAsync();
             TempData["SuccessMessage"] = "Admin/Staff user updated successfully.";
-            return RedirectToAction("ManageUsers");
+
+            //  Redirect back with same filter, search, and page
+            return RedirectToAction("ManageUsers", new { roleFilter, searchTerm, page });
         }
         catch
         {
@@ -406,58 +434,70 @@ public class AdminController(PermissionService permissionService, ApplicationDbC
 
 
 
+    // ================== DeleteUser ==================
 
-    // GET: Admin/DeleteUser/5
+
     [Authorize(Roles = "Admin,Staff")]
     [HttpGet]
-        public async Task<IActionResult> DeleteUser(int id)
-        {
-            var user = await _context.Users.FindAsync(id);
-            if (user == null)
-                return NotFound();
+    public async Task<IActionResult> DeleteUser(int id, string roleFilter, string searchTerm, int page = 1)
+    {
+        var user = await _context.Users.FindAsync(id);
+        if (user == null)
+            return NotFound();
 
-            return View(user); // Make sure you have a View: Views/Admin/DeleteUser.cshtml
-        }
+        ViewBag.RoleFilter = roleFilter;
+        ViewBag.SearchTerm = searchTerm;
+        ViewBag.Page = page;
 
-    // POST: Admin/DeleteUser/5
+        return View(user);
+    }
+
+
     [Authorize(Roles = "Admin,Staff")]
     [HttpPost, ActionName("DeleteUser")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteUserConfirmed(int id)
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteUserConfirmed(int id, string roleFilter, string searchTerm, int page = 1)
+    {
+        var user = await _context.Users.FindAsync(id);
+        if (user == null)
+            return NotFound();
+
+        //  Add audit trail
+        var audit = new AuditTrail
         {
-            var user = await _context.Users.FindAsync(id);
-            if (user == null)
-                return NotFound();
+            PerformedBy = User.Identity?.Name ?? "System",
+            Action = "Deleted User",
+            Timestamp = DateTime.Now,
+            Details = $"Deleted user ID: {user.Id}, Username: {user.Username}"
+        };
 
-            // Optional: Add audit trail
-            var audit = new AuditTrail
-            {
-                PerformedBy = User.Identity?.Name ?? "System",
-                Action = "Deleted User",
-                Timestamp = DateTime.Now,
-                Details = $"Deleted user ID: {user.Id}, Username: {user.Username}"
-            };
+        _context.Users.Remove(user);
+        _context.AuditTrails.Add(audit);
+        await _context.SaveChangesAsync();
 
-            _context.Users.Remove(user);
-            _context.AuditTrails.Add(audit);
-            await _context.SaveChangesAsync();
+        TempData["SuccessMessage"] = "User deleted successfully.";
 
-            TempData["SuccessMessage"] = "User deleted successfully.";
-            return RedirectToAction("ManageUsers");
-        }
+        return RedirectToAction("ManageUsers", new { roleFilter, searchTerm, page });
+    }
 
 
 
 
+    // ================== LockUser  ==================
 
     // Show Lock confirmation view
     [Authorize(Roles = "Admin,Staff")]
     [HttpGet]
-    public async Task<IActionResult> LockUser(int id)
+    public async Task<IActionResult> LockUser(int id, string roleFilter, string searchTerm, int page = 1)
     {
         var user = await _context.Users.FindAsync(id);
         if (user == null || user.Role != "User")
             return NotFound();
+
+        // Pass filters to ViewData (so form can include them)
+        ViewData["RoleFilter"] = roleFilter;
+        ViewData["SearchTerm"] = searchTerm;
+        ViewData["Page"] = page;
 
         return View(user);
     }
@@ -465,7 +505,7 @@ public class AdminController(PermissionService permissionService, ApplicationDbC
     // POST Lock
     [Authorize(Roles = "Admin,Staff")]
     [HttpPost, ActionName("LockUser")]
-    public async Task<IActionResult> LockUserConfirmed(int id)
+    public async Task<IActionResult> LockUserConfirmed(int id, string roleFilter, string searchTerm, int page = 1)
     {
         var user = await _context.Users.FindAsync(id);
         if (user != null && user.Role == "User")
@@ -473,33 +513,44 @@ public class AdminController(PermissionService permissionService, ApplicationDbC
             user.IsLocked = true;
             await _context.SaveChangesAsync();
 
-            // Get current actor name (Admin or Staff)
             var performedBy = User.Identity.Name ?? "Unknown";
-
-            // ✅ Audit log with performer
             await _audit.LogAsync("User Locked", $"User account {user.AccountNumber} was locked.", performedBy);
         }
 
-        return RedirectToAction("ManageUsers");
+        // Redirect back WITH pagination and filters
+        return RedirectToAction("ManageUsers", new
+        {
+            roleFilter = roleFilter,
+            searchTerm = searchTerm,
+            page = page
+        });
     }
 
 
-    // Show Unlock confirmation view
+
+    // ================== UnlockUser  ==================
+
+    // GET UnlockUser
     [Authorize(Roles = "Admin,Staff")]
     [HttpGet]
-    public async Task<IActionResult> UnlockUser(int id)
+    public async Task<IActionResult> UnlockUser(int id, string roleFilter, string searchTerm, int page = 1)
     {
         var user = await _context.Users.FindAsync(id);
         if (user == null || user.Role != "User")
             return NotFound();
 
+        // Pass filters to ViewData for the form
+        ViewData["RoleFilter"] = roleFilter;
+        ViewData["SearchTerm"] = searchTerm;
+        ViewData["Page"] = page;
+
         return View(user);
     }
 
-    // POST Unlock
+    // POST UnlockUser
     [Authorize(Roles = "Admin,Staff")]
-    [HttpPost, ActionName("UnlockUser")]
-    public async Task<IActionResult> UnlockUserConfirmed(int id)
+    [HttpPost]
+    public async Task<IActionResult> UnlockUserConfirmed(int id, string roleFilter, string searchTerm, int page = 1)
     {
         var user = await _context.Users.FindAsync(id);
         if (user != null && user.Role == "User")
@@ -507,27 +558,29 @@ public class AdminController(PermissionService permissionService, ApplicationDbC
             user.IsLocked = false;
             await _context.SaveChangesAsync();
 
-            var performedBy = User.Identity.Name ?? "Unknown";
-
-            // ✅ Audit log with performer
+            var performedBy = User.Identity?.Name ?? "Unknown";
             await _audit.LogAsync("User Unlocked", $"User account {user.AccountNumber} was unlocked.", performedBy);
         }
 
-        return RedirectToAction("ManageUsers");
+        // Redirect back with filters and page
+        return RedirectToAction("ManageUsers", new
+        {
+            roleFilter,
+            searchTerm,
+            page
+        });
     }
 
 
 
 
+    // ================== Reset2FA   ==================
 
-
-    /////////////2FA RESET/////////////////
-
-    // 🔐 Admin reset 2FA for another Admin
+    //  Admin reset 2FA for another Admin
     [HttpPost]
     [Authorize(Roles = "Admin")]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Reset2FAAdmin(int id)
+    public async Task<IActionResult> Reset2FAAdmin(int id, string roleFilter, string searchTerm, int page = 1)
     {
         var targetUser = await _context.Users.FindAsync(id);
         if (targetUser == null || targetUser.Role != "Admin")
@@ -539,17 +592,33 @@ public class AdminController(PermissionService permissionService, ApplicationDbC
         await _context.SaveChangesAsync();
 
         string performedBy = User.Identity?.Name ?? "Unknown";
-        await _audit.LogAsync("2FA Reset", $"Admin {performedBy} reset 2FA for Admin '{targetUser.Username}'.", performedBy);
+        await _audit.LogAsync("2FA Reset",
+            $"Admin {performedBy} reset 2FA for Admin '{targetUser.Username}'.", performedBy);
 
         TempData["Message"] = $"2FA for Admin '{targetUser.Username}' has been reset.";
-        return RedirectToAction("ManageUsers");
+
+        // Redirect back with filters and pagination preserved
+        return RedirectToAction("ManageUsers", new
+        {
+            roleFilter = roleFilter,
+            searchTerm = searchTerm,
+            page = page
+        });
     }
 
-    // 🔐 Admin reset 2FA for a Staff
+
+
+    // ================== Reset2FA for Staff ==================
+
+    //  Admin reset 2FA for a Staff
     [Authorize(Roles = "Admin,Staff")]
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Reset2FAStaff(int id)
+    public async Task<IActionResult> Reset2FAStaff(
+     int id,
+     string roleFilter,
+     string searchTerm,
+     int page = 1)
     {
         var targetUser = await _context.Users.FindAsync(id);
         if (targetUser == null || targetUser.Role != "Staff")
@@ -564,14 +633,25 @@ public class AdminController(PermissionService permissionService, ApplicationDbC
         await _audit.LogAsync("2FA Reset", $"Admin {performedBy} reset 2FA for Staff '{targetUser.Username}'.", performedBy);
 
         TempData["Message"] = $"2FA for Staff '{targetUser.Username}' has been reset.";
-        return RedirectToAction("ManageUsers");
+
+        // Preserve filters & pagination
+        return RedirectToAction("ManageUsers", new
+        {
+            roleFilter = roleFilter,
+            searchTerm = searchTerm,
+            page = page
+        });
     }
 
-    // 🔐 Admin reset 2FA for a User
+
+
+    // ================== Reset2FA for User ==================
+
+    //  Admin reset 2FA for a User
     [Authorize(Roles = "Admin,Staff")]
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Reset2FAUser(int id)
+    public async Task<IActionResult> Reset2FAUser(int id, string roleFilter, string searchTerm, int page = 1)
     {
         var targetUser = await _context.Users.FindAsync(id);
         if (targetUser == null || targetUser.Role != "User")
@@ -586,7 +666,14 @@ public class AdminController(PermissionService permissionService, ApplicationDbC
         await _audit.LogAsync("2FA Reset", $"Admin/Staff {performedBy} reset 2FA for User '{targetUser.Username}'.", performedBy);
 
         TempData["Message"] = $"2FA for User '{targetUser.Username}' has been reset.";
-        return RedirectToAction("ManageUsers");
+
+        // Pass filters and pagination back
+        return RedirectToAction("ManageUsers", new
+        {
+            roleFilter = roleFilter,
+            searchTerm = searchTerm,
+            page = page
+        });
     }
 
 
@@ -600,10 +687,11 @@ public class AdminController(PermissionService permissionService, ApplicationDbC
 
 
 
+    /////////////////////////////
+    //  CONSUMER CONTROLLER   //
+    ////////////////////////////
 
-    ///////////////////////////
-    /////CONSUMER CONTROLLER////
-    ///////////////////////////
+    // ================== Consumers ==================
 
     [Authorize(Roles = "Admin,Staff")]
     public async Task<IActionResult> Consumers(string searchTerm, string addressFilter, int page = 1, int pageSize = 6)
@@ -645,6 +733,10 @@ public class AdminController(PermissionService permissionService, ApplicationDbC
         }
 
 
+
+    // ================== CreateConsumer ==================
+
+    // GET: CreateConsumer
     [Authorize(Roles = "Admin,Staff")]
     [HttpGet]
     public IActionResult CreateConsumer()
@@ -661,7 +753,7 @@ public class AdminController(PermissionService permissionService, ApplicationDbC
         ViewBag.AccountTypes = new SelectList(Enum.GetValues(typeof(ConsumerType)));
         ViewBag.Users = new SelectList(availableUsers, "Id", "Username");
 
-        // ✅ Initialize a new Consumer with default "Active" status
+        //  Initialize a new Consumer with default "Active" status
         var consumer = new Consumer
         {
             Status = "Active"
@@ -678,14 +770,14 @@ public class AdminController(PermissionService permissionService, ApplicationDbC
     {
         if (ModelState.IsValid)
         {
-            // ✅ Enforce default status when creating
+            //  Enforce default status when creating
             consumer.Status = "Active";
             consumer.IsDisconnected = false;
 
             _context.Consumers.Add(consumer);
             _context.SaveChanges();
 
-            // ✅ Add audit trail entry
+            // Add audit trail entry
             _context.AuditTrails.Add(new AuditTrail
             {
                 PerformedBy = User.Identity?.Name ?? "Unknown",
@@ -719,6 +811,9 @@ public class AdminController(PermissionService permissionService, ApplicationDbC
 
 
 
+    // ================== ConsumerDetails ==================
+
+    // GET: ConsumerDetails
     [Authorize(Roles = "Admin,Staff")]
     public IActionResult ConsumerDetails(int id)
         {
@@ -731,7 +826,7 @@ public class AdminController(PermissionService permissionService, ApplicationDbC
             if (consumer == null)
                 return NotFound();
 
-            // ✅ Audit trail: log view of consumer details
+            //  Audit trail: log view of consumer details
             _context.AuditTrails.Add(new AuditTrail
             {
                 PerformedBy = User.Identity?.Name ?? "Unknown",
@@ -747,6 +842,7 @@ public class AdminController(PermissionService permissionService, ApplicationDbC
 
 
 
+    // ================== EditConsumer ==================
 
     // GET: EditConsumer
     [Authorize(Roles = "Admin,Staff")]
@@ -759,7 +855,7 @@ public class AdminController(PermissionService permissionService, ApplicationDbC
 
         ViewBag.Users = new SelectList(_context.Users, "Id", "AccountNumber", consumer.UserId);
 
-        // ✅ Updated to use enum values
+        //  Updated to use enum values
         var types = Enum.GetNames(typeof(ConsumerType));
         ViewBag.AccountTypes = new SelectList(types, consumer.AccountType);
 
@@ -776,7 +872,7 @@ public class AdminController(PermissionService permissionService, ApplicationDbC
         {
             ViewBag.Users = new SelectList(_context.Users, "Id", "AccountNumber", consumer.UserId);
 
-            // ✅ Updated to use enum values
+            // Updated to use enum values
             var types = Enum.GetNames(typeof(ConsumerType));
             ViewBag.AccountTypes = new SelectList(types, consumer.AccountType);
 
@@ -829,6 +925,8 @@ public class AdminController(PermissionService permissionService, ApplicationDbC
 
 
 
+    // ================== DeleteConsumer ==================
+
     // GET: Confirm Delete
     [Authorize(Roles = "Admin,Staff")]
     public IActionResult DeleteConsumer(int id)
@@ -877,6 +975,7 @@ public class AdminController(PermissionService permissionService, ApplicationDbC
         }
 
 
+    // ================== GetConsumerInfo (AJAX) ==================
     [Authorize(Roles = "Admin,Staff")]
     [HttpGet]
         public async Task<IActionResult> GetConsumerInfo(int consumerId)
@@ -908,78 +1007,96 @@ public class AdminController(PermissionService permissionService, ApplicationDbC
 
 
 
-    public IActionResult EditPermissions(int staffId)
+
+    //////////////////////////////////////
+    //   EDIT PERMISSIONS CONTROLLER   //
+    /////////////////////////////////////
+
+    // ================== EditPermissions ==================
+
+    [HttpGet]
+    public IActionResult EditPermissions(int staffId, string roleFilter, string searchTerm, int page = 1)
+    {
+        var allPermissions = _context.Permissions.ToList();
+
+        var userPermissions = _context.StaffPermissions
+                               .Where(sp => sp.StaffId == staffId)
+                               .Select(sp => sp.PermissionId)
+                               .ToList();
+
+        var model = new EditPermissionsViewModel
         {
-            var allPermissions = _context.Permissions.ToList();
-
-            var userPermissions = _context.StaffPermissions
-                                   .Where(sp => sp.StaffId == staffId)
-                                   .Select(sp => sp.PermissionId)
-                                   .ToList();
-
-            var model = new EditPermissionsViewModel
+            StaffId = staffId,
+            Permissions = allPermissions.Select(p => new PermissionCheckbox
             {
-                StaffId = staffId,
-                Permissions = allPermissions.Select(p => new PermissionCheckbox
-                {
-                    PermissionId = p.Id,
-                    Name = p.Name,
-                    IsAssigned = userPermissions.Contains(p.Id)
-                }).ToList()
-            };
+                PermissionId = p.Id,
+                Name = p.Name,
+                IsAssigned = userPermissions.Contains(p.Id)
+            }).ToList(),
+            // Add these properties to ViewModel
+            SelectedRole = roleFilter,
+            SearchTerm = searchTerm,
+            CurrentPage = page
+        };
 
-            return View(model);
-        }
-
-        [HttpPost]
-        public IActionResult EditPermissions(EditPermissionsViewModel model)
-        {
-            // Remove existing permissions
-            var existing = _context.StaffPermissions
-                .Where(sp => sp.StaffId == model.StaffId);
-            _context.StaffPermissions.RemoveRange(existing);
-
-            // Get the list of permission names assigned for audit logging
-            var assignedPermissions = model.Permissions
-                .Where(p => p.IsAssigned)
-                .Select(p => p.Name)
-                .ToList();
-
-            // Add newly assigned permissions
-            foreach (var p in model.Permissions.Where(p => p.IsAssigned))
-            {
-                _context.StaffPermissions.Add(new StaffPermission
-                {
-                    StaffId = model.StaffId,
-                    PermissionId = p.PermissionId
-                });
-            }
-
-            // Save permission changes
-            _context.SaveChanges();
-
-            // Get staff details for audit trail
-            var staff = _context.Users.FirstOrDefault(u => u.Id == model.StaffId);
-            string staffInfo = staff != null
-                ? $"{staff.FullName} ({staff.Username})"
-                : $"Staff ID: {model.StaffId}";
-
-            // Create audit log
-            _context.AuditTrails.Add(new AuditTrail
-            {
-                PerformedBy = User.Identity?.Name ?? "Unknown",
-                Action = "Edited Staff Permissions",
-                Timestamp = DateTime.Now,
-                Details = $"Permissions updated for {staffInfo}. Assigned: " +
-                          (assignedPermissions.Any() ? string.Join(", ", assignedPermissions) : "None")
-            });
-
-            _context.SaveChanges();
-
-            return RedirectToAction("ManageUsers");
-        }
-
+        return View(model);
     }
+
+    [HttpPost]
+    public IActionResult EditPermissions(EditPermissionsViewModel model)
+    {
+        // Remove existing permissions
+        var existing = _context.StaffPermissions
+            .Where(sp => sp.StaffId == model.StaffId);
+        _context.StaffPermissions.RemoveRange(existing);
+
+        // Get assigned permissions
+        var assignedPermissions = model.Permissions
+            .Where(p => p.IsAssigned)
+            .Select(p => p.Name)
+            .ToList();
+
+        // Add newly assigned permissions
+        foreach (var p in model.Permissions.Where(p => p.IsAssigned))
+        {
+            _context.StaffPermissions.Add(new StaffPermission
+            {
+                StaffId = model.StaffId,
+                PermissionId = p.PermissionId
+            });
+        }
+
+        _context.SaveChanges();
+
+        // Get staff for audit
+        var staff = _context.Users.FirstOrDefault(u => u.Id == model.StaffId);
+        string staffInfo = staff != null
+            ? $"{staff.FullName} ({staff.Username})"
+            : $"Staff ID: {model.StaffId}";
+
+        // Audit log
+        _context.AuditTrails.Add(new AuditTrail
+        {
+            PerformedBy = User.Identity?.Name ?? "Unknown",
+            Action = "Edited Staff Permissions",
+            Timestamp = DateTime.Now,
+            Details = $"Permissions updated for {staffInfo}. Assigned: " +
+                      (assignedPermissions.Any() ? string.Join(", ", assignedPermissions) : "None")
+        });
+
+        _context.SaveChanges();
+
+        // Redirect back WITH filters & pagination
+        return RedirectToAction("ManageUsers", new
+        {
+            roleFilter = model.SelectedRole,
+            searchTerm = model.SearchTerm,
+            page = model.CurrentPage
+        });
+    }
+
+
+}
 
 
 

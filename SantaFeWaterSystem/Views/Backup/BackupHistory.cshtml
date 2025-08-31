@@ -16,18 +16,10 @@
 
 @section Styles {
     <style>
-        .table td i {
-            font-size: 1rem;
-        }
-
-        h2.backup-title {
-            color: #0d6efd; /* Bootstrap primary color */
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 25px;
-        }
+        .table td i { font-size: 1rem; }
+        h2.backup-title { color: #0d6efd; font-weight: 700; display: flex; align-items: center; gap: 10px; margin-bottom: 25px; }
+        .hidden-log { display: none; }
+        .see-more-btn { cursor: pointer; }
     </style>
 }
 
@@ -47,31 +39,42 @@
                         <th><i class="bi bi-calendar-event text-danger me-1"></i> Date</th>
                     </tr>
                 </thead>
-                <tbody>
-                    @foreach (var log in Model)
+                <tbody id="backupLogsBody">
+                    @if (Model != null && Model.Count > 0)
+                    {
+                        int index = 0;
+                        foreach (var log in Model)
+                        {
+                            var hiddenClass = index >= 10 ? "hidden-log" : "";
+                            <tr class="@hiddenClass">
+                                <td><i class="bi bi-gear-wide-connected text-primary me-1"></i> @log.Action</td>
+                                <td><i class="bi bi-file-earmark-text-fill text-info me-1"></i> @log.FileName</td>
+                                <td><i class="bi bi-person-fill text-warning me-1"></i> @log.PerformedBy</td>
+                                <td><i class="bi bi-calendar-check-fill text-danger me-1"></i> @log.ActionDate.ToString("yyyy-MM-dd hh:mm tt")</td>
+                            </tr>
+                            index++;
+                        }
+                    }
+                    else
                     {
                         <tr>
-                            <td>
-                                <i class="bi bi-gear-wide-connected text-primary me-1"></i> @log.Action
-                            </td>
-                            <td>
-                                <i class="bi bi-file-earmark-text-fill text-info me-1"></i> @log.FileName
-                            </td>
-                            <td>
-                                <i class="bi bi-person-fill text-warning me-1"></i> @log.PerformedBy
-                            </td>
-                            <td>
-                                <i class="bi bi-calendar-check-fill text-danger me-1"></i>
-                                @log.ActionDate.ToString("yyyy-MM-dd hh:mm tt")
-                            </td>
+                            <td colspan="4" class="text-center text-muted">No backup logs available.</td>
                         </tr>
                     }
                 </tbody>
             </table>
+
+            @if (Model.Count > 10)
+            {
+                <div class="text-center">
+                    <span id="seeMoreBtn" class="btn btn-outline-primary see-more-btn">See More</span>
+                </div>
+            }
         </div>
     </div>
 </div>
 
+<!-- Alerts -->
 @if (TempData["Success"] != null)
 {
     <div class="alert alert-success d-flex align-items-center mt-2">
@@ -83,4 +86,20 @@
     <div class="alert alert-danger d-flex align-items-center mt-2">
         <i class="bi bi-exclamation-triangle-fill text-white me-2"></i> @TempData["Error"]
     </div>
+}
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const seeMoreBtn = document.getElementById("seeMoreBtn");
+            const hiddenRows = document.querySelectorAll(".hidden-log");
+            let isExpanded = false;
+
+            seeMoreBtn?.addEventListener("click", function () {
+                hiddenRows.forEach(row => row.style.display = isExpanded ? "none" : "table-row");
+                seeMoreBtn.textContent = isExpanded ? "See More" : "See Less";
+                isExpanded = !isExpanded;
+            });
+        });
+    </script>
 }
