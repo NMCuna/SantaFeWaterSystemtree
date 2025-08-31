@@ -1,0 +1,17 @@
+﻿.audit-log-details-card dt {
+    padding-top: 0.75rem;
+    padding-bottom: 0.25rem;
+}
+
+.audit-log-details-card dd {
+    margin-bottom: 0.75rem;
+}
+
+@media (max-width: 576px) {
+    .audit-log-details-card dl.row > dt,
+    .audit-log-details-card dl.row > dd {
+        display: block;
+        float: none;
+        width: 100%;
+    }
+}

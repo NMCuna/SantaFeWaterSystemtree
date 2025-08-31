@@ -1,0 +1,59 @@
+﻿/* Table responsive wrapper */
+
+h2.backup-title {
+    color: #0d6efd; /* Bootstrap primary color */
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 25px;
+}
+
+.table-responsive {
+    overflow-x: auto;
+    margin-top: 1rem;
+}
+
+/* General table styling */
+.table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+    .table th, .table td {
+        padding: 0.75rem 1rem;
+        text-align: left;
+        vertical-align: middle;
+    }
+
+    .table thead {
+        background-color: #0d6efd; /* Bootstrap primary color */
+        color: #fff;
+        font-weight: 600;
+    }
+
+    .table tbody tr:nth-child(even) {
+        background-color: #f8f9fa;
+    }
+
+    .table tbody tr:hover {
+        background-color: #e9ecef;
+        transition: background-color 0.2s ease-in-out;
+    }
+
+    .table td {
+        border-top: 1px solid #dee2e6;
+    }
+
+        /* Buttons in Actions column */
+        .table td a.btn {
+            margin-right: 0.25rem;
+            font-size: 0.85rem;
+        }
+
+            /* Optional: add icon spacing */
+            .table td a.btn i {
+                margin-right: 0.25rem;
+            }

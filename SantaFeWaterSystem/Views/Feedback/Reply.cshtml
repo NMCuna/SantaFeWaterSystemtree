@@ -1,0 +1,63 @@
+﻿@model SantaFeWaterSystem.Models.Feedback
+@{
+    ViewData["Title"] = "Reply to Feedback";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<style>
+    h2.page-title {
+        font-size: 2rem;
+        font-weight: bold;
+        color: #0d6efd;
+        margin-bottom: 20px;
+        border-left: 5px solid #0d6efd;
+        padding-left: 10px;
+    }
+
+    .reply-card {
+        max-width: 600px;
+        margin: auto;
+        background-color: #ffffff;
+        padding: 25px;
+        border-radius: 10px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .form-group label {
+        font-weight: 600;
+    }
+
+    .form-control {
+        min-height: 120px;
+        resize: vertical;
+    }
+
+    .btn i {
+        margin-right: 5px;
+    }
+</style>
+
+<h2 class="page-title"><i class="bi bi-reply-fill"></i> Reply to Feedback</h2>
+
+<div class="reply-card">
+    <form asp-action="Reply">
+        <input type="hidden" asp-for="Id" />
+
+        <div class="mb-3">
+            <label class="form-label"><i class="bi bi-chat-left-text"></i> Feedback Comment</label>
+            <textarea class="form-control" disabled>@Model.Comment</textarea>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label"><i class="bi bi-pencil-square"></i> Your Reply</label>
+            <textarea name="reply" class="form-control" placeholder="Write your reply here..." required></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-primary">
+            <i class="bi bi-send-fill"></i> Send Reply
+        </button>
+        <a asp-action="Index" class="btn btn-secondary ms-2">
+            <i class="bi bi-arrow-left-circle"></i> Cancel
+        </a>
+    </form>
+</div>

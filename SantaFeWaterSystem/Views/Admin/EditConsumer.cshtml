@@ -1,0 +1,144 @@
+﻿@model SantaFeWaterSystem.Models.Consumer
+@{
+    ViewData["Title"] = "Edit Consumer";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" />
+    <style>
+        h2.page-header {
+            font-size: 2rem;
+            color: #0d6efd;
+            font-weight: bold;
+            border-left: 5px solid #0d6efd;
+            padding-left: 15px;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+        }
+
+            h2.page-header i {
+                margin-right: 10px;
+            }
+
+        .form-floating-icon {
+            position: relative;
+        }
+
+            .form-floating-icon i {
+                position: absolute;
+                top: 50%;
+                left: 15px;
+                transform: translateY(-50%);
+                color: #6c757d;
+                transition: color 0.3s;
+            }
+
+        .form-control:focus + i,
+        .form-select:focus + i {
+            color: #0d6efd;
+        }
+
+        .form-floating-icon input,
+        .form-floating-icon select {
+            padding-left: 2.5rem;
+        }
+
+        .btn i {
+            margin-right: 5px;
+        }
+    </style>
+}
+
+<div class="container mt-4">
+    <h2 class="page-header"><i class="bi bi-pencil-square"></i> Edit Consumer</h2>
+
+    <form asp-action="EditConsumer" method="post" class="mt-4">
+        <input type="hidden" asp-for="Id" />
+
+        <div class="row g-3">
+            <div class="col-md-4 form-floating-icon" title="Last Name">
+                <input asp-for="LastName" class="form-control" placeholder="Last Name" />
+                <i class="bi bi-person-badge"></i>
+                <span asp-validation-for="LastName" class="text-danger small"></span>
+            </div>
+
+            <div class="col-md-4 form-floating-icon" title="First Name">
+                <input asp-for="FirstName" class="form-control" placeholder="First Name" />
+                <i class="bi bi-person"></i>
+                <span asp-validation-for="FirstName" class="text-danger small"></span>
+            </div>
+
+            <div class="col-md-4 form-floating-icon" title="Middle Name">
+                <input asp-for="MiddleName" class="form-control" placeholder="Middle Name" />
+                <i class="bi bi-person"></i>
+                <span asp-validation-for="MiddleName" class="text-danger small"></span>
+            </div>
+
+            <div class="col-md-6 form-floating-icon" title="Account Type">
+                <select asp-for="AccountType" class="form-select" asp-items="ViewBag.AccountTypes">
+                    <option value="">-- Select Account Type --</option>
+                </select>
+                <i class="bi bi-card-list"></i>
+                <span asp-validation-for="AccountType" class="text-danger small"></span>
+            </div>
+
+            <div class="col-md-6 form-floating-icon" title="Meter No">
+                <input asp-for="MeterNo" class="form-control" placeholder="Meter No" />
+                <i class="bi bi-speedometer2"></i>
+                <span asp-validation-for="MeterNo" class="text-danger small"></span>
+            </div>
+
+            <div class="col-md-6 form-floating-icon" title="Email Address">
+                <input asp-for="Email" class="form-control" placeholder="Email" />
+                <i class="bi bi-envelope"></i>
+                <span asp-validation-for="Email" class="text-danger small"></span>
+            </div>
+
+            <div class="col-md-6 form-floating-icon" title="Home Address">
+                <input asp-for="HomeAddress" class="form-control" placeholder="Home Address" />
+                <i class="bi bi-house-door"></i>
+                <span asp-validation-for="HomeAddress" class="text-danger small"></span>
+            </div>
+
+            <div class="col-md-6 form-floating-icon" title="Meter Address">
+                <input asp-for="MeterAddress" class="form-control" placeholder="Meter Address" />
+                <i class="bi bi-geo-alt"></i>
+                <span asp-validation-for="MeterAddress" class="text-danger small"></span>
+            </div>
+
+            <div class="col-md-6 form-floating-icon" title="Contact Number">
+                <input asp-for="ContactNumber" class="form-control" placeholder="Contact Number" />
+                <i class="bi bi-telephone"></i>
+                <span asp-validation-for="ContactNumber" class="text-danger small"></span>
+            </div>
+
+            <div class="col-md-6 form-floating-icon" title="Status">
+                <select asp-for="Status" class="form-select">
+                    <option value="Active">Active</option>
+                    <option value="Disconnected">Disconnected</option>
+                </select>
+                <i class="bi bi-toggle-on"></i>
+                <span asp-validation-for="Status" class="text-danger small"></span>
+            </div>
+
+            <div class="col-md-6 form-floating-icon" title="Linked User">
+                <select asp-for="UserId" class="form-select" asp-items="ViewBag.Users">
+                    <option value="">-- Select a User --</option>
+                </select>
+                <i class="bi bi-person-check"></i>
+                <span asp-validation-for="UserId" class="text-danger small"></span>
+            </div>
+        </div>
+
+        <div class="mt-4">
+            <button type="submit" class="btn btn-primary"><i class="bi bi-check-circle"></i> Update</button>
+            <a asp-action="Consumers" class="btn btn-secondary"><i class="bi bi-arrow-left-circle"></i> Cancel</a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

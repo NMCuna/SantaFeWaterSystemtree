@@ -1,0 +1,288 @@
+﻿@model SantaFeWaterSystem.Models.ViewModels.PaginatedPaymentsViewModel
+@using System.Security.Claims
+@inject IHttpContextAccessor HttpContextAccessor
+
+@{
+    ViewData["Title"] = "Manage Payments";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+
+    var user = HttpContextAccessor.HttpContext?.User;
+    var isAdmin = user?.IsInRole("Admin") ?? false;
+    var isStaff = user?.IsInRole("Staff") ?? false;
+
+    var userPermissions = user?.Claims
+       .Where(c => c.Type == "Permission")
+       .Select(c => c.Value)
+       .ToList() ?? new List<string>();
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/manage-payments.css" asp-append-version="true" />
+}
+
+<h2 class="page-header"><i class="bi bi-credit-card-2-front-fill"></i> Manage Payments</h2>
+
+<!-- Filter + Action Buttons Wrapper -->
+<div class="mb-3">
+    <form id="filterForm" method="get">
+        <div class="row g-2 align-items-center">
+
+            <!-- Search by Consumer Name -->
+            <div class="col-md-4 col-lg-3">
+                <div class="input-group">
+                    <span class="input-group-text bg-primary text-white">
+                        <i class="bi bi-search"></i>
+                    </span>
+                    <input type="text" id="searchInput" name="searchTerm" value="@Model.SearchTerm" class="form-control" placeholder="Search by consumer name..." />
+                </div>
+            </div>
+
+            <!-- Status Filter -->
+            <div class="col-md-4 col-lg-3">
+                <div class="input-group">
+                    <span class="input-group-text bg-warning text-dark">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                    </span>
+                    <select name="statusFilter" class="form-select">
+                        <option value="">All Statuses</option>
+                        <option value="Verified" selected="@(Model.StatusFilter == "Verified")">Verified</option>
+                        <option value="Pending" selected="@(Model.StatusFilter == "Pending")">Pending</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Payment Method Filter -->
+            <div class="col-md-4 col-lg-3">
+                <div class="input-group">
+                    <span class="input-group-text bg-info text-white">
+                        <i class="bi bi-wallet2"></i>
+                    </span>
+                    <select name="paymentMethodFilter" class="form-select">
+                        <option value="">All Methods</option>
+                        <option value="GCash" selected="@(Model.PaymentMethodFilter == "GCash")">GCash</option>
+                        <option value="Maya" selected="@(Model.PaymentMethodFilter == "Maya")">Maya</option>
+                        <option value="Cash" selected="@(Model.PaymentMethodFilter == "Cash")">Cash</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Filters and Action Buttons in One Line -->
+            <div class="row g-2 align-items-end">
+                <!-- Month Filter -->
+                <div class="col-md-3">
+                    <div class="input-group">
+                        <span class="input-group-text bg-secondary text-white">
+                            <i class="bi bi-calendar-month"></i>
+                        </span>
+                        <select name="selectedMonth" class="form-select">
+                            <option value="">All Months</option>
+                            @for (int month = 1; month <= 12; month++)
+                            {
+                                var monthName = System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(month);
+                                <option value="@month" selected="@(Model.SelectedMonth == month)">@monthName</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Year Filter -->
+                <div class="col-md-3">
+                    <div class="input-group">
+                        <span class="input-group-text bg-secondary text-white">
+                            <i class="bi bi-calendar3"></i>
+                        </span>
+                        <select name="selectedYear" class="form-select">
+                            <option value="">All Years</option>
+                            @for (int year = DateTime.Now.Year; year >= 2020; year--)
+                            {
+                                <option value="@year" selected="@(Model.SelectedYear == year)">@year</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Walk-in Payment Button -->
+                <div class="col-md-3">
+                    <a asp-action="CreatePayment" class="btn btn-success w-100" title="Record new walk-in payment">
+                        <i class="bi bi-plus-circle-fill"></i> Walk-in Payment
+                    </a>
+                </div>
+
+                <!-- Download Selected Button -->
+                <div class="col-md-3">
+                    <button type="button" class="btn btn-outline-primary w-100" onclick="downloadSelected()" title="Export selected payments to PDF">
+                        <i class="bi bi-download"></i> Download Selected
+                    </button>
+                </div>
+            </div>
+
+
+        </div>
+    </form>
+</div>
+
+
+@if (!Model.Payments.Any())
+{
+    <div class="alert alert-info w-100 text-center mt-3">
+        <i class="bi bi-info-circle-fill"></i> No payment records found for the selected filters.
+    </div>
+}
+
+<div class="table-responsive">
+    <table class="table table-bordered table-hover align-middle">
+        <thead class="table-light">
+            <tr>
+                <th><input type="checkbox" id="checkAll" /></th>
+                <th>Consumer</th>
+                <th>Payment Date</th>
+                <th>Bill No</th>
+                <th>Amount Paid</th>
+                <th>Payment Method</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var payment in Model.Payments)
+            {
+                var rowClass = !payment.IsVerified ? "table-warning" : ""; // Optional: highlight unverified
+
+                <tr class="@rowClass">
+                    <td><input type="checkbox" class="export-checkbox" value="@payment.PaymentId" /></td>
+                    <td>@payment.LastName, @payment.FirstName</td>
+                    <td>@payment.PaymentDate.ToShortDateString()</td>
+                    <td>@payment.BillNo</td>
+                    <td>@payment.AmountPaid.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("fil-PH"))</td>
+                    <td>@payment.PaymentMethod</td>
+                    <td>
+                        @if (payment.IsVerified)
+                        {
+                            <span class="status-badge status-paid">✅ Verified</span>
+                        }
+                        else
+                        {
+                            <span class="status-badge status-pending">⌛ Pending</span>
+                        }
+                    </td>
+                    <td class="action-buttons">
+                        @if (userPermissions.Contains("ViewPayment"))
+                        {
+                            <a class="btn btn-sm btn-info" asp-action="Details" asp-route-id="@payment.PaymentId">
+                                <i class="bi bi-eye"></i> View
+                            </a>
+                        }
+
+                        @if (userPermissions.Contains("EditPayment"))
+                        {
+                            <a class="btn btn-sm btn-primary" asp-action="Edit" asp-route-id="@payment.PaymentId">
+                                <i class="bi bi-pencil-square"></i> Edit
+                            </a>
+                        }
+
+                        @if (userPermissions.Contains("DeletePayment"))
+                        {
+                            <a class="btn btn-sm btn-danger" asp-action="Delete" asp-route-id="@payment.PaymentId">
+                                <i class="bi bi-trash"></i> Delete
+                            </a>
+                        }
+
+                        @if (!payment.IsVerified && userPermissions.Contains("VerifyPayment"))
+                        {
+                            <form asp-action="Verify" asp-route-id="@payment.PaymentId" method="post" class="d-inline">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-sm btn-success">
+                                    <i class="bi bi-check-circle"></i> Verify
+                                </button>
+                            </form>
+                        }
+                        else if (payment.IsVerified && userPermissions.Contains("VerifyPayment"))
+                        {
+                            <form asp-action="Unverify" asp-route-id="@payment.PaymentId" method="post" class="d-inline">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-sm btn-warning">
+                                    <i class="bi bi-x-circle"></i> Unverify
+                                </button>
+                            </form>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@if (Model.TotalPages > 1)
+{
+    <nav aria-label="Payment pagination">
+        <ul class="pagination justify-content-center">
+            @for (int i = 1; i <= Model.TotalPages; i++)
+            {
+                <li class="page-item @(i == Model.PageNumber ? "active" : "")">
+                    <a class="page-link"
+                       asp-action="ManagePayments"
+                       asp-route-page="@i"
+                       asp-route-searchTerm="@Model.SearchTerm"
+                       asp-route-statusFilter="@Model.StatusFilter"
+                       asp-route-paymentMethodFilter="@Model.PaymentMethodFilter"
+                       asp-route-selectedMonth="@Model.SelectedMonth"
+                       asp-route-selectedYear="@Model.SelectedYear">
+                        @i
+                    </a>
+                </li>
+            }
+        </ul>
+    </nav>
+}
+
+@section Scripts {
+    <script>
+        // Auto submit on dropdown change
+        document.querySelectorAll('#filterForm select').forEach(select => {
+            select.addEventListener('change', () => document.getElementById('filterForm').submit());
+        });
+
+        // Debounced search auto-submit
+        let searchInput = document.getElementById('searchInput');
+        let debounceTimer;
+        searchInput.addEventListener('input', () => {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => {
+                document.getElementById('filterForm').submit();
+            }, 700);
+        });
+
+        // Select All checkbox
+        document.getElementById('checkAll').addEventListener('change', function () {
+            document.querySelectorAll('.export-checkbox').forEach(cb => cb.checked = this.checked);
+        });
+
+        // Export selected rows to PDF
+        function downloadSelected() {
+            const selectedIds = Array.from(document.querySelectorAll('.export-checkbox:checked'))
+                .map(cb => cb.value);
+
+            if (selectedIds.length === 0) {
+                alert("Please select at least one payment.");
+                return;
+            }
+
+            const form = document.createElement("form");
+            form.method = "post";
+            form.action = "/Payments/ExportSelectedToPdf";
+
+            selectedIds.forEach(id => {
+                const input = document.createElement("input");
+                input.type = "hidden";
+                input.name = "selectedIds";
+                input.value = id;
+                form.appendChild(input);
+            });
+
+            document.body.appendChild(form);
+            form.submit();
+        }
+
+    </script>
+}
+

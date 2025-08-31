@@ -1,0 +1,350 @@
+﻿html, body {
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden; /* remove horizontal scroll */
+}
+
+/* Limit decoration overflow so they don't push scrollbars */
+.svg-wave,
+.drop-behind,
+.bubble {
+    overflow: hidden;
+}
+
+body {
+    background: linear-gradient(to bottom, #e8f5e9, #ffffff);
+}
+
+/* 🌊 Animated Wave Background */
+.svg-wave {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 320px;
+    z-index: -2;
+    overflow: hidden;
+    line-height: 0;
+}
+
+    .svg-wave svg {
+        width: 100%;
+        height: 100%;
+    }
+
+/* 💧 Animated Water Drops */
+.drop-behind {
+    position: absolute;
+    top: -40px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: -1;
+    pointer-events: none;
+}
+
+    .drop-behind i {
+        display: block;
+        animation: rotateDrop 30s linear infinite, ripple 6s ease-in-out infinite;
+    }
+
+.drop-1 i {
+    font-size: 5rem;
+    color: rgba(33, 150, 243, 0.12);
+}
+
+.drop-2 {
+    top: -30px;
+    left: 45%;
+}
+
+    .drop-2 i {
+        font-size: 4rem;
+        color: rgba(33, 150, 243, 0.08);
+        animation-delay: 2s;
+    }
+
+@keyframes rotateDrop {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes ripple {
+    0%, 100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.25);
+    }
+}
+
+/* 🫧 Floating Bubbles */
+.bubble {
+    position: absolute;
+    bottom: -50px;
+    width: 20px;
+    height: 20px;
+    background-color: rgba(173, 216, 230, 0.3);
+    border-radius: 50%;
+    animation: floatBubble 10s infinite;
+    z-index: -1;
+}
+
+    .bubble:nth-child(1) {
+        left: 20%;
+        animation-delay: 0s;
+        width: 15px;
+        height: 15px;
+    }
+
+    .bubble:nth-child(2) {
+        left: 40%;
+        animation-delay: 2s;
+        width: 25px;
+        height: 25px;
+    }
+
+    .bubble:nth-child(3) {
+        left: 60%;
+        animation-delay: 4s;
+        width: 18px;
+        height: 18px;
+    }
+
+    .bubble:nth-child(4) {
+        left: 75%;
+        animation-delay: 6s;
+        width: 22px;
+        height: 22px;
+    }
+
+@keyframes floatBubble {
+    0% {
+        transform: translateY(0) scale(1);
+        opacity: 0.4;
+    }
+
+    50% {
+        transform: translateY(-200px) scale(1.2);
+        opacity: 0.7;
+    }
+
+    100% {
+        transform: translateY(-400px) scale(1);
+        opacity: 0;
+    }
+}
+
+/* Title */
+.welcome-title {
+    color: #2e7d32;
+    animation: glowText 2s ease-in-out infinite alternate;
+}
+
+/* General card base */
+.home-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border-radius: 12px;
+    background-color: #ffffff;
+    position: relative;
+}
+
+    .home-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 0 25px rgba(0, 0, 0, 0.1);
+    }
+
+/* Glowing Icon Circle */
+.icon-circle {
+    background-color: #ffffff;
+    border-radius: 50%;
+    width: 80px;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Animations */
+@keyframes glowPulse {
+    0% {
+        box-shadow: 0 0 0 transparent;
+    }
+
+    50% {
+        box-shadow: 0 0 15px var(--glow-color);
+    }
+
+    100% {
+        box-shadow: 0 0 0 transparent;
+    }
+}
+
+@keyframes glowText {
+    0% {
+        text-shadow: 0 0 4px var(--glow-color);
+    }
+
+    50% {
+        text-shadow: 0 0 12px var(--glow-color);
+    }
+
+    100% {
+        text-shadow: 0 0 4px var(--glow-color);
+    }
+}
+
+/* 💙 Blue Card */
+.card-blue {
+    --glow-color: rgba(13, 110, 253, 0.6);
+}
+
+    .card-blue:hover {
+        box-shadow: 0 0 25px var(--glow-color);
+    }
+
+    .card-blue .icon-circle i {
+        color: #0d6efd;
+        animation: glowPulse 2s infinite ease-in-out;
+    }
+
+    .card-blue h5 {
+        color: #0d6efd;
+        animation: glowText 2s infinite ease-in-out;
+    }
+
+/* 💚 Green Card */
+.card-green {
+    --glow-color: rgba(25, 135, 84, 0.6);
+}
+
+    .card-green:hover {
+        box-shadow: 0 0 25px var(--glow-color);
+    }
+
+    .card-green .icon-circle i {
+        color: #198754;
+        animation: glowPulse 2s infinite ease-in-out;
+    }
+
+    .card-green h5 {
+        color: #198754;
+        animation: glowText 2s infinite ease-in-out;
+    }
+
+/* 💖 Pink Card */
+.card-pink {
+    --glow-color: rgba(214, 51, 132, 0.6);
+}
+
+    .card-pink:hover {
+        box-shadow: 0 0 25px var(--glow-color);
+    }
+
+    .card-pink .icon-circle i {
+        color: #d63384;
+        animation: glowPulse 2s infinite ease-in-out;
+    }
+
+    .card-pink h5 {
+        color: #d63384;
+        animation: glowText 2s infinite ease-in-out;
+    }
+
+/* Login Button */
+.btn-login {
+    background-color: #43a047;
+    border: none;
+    transition: background-color 0.3s;
+    box-shadow: 0 0 10px rgba(67, 160, 71, 0.3);
+}
+
+    .btn-login:hover {
+        background-color: #2e7d32;
+        box-shadow: 0 0 15px rgba(46, 125, 50, 0.5);
+    }
+
+/* Glowing gradient ring for icon circle */
+.icon-circle {
+    position: relative;
+    z-index: 1;
+    background-color: #ffffff;
+    border-radius: 50%;
+    width: 80px;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+    .icon-circle::before {
+        content: '';
+        position: absolute;
+        top: -8px;
+        left: -8px;
+        width: 96px;
+        height: 96px;
+        border-radius: 50%;
+        background: conic-gradient(from 0deg, #0d6efd, #198754, #d63384, #0dcaf0, #0d6efd);
+        z-index: -1;
+        animation: rotateGlow 4s linear infinite;
+        filter: blur(8px);
+        opacity: 0.7;
+    }
+
+@keyframes rotateGlow {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* Pulse the entire card gently */
+.home-card {
+    animation: pulseCard 6s ease-in-out infinite;
+    position: relative;
+    overflow: hidden;
+}
+
+@keyframes pulseCard {
+    0%, 100% {
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+    }
+
+    50% {
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+    }
+}
+
+/* Optional: change glow ring color per card using variables */
+.card-blue .icon-circle::before {
+    background: conic-gradient(from 0deg, #0d6efd, #66b2ff, #0d6efd);
+}
+
+.card-green .icon-circle::before {
+    background: conic-gradient(from 0deg, #198754, #88e09d, #198754);
+}
+
+.card-pink .icon-circle::before {
+    background: conic-gradient(from 0deg, #d63384, #f88abb, #d63384);
+}
+
+@media (max-width: 320px) {
+    .btn-login {
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+        font-size: 0.9rem;
+    }
+}

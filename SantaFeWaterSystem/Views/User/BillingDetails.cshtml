@@ -1,0 +1,117 @@
+﻿@model SantaFeWaterSystem.ViewModels.BillingViewModel
+@{
+    ViewData["Title"] = "Billing Receipt";
+    Layout = "~/Views/Shared/_UserLayout.cshtml";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/billing.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" />
+}
+
+<div id="receiptCapture" class="receipt-container">
+    <div class="receipt-header">
+        <h2 class="glow"><i class="bi bi-file-earmark-text-fill"></i> Billing Receipt</h2>
+        <p class="text-muted">Santa Fe Water Billing System</p>
+    </div>
+
+    <div class="receipt-section">
+        <h5><i class="bi bi-person-badge-fill me-2"></i>Consumer Details</h5>
+        <div class="d-flex flex-wrap justify-content-between mb-2">
+            <div class="receipt-line-item">
+                <strong>Account Number:</strong> @Model.AccountNumber
+            </div>
+            <div class="receipt-line-item">
+                <strong>Full Name:</strong> @Model.FullName
+            </div>
+        </div>
+    </div>
+
+    <div class="receipt-section">
+        <h5><i class="bi bi-receipt-cutoff me-2"></i>Billing Information</h5>
+        <div class="d-flex flex-wrap justify-content-between mb-2">
+            <div class="receipt-line-item">
+                <strong>Billing No:</strong> @Model.BillNo
+            </div>
+            <div class="receipt-line-item">
+                <strong>Status:</strong> @Model.Status
+            </div>
+        </div>
+        <div class="d-flex flex-wrap justify-content-between mb-2">
+            <div class="receipt-line-item">
+                <strong>Billing Date:</strong> @Model.BillingDate.ToString("MMM dd, yyyy")
+            </div>
+            <div class="receipt-line-item">
+                <strong>Due Date:</strong> @Model.DueDate.ToString("MMM dd, yyyy")
+            </div>
+        </div>
+    </div>
+
+    <div class="receipt-section">
+        <h5><i class="bi bi-speedometer2 me-2"></i>Meter Readings</h5>
+        <div class="d-flex flex-wrap justify-content-between mb-2">
+            <div class="receipt-line-item">
+                <strong>Previous Reading:</strong> @Model.PreviousReading
+            </div>
+            <div class="receipt-line-item">
+                <strong>Present Reading:</strong> @Model.PresentReading
+            </div>
+        </div>
+        <div class="receipt-line-item">
+            <strong>Cubic Meter Used:</strong> @Model.CubicMeterUsed
+        </div>
+    </div>
+
+    <div class="receipt-section">
+        <h5><i class="bi bi-cash-stack me-2"></i>Charges</h5>
+        <div class="d-flex flex-wrap justify-content-between mb-2">
+            <div class="receipt-line-item">
+                <strong>Amount Due:</strong> ₱@Model.AmountDue.ToString("N2")
+            </div>
+            <div class="receipt-line-item">
+                <strong>Penalty:</strong> ₱@Model.Penalty.ToString("N2")
+            </div>
+        </div>
+        <div class="d-flex flex-wrap justify-content-between mb-2">
+            <div class="receipt-line-item">
+                <strong>Additional Fees:</strong> ₱@Model.AdditionalFees?.ToString("N2")
+            </div>
+            <div class="receipt-line-item">
+                <strong>Total Amount:</strong> <strong>₱@Model.TotalAmount.ToString("N2")</strong>
+            </div>
+        </div>
+    </div>
+
+    <div class="text-center mt-4 no-print no-capture">
+        <div class="d-flex justify-content-center gap-2 flex-wrap">
+            <button id="downloadImageBtn" class="btn btn-success">
+                <i class="bi bi-image me-1"></i> Download
+            </button>
+            <a asp-action="BillingHistory" class="btn btn-secondary">
+                <i class="bi bi-arrow-left-circle me-1"></i> Back
+            </a>
+        </div>
+    </div>
+
+
+@section Scripts {
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+        <script>
+            document.getElementById('downloadImageBtn').addEventListener('click', function () {
+                const elementsToHide = document.querySelectorAll('.no-capture');
+
+                // Temporarily hide elements (but preserve layout)
+                elementsToHide.forEach(el => el.style.visibility = 'hidden');
+
+                html2canvas(document.querySelector('#receiptCapture')).then(canvas => {
+                    const link = document.createElement('a');
+                    link.download = 'billing-receipt.png';
+                    link.href = canvas.toDataURL();
+                    link.click();
+
+                    // Restore visibility after capture
+                    elementsToHide.forEach(el => el.style.visibility = 'visible');
+                });
+            });
+        </script>
+}

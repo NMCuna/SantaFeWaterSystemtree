@@ -1,0 +1,94 @@
+﻿@model SantaFeWaterSystem.ViewModels.EditPermissionsViewModel
+
+@{
+    ViewData["Title"] = "Edit Staff Permissions";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+@section Styles {
+    <style>
+        .permission-group {
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 0 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .form-check-label {
+            font-weight: 500;
+        }
+
+        .icon-permission {
+            margin-right: 8px;
+            color: #0d6efd;
+            transition: transform 0.2s ease-in-out;
+        }
+
+        .form-check-input:focus + .form-check-label .icon-permission {
+            transform: scale(1.2) rotate(10deg);
+        }
+
+        h2.page-header {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #0d6efd;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+        }
+
+            h2.page-header i {
+                margin-right: 10px;
+            }
+    </style>
+}
+
+<div class="container mt-4">
+    <h2 class="page-header">
+        <i class="bi bi-shield-lock-fill"></i> Edit Permissions for Staff ID: <span class="text-dark">@Model.StaffId</span>
+    </h2>
+
+    <form asp-action="EditPermissions" method="post" class="permission-group">
+        <input type="hidden" asp-for="StaffId" />
+
+        <div class="row">
+            @for (int i = 0; i < Model.Permissions.Count; i++)
+            {
+                <div class="col-md-6 col-lg-4 mb-3">
+                    <div class="form-check">
+                        <input type="checkbox"
+                               class="form-check-input"
+                               name="Permissions[@i].IsAssigned"
+                               value="true"
+                               id="perm_@i"
+                        @(Model.Permissions[i].IsAssigned ? "checked" : "") />
+
+                        <input type="hidden" name="Permissions[@i].PermissionId" value="@Model.Permissions[i].PermissionId" />
+                        <input type="hidden" name="Permissions[@i].Name" value="@Model.Permissions[i].Name" />
+
+                        <label class="form-check-label" for="perm_@i" data-bs-toggle="tooltip" title="Enable @Model.Permissions[i].Name permission">
+                            <i class="bi bi-toggle-on icon-permission"></i> @Model.Permissions[i].Name
+                        </label>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <div class="mt-4">
+            <button type="submit" class="btn btn-success me-2">
+                <i class="bi bi-check-circle"></i> Save Permissions
+            </button>
+            <a asp-action="ManageUsers" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left-circle"></i> Cancel
+            </a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+        const tooltipList = [...tooltipTriggerList].map(t => new bootstrap.Tooltip(t));
+    </script>
+}

@@ -1,0 +1,66 @@
+﻿/* Light mode (default) */
+.card.billing-card {
+    background-color: #fff;
+    color: #212529;
+    border: 1px solid #dee2e6;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+/* Dark mode when body has .dark-mode */
+body.dark-mode .card.billing-card {
+    background-color: #212529;
+    color: #f8f9fa;
+    border: 1px solid #444;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.6);
+}
+
+/* Badge colors for statuses in light mode */
+.badge.status-paid {
+    background-color: #28a745; /* green */
+    color: white;
+}
+
+.badge.status-unpaid {
+    background-color: #dc3545; /* red */
+    color: white;
+}
+
+.badge.status-pending {
+    background-color: #ffc107; /* yellow */
+    color: #212529;
+}
+
+.badge.status-overdue {
+    background-color: #343a40; /* dark */
+    color: white;
+}
+
+/* Badge colors override for dark mode */
+body.dark-mode .badge.status-paid {
+    background-color: #1c7c31; /* darker green */
+    color: white;
+}
+
+body.dark-mode .badge.status-unpaid {
+    background-color: #b02a37; /* darker red */
+    color: white;
+}
+
+body.dark-mode .badge.status-pending {
+    background-color: #d39e00; /* darker yellow */
+    color: white;
+}
+
+body.dark-mode .badge.status-overdue {
+    background-color: #212529; /* darker background */
+    color: white;
+}
+
+/* Show icon only in dark mode */
+.badge i.bi {
+    display: none;
+}
+
+body.dark-mode .badge i.bi {
+    display: inline-block;
+}

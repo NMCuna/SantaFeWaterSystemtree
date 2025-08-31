@@ -1,0 +1,73 @@
+﻿@model SantaFeWaterSystem.Models.User
+
+@{
+    ViewData["Title"] = "Account Temporarily Locked";
+    Layout = "_AccountLayout";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow border-0">
+                <div class="card-header bg-warning text-dark d-flex align-items-center">
+                    <i class="bi bi-clock-history fs-4 me-2"></i>
+                    <h5 class="mb-0">Too Many Failed Attempts</h5>
+                </div>
+                <div class="card-body text-center">
+                    <p class="text-muted">
+                        Your account has been <strong>temporarily locked</strong> due to multiple failed login attempts.
+                    </p>
+
+                    @if (!string.IsNullOrEmpty(Model.AccountNumber))
+                    {
+                        <div class="mb-3">
+                            <strong>Account Number:</strong> @Model.AccountNumber
+                        </div>
+                    }
+
+                    <div class="mb-4">
+                        <strong>Username:</strong> @Model.Username
+                    </div>
+
+                    <p>You can try again after:</p>
+                    <div class="alert alert-warning fw-bold">
+                        <span id="unlockTimeDisplay">@ViewBag.UnlockTimeDisplay</span><br />
+                        <span id="countdownTimer" class="text-danger fs-5"></span>
+                    </div>
+
+                    <!-- ✅ Redirects to Home page now -->
+                    <a asp-action="Index"
+                       asp-controller="Home"
+                       class="btn btn-outline-secondary mt-3">
+                        <i class="bi bi-house-door-fill"></i> Back to Home
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        const unlockTime = new Date('@ViewBag.UnlockTime'); // JS-compatible datetime
+        const timerEl = document.getElementById('countdownTimer');
+
+        function updateCountdown() {
+            const now = new Date();
+            const diff = unlockTime - now;
+
+            if (diff <= 0) {
+                timerEl.textContent = "✅ You can now try logging in again.";
+                return;
+            }
+
+            const minutes = Math.floor((diff / 1000 / 60) % 60);
+            const seconds = Math.floor((diff / 1000) % 60);
+
+            timerEl.textContent = `⏳ Time remaining: ${minutes}m ${seconds}s`;
+            setTimeout(updateCountdown, 1000);
+        }
+
+        updateCountdown();
+    </script>
+}

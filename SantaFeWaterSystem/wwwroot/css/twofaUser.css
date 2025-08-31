@@ -1,0 +1,43 @@
+﻿.twofa-container {
+    max-width: 500px;
+    margin: auto;
+    background-color: #ffffff;
+    color: #212529;
+    border-radius: 1rem;
+    box-shadow: 0 0 30px rgba(0,0,0,0.1);
+    padding: 2rem;
+    position: relative;
+    z-index: 1;
+}
+
+.close-home-btn-inside {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    font-size: 1.8rem;
+    color: #ff4d4d;
+    text-decoration: none;
+    font-weight: bold;
+    text-shadow: 0 0 8px rgba(255, 77, 77, 0.6);
+    transition: transform 0.2s ease, color 0.3s ease, text-shadow 0.3s;
+}
+
+    .close-home-btn-inside:hover {
+        color: #fff;
+        transform: scale(1.2);
+        text-shadow: 0 0 12px rgba(255, 255, 255, 0.9), 0 0 20px rgba(255, 77, 77, 0.9);
+    }
+
+.qr-image {
+    max-width: 180px;
+    height: auto;
+    border: 5px solid #f1f1f1;
+    border-radius: 8px;
+    background: #fff;
+}
+
+.instructions li,
+.steps li {
+    margin-bottom: 0.75rem;
+    list-style: none;
+}

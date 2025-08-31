@@ -1,0 +1,174 @@
+﻿@model IPagedList<SantaFeWaterSystem.Models.ViewModels.SmsLogViewModel>
+@using X.PagedList.Mvc.Core
+@using X.PagedList
+@using System.Globalization
+@using System.Text.Encodings.Web
+
+
+@{
+    ViewData["Title"] = "Archived SMS Logs";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/glow.css" asp-append-version="true" />
+}
+
+<h2 class="page-header text-primary fw-bold glow-text mb-3">
+    <i class="bi bi-archive me-2"></i> Archived SMS Logs
+</h2>
+
+<!-- Filter -->
+<form method="get" asp-action="ArchivedSmsLogs" class="mb-4 d-flex gap-2 flex-wrap align-items-end">
+    <div>
+        <label>Month</label>
+        <select name="month" class="form-select">
+            @{
+                int selectedMonth = ViewBag.SelectedMonth ?? DateTime.Now.Month;
+            }
+            @for (int m = 1; m <= 12; m++)
+            {
+                <option value="@m" selected="@(m == selectedMonth ? "selected" : null)">
+                    @CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(m)
+                </option>
+            }
+        </select>
+    </div>
+
+    <div>
+        <label>Year</label>
+        <select name="year" class="form-select">
+            @{
+                int currentYear = DateTime.Now.Year;
+                int selectedYear = ViewBag.SelectedYear ?? currentYear;
+            }
+            @for (int y = currentYear; y >= currentYear - 5; y--)
+            {
+                <option value="@y" selected="@(y == selectedYear ? "selected" : null)">
+                    @y
+                </option>
+            }
+        </select>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Filter</button>
+
+    <div>
+        <a href="@Url.Action("SmsLogs", "Notifications")" class="btn btn-secondary">
+            <i class="bi bi-arrow-left-circle"></i> Back to SMS Logs
+        </a>
+    </div>
+</form>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info">No archived logs found for the selected month and year.</div>
+}
+else
+{
+    <!-- Table -->
+    <table class="table table-bordered table-hover">
+        <thead class="table-secondary">
+            <tr>
+                <th>Recipient</th>
+                <th>Contact Number</th>
+                <th>Message</th>
+                <th>Status</th>
+                <th>Sent At</th>
+                <th>Response</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var log in Model)
+            {
+                <tr>
+                    <td>@log.ConsumerName</td>
+                    <td>@log.ContactNumber</td>
+                    <td>
+                        <button type="button" class="btn btn-sm btn-info view-message-btn"
+                                data-bs-toggle="modal"
+                                data-bs-target="#globalMessageModal"
+                                data-message="@log.Message"
+                                data-title="Message from @log.ConsumerName">
+                            <i class="bi bi-eye"></i> View Message
+                        </button>
+                    </td>
+                    <td>
+                        @if (log.IsSuccess)
+                        {
+                            <span class="badge bg-success">Success</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-danger">Failed</span>
+                        }
+                    </td>
+                    <td>@log.SentAt.ToString("g")</td>
+                    <td>@log.ResponseMessage</td>
+                    <td>
+                        <form asp-action="UnarchiveSmsLog" asp-controller="Notifications" method="post" onsubmit="return confirm('Unarchive this log?');">
+                            <input type="hidden" name="id" value="@log.Id" />
+                            <button type="submit" class="btn btn-warning btn-sm">
+                                <i class="bi bi-box-arrow-in-up"></i> Unarchive
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <!-- Pagination -->
+    <div class="d-flex justify-content-center mt-4">
+        @Html.PagedListPager(Model, page => Url.Action("ArchivedSmsLogs", new
+        {
+            page,
+        month = ViewBag.SelectedMonth ?? DateTime.Now.Month,
+        year = ViewBag.SelectedYear ?? DateTime.Now.Year
+        }),
+        new PagedListRenderOptions
+        {
+            DisplayLinkToFirstPage = PagedListDisplayMode.Always,
+            DisplayLinkToLastPage = PagedListDisplayMode.Always,
+            DisplayLinkToPreviousPage = PagedListDisplayMode.Always,
+            DisplayLinkToNextPage = PagedListDisplayMode.Always,
+            DisplayLinkToIndividualPages = true,
+            ContainerDivClasses = new[] { "pagination" },
+            UlElementClasses = new[] { "pagination" },
+            LiElementClasses = new[] { "page-item" },
+            PageClasses = new[] { "page-link" }
+        })
+</div>
+}
+
+<!-- Global Reusable Modal -->
+<div class="modal fade" id="globalMessageModal" tabindex="-1" aria-labelledby="globalMessageModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="globalMessageModalLabel">Message Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="globalMessageModalBody">
+                <!-- Content injected dynamically -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.querySelectorAll(".view-message-btn").forEach(button => {
+            button.addEventListener("click", function () {
+                const message = this.getAttribute("data-message");
+                const title = this.getAttribute("data-title");
+                document.getElementById("globalMessageModalLabel").innerText = title;
+                document.getElementById("globalMessageModalBody").innerText = message;
+            });
+        });
+    </script>
+}

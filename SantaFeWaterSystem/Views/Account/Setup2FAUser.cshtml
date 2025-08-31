@@ -1,0 +1,170 @@
+﻿@model TwoFactorSetupViewModel
+@{
+    ViewData["Title"] = "Enable 2FA";
+    Layout = "_AccountLayout";
+}
+
+@section Styles {
+    <style>
+        .twofa-container {
+            max-width: 500px;
+            margin: auto;
+            background-color: #ffffff;
+            color: #212529;
+            border-radius: 1rem;
+            box-shadow: 0 0 30px rgba(0,0,0,0.1);
+            padding: 2rem;
+            position: relative;
+        }
+
+        .close-home-btn-inside {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 1.8rem;
+            color: #ff4d4d;
+            text-decoration: none;
+            font-weight: bold;
+            text-shadow: 0 0 8px rgba(255, 77, 77, 0.6);
+        }
+
+            .close-home-btn-inside:hover {
+                color: #fff;
+                transform: scale(1.2);
+                text-shadow: 0 0 12px rgba(255, 255, 255, 0.9), 0 0 20px rgba(255, 77, 77, 0.9);
+            }
+
+        .qr-image {
+            max-width: 180px;
+            height: auto;
+            border: 5px solid #f1f1f1;
+            border-radius: 8px;
+            background: #fff;
+        }
+
+        .steps li {
+            margin-bottom: 0.75rem;
+            list-style: none;
+        }
+
+            .steps li a {
+                text-decoration: underline;
+            }
+
+        .modal-body ul {
+            padding-left: 1rem;
+        }
+    </style>
+}
+
+<div class="twofa-container position-relative bg-white p-4 shadow rounded">
+    <a href="~/User/Dashboard" class="close-home-btn-inside" title="Back to Dashboard">
+        <i class="bi bi-x-circle-fill"></i>
+    </a>
+
+    <h2 class="text-center mb-3 text-dark d-flex justify-content-center align-items-center flex-wrap fs-5 fs-sm-4 fs-md-3">
+        <i class="bi bi-shield-lock-fill text-success me-2 fs-4 fs-sm-3"></i>
+        <span class="text-wrap text-break">Protect Your Account</span>
+    </h2>
+
+
+    <p class="text-muted text-center">
+        Two-Factor Authentication (2FA) adds an extra layer of security to your account.
+    </p>
+
+    <!-- 👉 Eye-catching instruction -->
+    <div class="alert alert-info text-center mt-4 fw-bold">
+        Tap the button below to learn how to set up 2FA
+    </div>
+
+    <!-- 👉 Modal trigger button -->
+    <div class="text-center mb-4">
+        <button type="button" class="btn btn-outline-success fw-semibold px-4" data-bs-toggle="modal" data-bs-target="#setupInstructionsModal">
+            <i class="bi bi-info-circle-fill me-1"></i> How to Set Up 2FA
+        </button>
+    </div>
+
+    <div class="text-center mt-4">
+        <img src="@Model.QRCodeUrl" class="qr-image" alt="QR Code" />
+        <p class="mt-3">
+            <strong>Manual Code:</strong>
+            <code>@Model.SecretKey</code>
+        </p>
+    </div>
+
+    <form asp-controller="Account" asp-action="Setup2FAUser" method="post" class="mt-4">
+        @Html.HiddenFor(m => m.UserId)
+        @Html.HiddenFor(m => m.Role)
+        @Html.HiddenFor(m => m.SecretKey)
+        @Html.HiddenFor(m => m.QRCodeUrl)
+
+        <div class="mb-3">
+            <label asp-for="Code" class="form-label">
+                <i class="bi bi-key me-1"></i> Enter 6-digit Code from App
+            </label>
+            <input asp-for="Code" class="form-control" placeholder="Enter code" />
+            <span asp-validation-for="Code" class="text-danger small"></span>
+        </div>
+
+        <button type="submit" class="btn btn-success w-100">
+            <i class="bi bi-shield-check me-1"></i> Enable 2FA
+        </button>
+    </form>
+</div>
+
+<!-- 👇 Modal for Setup Instructions -->
+<div class="modal fade" id="setupInstructionsModal" tabindex="-1" aria-labelledby="setupInstructionsLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="setupInstructionsLabel">
+                    <i class="bi bi-shield-lock-fill me-2"></i>2FA Setup Instructions
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-dark">
+                <ul class="steps">
+                    <li>
+                        <i class="bi bi-arrow-right-circle me-2 text-success"></i>
+                        Install an <strong>Authenticator App</strong>:
+                        <ul class="ms-4 mt-1">
+                            <li>
+                                <strong>Microsoft Authenticator</strong><br />
+                                <a href="https://play.google.com/store/apps/details?id=com.azure.authenticator" target="_blank">📱 Android</a> |
+                                <a href="https://apps.apple.com/app/microsoft-authenticator/id983156458" target="_blank">📱 iOS</a>
+                            </li>
+                            <li class="mt-1">
+                                Or use <strong>Google Authenticator</strong>, <strong>Authy</strong>, etc.
+                            </li>
+                        </ul>
+                    </li>
+                    <li>
+                        <i class="bi bi-arrow-right-circle me-2 text-success"></i>
+                        Open the app and tap <strong>"Add Account"</strong>.
+                    </li>
+                    <li>
+                        <i class="bi bi-arrow-right-circle me-2 text-success"></i>
+                        Use your phone’s camera to <strong>Scan the QR Code</strong> or enter the secret key.
+                    </li>
+                    <li>
+                        <i class="bi bi-arrow-right-circle me-2 text-success"></i>
+                        The app generates a <strong>6-digit code</strong> every 30 seconds.
+                    </li>
+                    <li>
+                        <i class="bi bi-arrow-right-circle me-2 text-success"></i>
+                        Enter the current code to complete setup.
+                    </li>
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle"></i> Close
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+}

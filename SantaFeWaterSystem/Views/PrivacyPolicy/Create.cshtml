@@ -1,0 +1,152 @@
+﻿@model SantaFeWaterSystem.ViewModels.CreatePrivacyPolicyViewModel
+
+@{
+    ViewData["Title"] = "Create Privacy Policy";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        h2 {
+            color: #0d6efd;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        h4 {
+            margin-top: 30px;
+            margin-bottom: 15px;
+            color: #198754;
+        }
+
+        .section-item {
+            transition: transform 0.2s;
+        }
+
+            .section-item:hover {
+                transform: translateY(-2px);
+            }
+
+        .remove-section i {
+            margin-right: 3px;
+        }
+
+        #add-section i {
+            margin-right: 5px;
+        }
+
+        .btn i {
+            margin-right: 5px;
+        }
+
+        .card.section-item {
+            background-color: #f8f9fa;
+        }
+    </style>
+}
+
+<h2 class="mb-4"><i class="bi bi-shield-lock-fill"></i> Create Privacy Policy</h2>
+
+<form asp-action="Create" method="post">
+    <div class="mb-3">
+        <label asp-for="Title" class="form-label fw-bold"></label>
+        <input asp-for="Title" class="form-control" />
+        <span asp-validation-for="Title" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Content" class="form-label fw-bold"></label>
+        <textarea asp-for="Content" class="form-control" rows="4"></textarea>
+        <span asp-validation-for="Content" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Version" class="form-label fw-bold"></label>
+        <input asp-for="Version" class="form-control" readonly />
+        <span asp-validation-for="Version" class="text-danger"></span>
+    </div>
+
+    <h4><i class="bi bi-card-list"></i> Sections</h4>
+    <div id="sections-container">
+        @for (int i = 0; i < Model.Sections.Count; i++)
+        {
+            <div class="card mb-3 p-3 border rounded section-item">
+                <div class="mb-2">
+                    <label asp-for="@Model.Sections[i].SectionTitle" class="form-label">Section Title</label>
+                    <input asp-for="@Model.Sections[i].SectionTitle" class="form-control" />
+                    <span asp-validation-for="@Model.Sections[i].SectionTitle" class="text-danger"></span>
+                </div>
+
+                <div class="mb-2">
+                    <label asp-for="@Model.Sections[i].Content" class="form-label">Content</label>
+                    <textarea asp-for="@Model.Sections[i].Content" class="form-control" rows="3"></textarea>
+                    <span asp-validation-for="@Model.Sections[i].Content" class="text-danger"></span>
+                </div>
+
+                <div class="form-check mb-2">
+                    <input type="checkbox"
+                           name="Sections[@i].IsActive"
+                           class="form-check-input"
+                           value="true"
+                           @(Model.Sections[i].IsActive ? "checked" : "") />
+                    <label class="form-check-label">Active</label>
+                </div>
+
+                <button type="button" class="btn btn-danger btn-sm remove-section">
+                    <i class="bi bi-trash-fill"></i> Remove Section
+                </button>
+            </div>
+        }
+    </div>
+
+    <button type="button" id="add-section" class="btn btn-secondary mt-2">
+        <i class="bi bi-plus-circle"></i> Add Section
+    </button>
+
+    <div class="mt-4">
+        <button type="submit" class="btn btn-primary">
+            <i class="bi bi-save"></i> Save Privacy Policy
+        </button>
+        <a asp-action="Index" class="btn btn-outline-secondary ms-2"><i class="bi bi-x-circle"></i> Cancel</a>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        const container = document.getElementById('sections-container');
+
+        document.getElementById('add-section').addEventListener('click', function () {
+            let index = container.children.length;
+
+            const sectionHtml = `
+            <div class="card mb-3 p-3 border rounded section-item">
+                <div class="mb-2">
+                    <label for="Sections_${index}__SectionTitle" class="form-label">Section Title</label>
+                    <input class="form-control" type="text" id="Sections_${index}__SectionTitle" name="Sections[${index}].SectionTitle" />
+                </div>
+                <div class="mb-2">
+                    <label for="Sections_${index}__Content" class="form-label">Content</label>
+                    <textarea class="form-control" id="Sections_${index}__Content" name="Sections[${index}].Content" rows="3"></textarea>
+                </div>
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="checkbox" id="Sections_${index}__IsActive" name="Sections[${index}].IsActive" value="true" checked />
+                    <label for="Sections_${index}__IsActive" class="form-check-label">Active</label>
+                </div>
+                <button type="button" class="btn btn-danger btn-sm remove-section">
+                    <i class="bi bi-trash-fill"></i> Remove Section
+                </button>
+            </div>`;
+
+            container.insertAdjacentHTML('beforeend', sectionHtml);
+        });
+
+        container.addEventListener('click', function (e) {
+            const btn = e.target.closest('.remove-section');
+            if (btn) btn.closest('.section-item').remove();
+        });
+    </script>
+}

@@ -1,0 +1,66 @@
+﻿@model SantaFeWaterSystem.ViewModels.DisconnectionViewModel
+
+@{
+    ViewData["Title"] = "Disconnection Details";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container mt-4">
+    <h2 class="mb-3"><i class="bi bi-person-lines-fill"></i> Disconnection Details</h2>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <dl class="row">
+                <dt class="col-sm-4">Consumer Name:</dt>
+                <dd class="col-sm-8">@Model.ConsumerName</dd>
+
+                <dt class="col-sm-4">Overdue Bills:</dt>
+                <dd class="col-sm-8">@Model.OverdueBillsCount</dd>
+
+                <dt class="col-sm-4">Total Unpaid Amount:</dt>
+                <dd class="col-sm-8">@Model.TotalUnpaidAmount.ToString("C")</dd>
+
+                <dt class="col-sm-4">Latest Due Date:</dt>
+                <dd class="col-sm-8">@Model.LatestDueDate?.ToString("MMMM dd, yyyy")</dd>
+
+                <dt class="col-sm-4">Disconnected:</dt>
+                <dd class="col-sm-8">
+                    @if (Model.IsDisconnected)
+                    {
+                        <span class="badge bg-danger">Yes</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-success">No</span>
+                    }
+                </dd>
+            </dl>
+        </div>
+    </div>
+
+    <div class="mt-4 d-flex gap-2">
+        <a asp-action="Index" class="btn btn-secondary">
+            <i class="bi bi-arrow-left-circle"></i> Back to List
+        </a>
+
+        <form asp-action="Notify" method="post" asp-route-id="@Model.ConsumerId">
+            <button type="submit" class="btn btn-warning">
+                <i class="bi bi-bell-fill"></i> Send Notification
+            </button>
+        </form>
+    </div>
+
+    @if (TempData["Message"] != null)
+    {
+        <div class="alert alert-success mt-3">
+            <i class="bi bi-check-circle-fill me-2"></i> @TempData["Message"]
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger mt-3">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["Error"]
+        </div>
+    }
+</div>

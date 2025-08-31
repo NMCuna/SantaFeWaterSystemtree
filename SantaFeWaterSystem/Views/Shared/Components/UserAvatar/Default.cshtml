@@ -1,0 +1,9 @@
+﻿@model string
+
+<a asp-controller="UserProfile" asp-action="Profile" title="My Profile">
+    <img src="@Url.Content($"{Model}?v={Guid.NewGuid()}")"
+         alt="Avatar"
+         class="rounded-circle me-2"
+         width="40" height="40"
+         style="object-fit: cover;" />
+</a>

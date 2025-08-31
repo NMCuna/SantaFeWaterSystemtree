@@ -1,0 +1,218 @@
+﻿/* 📘 Page Header Glow */
+h2.page-header {
+    font-size: 2.2rem;
+    font-weight: bold;
+    color: #0d6efd;
+    padding-left: 20px;
+    border-left: 6px solid #0d6efd;
+    margin-bottom: 30px;
+    display: flex;
+    align-items: center;
+    animation: pulseText 1.5s ease-in-out infinite;
+}
+
+    h2.page-header i {
+        margin-right: 12px;
+        color: #0d6efd;
+    }
+
+/* 🔘 Glowing Action Buttons */
+.btn-glow, .btn-success, .btn-outline-primary {
+    background: linear-gradient(135deg, #00c9ff, #0d150e);
+    color: #fff;
+    font-weight: bold;
+    border: none;
+    padding: 10px 20px;
+    font-size: 1rem;
+    border-radius: 50px;
+    box-shadow: 0 0 15px rgba(0, 201, 255, 0.7);
+    transition: all 0.3s ease-in-out;
+    animation: glowPulse 1.8s infinite ease-in-out;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+    .btn-glow:hover, .btn-success:hover, .btn-outline-primary:hover {
+        background: linear-gradient(135deg, #92fe9d, #00c9ff);
+        transform: scale(1.05);
+        box-shadow: 0 0 25px rgba(0, 201, 255, 0.9);
+        text-decoration: none;
+    }
+
+/* 🔎 Glowing Input Fields */
+.form-control, .form-select {
+    border-radius: 8px;
+    box-shadow: 0 0 8px rgba(0, 123, 255, 0.2);
+    transition: all 0.3s ease;
+}
+
+    .form-control:focus, .form-select:focus {
+        box-shadow: 0 0 12px rgba(0, 123, 255, 0.5);
+        border-color: #0d6efd;
+    }
+
+.input-group-text {
+    background-color: #0d6efd;
+    color: #fff;
+    border-radius: 8px 0 0 8px;
+}
+
+/* 💫 Animation Keyframes */
+@keyframes glowPulse {
+    0% {
+        box-shadow: 0 0 10px rgba(0, 201, 255, 0.5);
+    }
+
+    50% {
+        box-shadow: 0 0 20px rgba(0, 201, 255, 0.9);
+    }
+
+    100% {
+        box-shadow: 0 0 10px rgba(0, 201, 255, 0.5);
+    }
+}
+
+@keyframes pulseText {
+    0%, 100% {
+        text-shadow: 0 0 4px #0d6efd;
+    }
+
+    50% {
+        text-shadow: 0 0 12px #0d6efd;
+    }
+}
+/* Make .table-light adapt in dark mode */
+body.dark-mode .table-light {
+    background-color: #2c2c3a !important; /* dark gray */
+    color: #ffffff !important; /* white text */
+    border-color: #444 !important;
+}
+
+/* Optional: adjust hover color too */
+body.dark-mode .table-hover tbody tr:hover {
+    background-color: #3a3a50 !important;
+}
+/* 🔲 Dark mode global background */
+body.dark-mode {
+    background-color: #1a1a2e;
+    color: #f1f1f1;
+}
+
+    /* 🧾 Table Cells & Borders */
+    body.dark-mode .table td,
+    body.dark-mode .table th {
+        border-color: #444;
+    }
+
+    /* ✅ Ensure all inputs and selects are dark-mode friendly */
+    body.dark-mode .form-control,
+    body.dark-mode .form-select {
+        background-color: #2a2a3a;
+        color: #f1f1f1;
+        border-color: #555;
+    }
+
+        body.dark-mode .form-control::placeholder,
+        body.dark-mode .form-select::placeholder {
+            color: #aaa;
+        }
+
+    /* 🔹 Glowing input group text in dark mode */
+    body.dark-mode .input-group-text {
+        background-color: #375a7f;
+        color: #fff;
+        border-color: #444;
+    }
+
+    /* 🟢 Buttons readable in dark mode */
+    body.dark-mode .btn-glow,
+    body.dark-mode .btn-success,
+    body.dark-mode .btn-outline-primary {
+        color: #fff;
+    }
+
+    /* 🧭 Optional: Darken dropdown background */
+    body.dark-mode .dropdown-menu {
+        background-color: #2a2a3a;
+        color: #fff;
+    }
+
+    /* 🧩 Fix .btn-outline-primary specifically if overridden */
+    body.dark-mode .btn-outline-primary {
+        border: 1px solid #92fe9d;
+    }
+    /* ✅ Force dark styling for thead in dark mode */
+    body.dark-mode table thead,
+    body.dark-mode .table-light thead,
+    body.dark-mode thead.table-light,
+    body.dark-mode .table-light thead tr,
+    body.dark-mode .table-light thead th,
+    body.dark-mode .table thead th,
+    body.dark-mode table thead tr th {
+        background-color: #2c2c3a !important;
+        color: #f1f1f1 !important;
+        border-color: #444 !important;
+    }
+        /* 🌑 Force .table-light and thead to match dark theme */
+        body.dark-mode table thead.table-light,
+        body.dark-mode table thead.table-light th,
+        body.dark-mode table.table-light thead,
+        body.dark-mode .table-light > thead > tr > th,
+        body.dark-mode .table-light th {
+            background-color: #2c2c3a !important;
+            color: #f1f1f1 !important;
+            border-color: #444 !important;
+        }
+    body.dark-mode .table-light {
+        --bs-table-bg: #2c2c3a !important;
+        --bs-table-striped-bg: #2e2e3e !important;
+        --bs-table-striped-color: #f1f1f1 !important;
+        --bs-table-hover-bg: #3a3a50 !important;
+        --bs-table-hover-color: #f1f1f1 !important;
+        --bs-table-active-bg: #3a3a50 !important;
+        --bs-table-active-color: #f1f1f1 !important;
+        background-color: var(--bs-table-bg) !important;
+        color: var(--bs-table-striped-color) !important;
+        border-color: #444 !important;
+    }
+
+        body.dark-mode .table-light th,
+        body.dark-mode .table-light thead th {
+            background-color: #2c2c3a !important;
+            color: #f1f1f1 !important;
+            border-color: #444 !important;
+        }
+    /* 🌑 Dark Mode Table Light Overrides */
+    body.dark-mode .table-light {
+        /* Override Bootstrap variables */
+        --bs-table-bg: #2c2c3a !important;
+        --bs-table-striped-bg: #2e2e3e !important;
+        --bs-table-striped-color: #f1f1f1 !important;
+        --bs-table-hover-bg: #3a3a50 !important;
+        --bs-table-hover-color: #f1f1f1 !important;
+        --bs-table-active-bg: #3a3a50 !important;
+        --bs-table-active-color: #f1f1f1 !important;
+        background-color: var(--bs-table-bg) !important;
+        color: var(--bs-table-striped-color) !important;
+        border-color: #444 !important;
+    }
+
+        /* 💡 Ensure thead and th are also dark in all scenarios */
+        body.dark-mode .table-light thead,
+        body.dark-mode .table-light thead th,
+        body.dark-mode .table-light > thead > tr > th,
+        body.dark-mode table.table-light > thead > tr > th {
+            background-color: #2c2c3a !important;
+            color: #f1f1f1 !important;
+            border-color: #444 !important;
+        }
+
+    /* 🛡 Backup for default table thead just in case */
+    body.dark-mode table thead,
+    body.dark-mode table thead th {
+        background-color: #2c2c3a !important;
+        color: #f1f1f1 !important;
+        border-color: #444 !important;
+    }

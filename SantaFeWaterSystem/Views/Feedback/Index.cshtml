@@ -1,0 +1,190 @@
+﻿@model X.PagedList.IPagedList<SantaFeWaterSystem.Models.Feedback>
+@{
+    ViewData["Title"] = "Feedback List";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<style>
+    h2.page-title {
+        font-size: 2rem;
+        font-weight: bold;
+        color: #0d6efd;
+        margin-bottom: 20px;
+        border-left: 5px solid #0d6efd;
+        padding-left: 10px;
+    }
+
+    .table-feedback tbody tr:hover {
+        background-color: #f8f9fa;
+    }
+
+    .table-feedback td {
+        vertical-align: middle;
+        padding: 12px 10px;
+    }
+
+    .table-feedback th {
+        white-space: nowrap;
+    }
+
+    .btn-sm i {
+        margin-right: 5px;
+    }
+    /* 🌙 Dark mode adjustments for feedback table */
+    body.dark-mode .table-feedback {
+        background-color: #1e1e2f;
+        color: #f1f1f1;
+        border-color: #444;
+    }
+
+        body.dark-mode .table-feedback thead.table-light {
+            background-color: #2c2c3a !important;
+            color: #ffffff !important;
+            border-color: #444 !important;
+        }
+
+        body.dark-mode .table-feedback tbody tr {
+            background-color: #2a2a3a;
+            border-color: #444;
+        }
+
+            body.dark-mode .table-feedback tbody tr:hover {
+                background-color: #343450;
+            }
+
+    /* 🔧 Optional: Maintain contrast for status badges */
+    body.dark-mode .badge.bg-warning {
+        background-color: #f0ad4e !important;
+        color: #000 !important;
+    }
+
+    body.dark-mode .badge.bg-success {
+        background-color: #5cb85c !important;
+        color: #fff !important;
+    }
+
+    /* 🛠️ Optional: Adjust action icons/buttons inside table */
+    body.dark-mode .table-feedback .btn {
+        color: #fff;
+        border-color: #555;
+    }
+    /* ✨ Improve contrast for table headers in dark mode */
+    body.dark-mode .table-feedback thead th {
+        background-color: #2c2c3a;
+        color: #f1f1f1;
+        border-color: #444;
+    }
+
+    /* ✴️ Fix border contrast for table cells */
+    body.dark-mode .table-feedback td,
+    body.dark-mode .table-feedback th {
+        border-color: #444 !important;
+    }
+
+        /* 🌟 Optional: Make numeric star ratings glow */
+        body.dark-mode .table-feedback td:nth-child(2) {
+            color: #ffc107; /* Gold */
+            font-weight: bold;
+            text-shadow: 0 0 4px #ffc107;
+        }
+
+    /* 🎯 Improve visibility of table action buttons */
+    body.dark-mode .table-feedback .btn-info {
+        background-color: #0dcaf0;
+        border-color: #0dcaf0;
+        color: #000;
+    }
+
+    body.dark-mode .table-feedback .btn-warning {
+        background-color: #ffc107;
+        border-color: #ffc107;
+        color: #000;
+    }
+
+    body.dark-mode .table-feedback .btn-success {
+        background-color: #198754;
+        border-color: #198754;
+        color: #fff;
+    }
+
+    body.dark-mode .table-feedback .btn-secondary {
+        background-color: #6c757d;
+        border-color: #6c757d;
+        color: #fff;
+    }
+
+    /* ✳️ Optional: Add hover effect for better feedback */
+    body.dark-mode .table-feedback .btn:hover {
+        filter: brightness(1.1);
+    }
+
+</style>
+
+<h2 class="page-title"><i class="bi bi-chat-dots"></i> Feedback List</h2>
+
+<div class="mb-3">
+    <a asp-action="Archive" class="btn btn-secondary">
+        <i class="bi bi-archive"></i> View Archived Feedback
+    </a>
+</div>
+
+<table class="table table-bordered table-feedback">
+    <thead class="table-light">
+        <tr>
+            <th><i class="bi bi-person-circle"></i> User</th>
+            <th><i class="bi bi-star-fill"></i> Rating</th>
+            <th><i class="bi bi-card-text"></i> Comment</th>
+            <th><i class="bi bi-info-circle"></i> Status</th>
+            <th><i class="bi bi-gear-fill"></i> Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.User?.AccountNumber</td>
+                <td>@item.Rating</td>
+                <td>@item.Comment</td>
+                <td>@item.Status</td>
+                <td>
+                    <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info text-white">
+                        <i class="bi bi-eye"></i> View
+                    </a>
+                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning text-white">
+                        <i class="bi bi-pencil-square"></i> Edit
+                    </a>
+                    <a asp-action="Reply" asp-route-id="@item.Id" class="btn btn-sm btn-success">
+                        <i class="bi bi-reply"></i> Reply
+                    </a>
+                    <form asp-action="Archive" asp-route-id="@item.Id" method="post" style="display:inline;">
+                        <button type="submit" class="btn btn-sm btn-secondary">
+                            <i class="bi bi-archive"></i> Archive
+                        </button>
+                    </form>
+                </td>
+            </tr>
+
+        }
+
+    </tbody>
+</table>
+
+<div class="d-flex justify-content-center mt-4">
+    @Html.PagedListPager(Model, page => Url.Action("Index", new
+        {
+            page,
+            sortOrder = ViewBag.SortOrder,
+            ratingFilter = ViewBag.RatingFilter
+        }),
+            new PagedListRenderOptions
+    {
+        DisplayLinkToFirstPage = PagedListDisplayMode.Always,
+        DisplayLinkToLastPage = PagedListDisplayMode.Always,
+        DisplayLinkToPreviousPage = PagedListDisplayMode.Always,
+        DisplayLinkToNextPage = PagedListDisplayMode.Always,
+        MaximumPageNumbersToDisplay = 5,
+        UlElementClasses = new[] { "pagination" },
+        LiElementClasses = new[] { "page-item" },
+        PageClasses = new[] { "page-link" }
+    })
+</div>

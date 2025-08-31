@@ -1,0 +1,20 @@
+﻿
+@media (max-width: 400px) {
+    .receipt-title {
+        font-size: 1.25rem;
+    }
+
+    .receipt-subtitle {
+        font-size: 0.85rem;
+    }
+
+    .receipt-label,
+    .receipt-value {
+        font-size: 0.95rem;
+    }
+
+    .receipt-logo {
+        width: 70px;
+        height: 70px;
+    }
+}

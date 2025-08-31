@@ -1,0 +1,64 @@
+﻿@model SantaFeWaterSystem.Models.ContactInfo
+@{
+    ViewData["Title"] = "Contact Us";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/contact.css" asp-append-version="true" />
+}
+
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-10 col-lg-8">
+            <div class="contact-section">
+                <h1 class="contact-heading mb-4">
+                    <i class="bi bi-telephone-forward"></i> Contact Us
+                </h1>
+
+                @if (!string.IsNullOrWhiteSpace(Model.IntroText))
+                {
+                    <p class="contact-text">@Model.IntroText</p>
+                }
+
+                @if (!string.IsNullOrWhiteSpace(Model.Phone))
+                {
+                    <p class="contact-text">
+                        <i class="bi bi-telephone-fill contact-icon"></i>
+                        <strong>Phone:</strong> @Model.Phone
+                    </p>
+                }
+
+                @if (!string.IsNullOrWhiteSpace(Model.Email))
+                {
+                    <p class="contact-text">
+                        <i class="bi bi-envelope-fill contact-icon"></i>
+                        <strong>Email:</strong>
+                        <a href="mailto:@Model.Email">@Model.Email</a>
+                    </p>
+                }
+
+                @if (!string.IsNullOrWhiteSpace(Model.FacebookUrl) && !string.IsNullOrWhiteSpace(Model.FacebookName))
+                {
+                    <p class="contact-text">
+                        <i class="bi bi-facebook contact-icon" style="color:#1877f2;"></i>
+                        <strong>Facebook:</strong>
+                        <a href="@Model.FacebookUrl" target="_blank">@Model.FacebookName</a>
+                    </p>
+                }
+
+
+                <div class="divider"></div>
+
+                @if (!string.IsNullOrWhiteSpace(Model.WaterMeterHeading))
+                {
+                    <h5 class="mt-4 contact-heading">@Model.WaterMeterHeading</h5>
+                }
+
+                @if (!string.IsNullOrWhiteSpace(Model.WaterMeterInstructions))
+                {
+                    <p class="contact-text">@Model.WaterMeterInstructions</p>
+                }
+            </div>
+        </div>
+    </div>
+</div>

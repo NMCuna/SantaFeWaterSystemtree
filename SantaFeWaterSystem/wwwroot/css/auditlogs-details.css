@@ -1,0 +1,22 @@
+﻿.audit-log-details-container {
+    max-width: 100%;
+    padding: 1rem;
+    margin: 0 auto;
+}
+
+.audit-log-details-card {
+    max-width: 100%;
+    overflow-x: auto;
+}
+
+@media (max-width: 576px) {
+    .audit-log-details-card dl {
+        font-size: 0.95rem;
+    }
+
+    .audit-log-details-card dt,
+    .audit-log-details-card dd {
+        display: block;
+        width: 100%;
+    }
+}

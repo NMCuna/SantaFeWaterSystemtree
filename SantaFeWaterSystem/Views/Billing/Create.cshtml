@@ -1,0 +1,268 @@
+﻿@model SantaFeWaterSystem.ViewModels.BillingFormViewModel
+
+@{
+    ViewData["Title"] = "Add New Billing";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+@section Styles {
+    <style>
+        .form-section {
+            background-color: #dee2e6;
+            border: 1px solid #dee2e6;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        h2.page-header {
+            font-size: 2rem;
+            color: #0d6efd;
+            font-weight: bold;
+            border-left: 5px solid #0d6efd;
+            padding-left: 15px;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+        }
+
+            h2.page-header i {
+                margin-right: 10px;
+            }
+
+        .form-label {
+            font-weight: 500;
+        }
+
+        .is-invalid {
+            border: 2px solid red !important;
+            background-color: #ffe6e6;
+        }
+
+    </style>
+}
+
+<div class="container mt-4">
+    <h2 class="page-header"><i class="bi bi-plus-circle"></i> Add New Billing</h2>
+
+    <form asp-action="Create" method="post">
+        <div class="form-section">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label asp-for="Billing.BillNo" class="form-label"></label>
+                    <input asp-for="Billing.BillNo" class="form-control" readonly />
+                    <span asp-validation-for="Billing.BillNo" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-6">
+                    <label asp-for="Billing.ConsumerId" class="form-label">Consumer</label>
+                    <select asp-for="Billing.ConsumerId" class="form-control" asp-items="@(new SelectList(Model.Consumers, "Id", "FullName"))">
+                        <option value="">-- Select Consumer --</option>
+                    </select>
+                    <span asp-validation-for="Billing.ConsumerId" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Account Type</label>
+                    <input id="accountType" class="form-control" readonly />
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Rate per Cubic Meter</label>
+                    <input id="ratePerCubic" class="form-control" readonly />
+                </div>
+
+                <div class="col-md-6">
+                    <label asp-for="Billing.BillingDate" class="form-label"></label>
+                    <input asp-for="Billing.BillingDate" type="date" class="form-control" />
+                    <span asp-validation-for="Billing.BillingDate" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-6">
+                    <label asp-for="Billing.PreviousReading" class="form-label"></label>
+                    <input asp-for="Billing.PreviousReading" class="form-control" readonly />
+                    <span asp-validation-for="Billing.PreviousReading" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-6">
+                    <label asp-for="Billing.PresentReading" class="form-label"></label>
+                    <input asp-for="Billing.PresentReading" class="form-control" />
+                    <span asp-validation-for="Billing.PresentReading" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Cubic Meter Used</label>
+                    <input asp-for="Billing.CubicMeterUsed" class="form-control" readonly />
+                    <span asp-validation-for="Billing.CubicMeterUsed" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-6">
+                    <label asp-for="Billing.AmountDue" class="form-label"></label>
+                    <input asp-for="Billing.AmountDue" class="form-control" readonly />
+                    <span asp-validation-for="Billing.AmountDue" class="text-danger"></span>
+                </div>
+                <div class="col-md-12">
+                    <label asp-for="Billing.Remarks" class="form-label"></label>
+                    <input asp-for="Billing.Remarks" class="form-control" readonly />
+                    <span asp-validation-for="Billing.Remarks" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-6">
+                    <label asp-for="Billing.AdditionalFees" class="form-label"></label>
+                    <input asp-for="Billing.AdditionalFees" class="form-control" />
+                    <span asp-validation-for="Billing.AdditionalFees" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-6">
+                    <label asp-for="Billing.DueDate" class="form-label"></label>
+                    <input asp-for="Billing.DueDate" type="date" class="form-control" />
+                    <span asp-validation-for="Billing.DueDate" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Penalty</label>
+                    <input asp-for="Billing.Penalty" class="form-control" readonly />
+                    <span asp-validation-for="Billing.Penalty" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Total Amount</label>
+                    <input asp-for="Billing.TotalAmount" class="form-control" readonly />
+                    <span asp-validation-for="Billing.TotalAmount" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <button type="submit" class="btn btn-primary"><i class="bi bi-save"></i> Save</button>
+                <a asp-action="Index" class="btn btn-secondary ms-2"><i class="bi bi-x-circle"></i> Cancel</a>
+            </div>
+        </div>
+    </form>
+</div>
+
+
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+
+    <script>
+        const consumerSelect = document.querySelector('[name="Billing.ConsumerId"]');
+        const accountTypeInput = document.getElementById("accountType");
+        const rateInput = document.getElementById("ratePerCubic");
+
+        const prevReadingInput = document.querySelector('[name="Billing.PreviousReading"]');
+        const presentReadingInput = document.querySelector('[name="Billing.PresentReading"]');
+        const cubicMeterUsedInput = document.querySelector('[name="Billing.CubicMeterUsed"]');
+        const amountDueInput = document.querySelector('[name="Billing.AmountDue"]');
+        const additionalFeesInput = document.querySelector('[name="Billing.AdditionalFees"]');
+        const penaltyInput = document.querySelector('[name="Billing.Penalty"]');
+        const totalAmountInput = document.querySelector('[name="Billing.TotalAmount"]');
+        const dueDateInput = document.querySelector('[name="Billing.DueDate"]');
+        const remarksInput = document.querySelector('[name="Billing.Remarks"]');
+
+        let rate = 0;
+        let penaltyFromDb = 0;
+
+        consumerSelect.addEventListener('change', async function () {
+            const consumerId = this.value;
+            if (!consumerId) {
+                clearFields();
+                return;
+            }
+
+            const response = await fetch(`/Admin/GetConsumerInfo?consumerId=${consumerId}`);
+            if (!response.ok) {
+                clearFields();
+                return;
+            }
+
+            const data = await response.json();
+
+            accountTypeInput.value = data.accountType || '';
+            rateInput.value = data.rate || '';
+            rate = parseFloat(data.rate) || 0;
+            penaltyFromDb = parseFloat(data.penalty) || 0;
+
+            const previousReading = parseFloat(data.previousReading) || 0;
+            prevReadingInput.value = previousReading;
+            prevReadingInput.readOnly = true;
+
+            presentReadingInput.value = '';
+            presentReadingInput.readOnly = false;
+
+            clearBillingFields();
+        });
+
+        presentReadingInput.addEventListener('input', calculateBilling);
+        additionalFeesInput.addEventListener('input', calculateBilling);
+        dueDateInput.addEventListener('change', calculateBilling);
+
+               function calculateBilling() {
+            const prev = parseFloat(prevReadingInput.value) || 0;
+            const present = parseFloat(presentReadingInput.value) || 0;
+
+            // 🆕 Remove old invalid styles in case user corrected the value
+            presentReadingInput.classList.remove("is-invalid");
+
+            if (present < prev) {
+                // 🆕 Add invalid style to highlight in red
+                presentReadingInput.classList.add("is-invalid");
+
+                cubicMeterUsedInput.value = '';
+                amountDueInput.value = '';
+                penaltyInput.value = '0.00';
+                totalAmountInput.value = '';
+
+                // 🆕 Show warning message in remarks
+                remarksInput.value = '❌ Invalid: Present reading is lower than previous.';
+
+                return;
+            }
+
+            // ✅ Actual usage
+            const actualCubicUsed = present - prev;
+            cubicMeterUsedInput.value = actualCubicUsed.toFixed(2);
+
+            // ✅ Apply minimum 10 for billing purposes only
+            const chargeableCubicUsed = actualCubicUsed < 10 ? 10 : actualCubicUsed;
+
+            const amountDue = chargeableCubicUsed * rate;
+            amountDueInput.value = amountDue.toFixed(2);
+
+            const additionalFees = parseFloat(additionalFeesInput.value) || 0;
+
+            const dueDate = new Date(dueDateInput.value);
+            const today = new Date();
+            let penalty = 0;
+            if (dueDate && today > dueDate) {
+                penalty = penaltyFromDb;
+            }
+
+            penaltyInput.value = penalty.toFixed(2);
+
+            const totalAmount = amountDue + penalty + additionalFees;
+            totalAmountInput.value = totalAmount.toFixed(2);
+
+            // ✅ Set remarks if minimum charge applied
+            remarksInput.value = actualCubicUsed < 10 ? 'Minimum charge applied' : '';
+        }
+
+
+        function clearBillingFields() {
+            cubicMeterUsedInput.value = '';
+            amountDueInput.value = '';
+            penaltyInput.value = '0.00';
+            totalAmountInput.value = '';
+            remarksInput.value = '';
+        }
+
+        function clearFields() {
+            accountTypeInput.value = '';
+            rateInput.value = '';
+            rate = 0;
+            penaltyFromDb = 0;
+            prevReadingInput.value = '';
+            presentReadingInput.value = '';
+            clearBillingFields();
+        }
+    </script>
+}

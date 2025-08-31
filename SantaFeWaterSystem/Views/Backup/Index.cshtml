@@ -1,0 +1,69 @@
+﻿@using SantaFeWaterSystem.Models
+@inject SantaFeWaterSystem.Data.ApplicationDbContext _context
+
+@{
+    ViewData["Title"] = "Backup Dashboard";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+
+    var lastBackup = _context.BackupLogs
+        .OrderByDescending(b => b.ActionDate)
+        .FirstOrDefault();
+
+    // Use stored local time directly (no extra conversion)
+    DateTime? lastBackupPh = lastBackup?.ActionDate;
+
+    // Auto-calculate next backup (24 hours after last backup or now)
+    DateTime nextBackupPh = lastBackup != null
+        ? lastBackup.ActionDate.AddHours(24)
+        : DateTime.Now.AddHours(24);
+}
+
+<h3 class="mb-4 text-primary">
+    <i class="bi bi-hdd-rack me-2"></i> Backup Dashboard
+</h3>
+
+<div class="card mb-4 shadow-sm border-primary">
+    <div class="card-body">
+        <h5 class="card-title text-secondary">
+            <i class="bi bi-clock-history me-2"></i> Backup Info
+        </h5>
+        <p class="card-text mb-2">
+            <i class="bi bi-clock-history me-1 text-success"></i>
+            <strong class="text-success">Last Backup:</strong>
+            <span class="text-dark">@lastBackupPh?.ToString("yyyy-MM-dd hh:mm tt")</span>
+        </p>
+        <p class="card-text">
+            <i class="bi bi-calendar-check me-1 text-warning"></i>
+            <strong class="text-warning">Next Scheduled Backup:</strong>
+            <span class="text-dark">@nextBackupPh.ToString("yyyy-MM-dd hh:mm tt")</span>
+        </p>
+    </div>
+</div>
+
+<div class="d-flex flex-wrap gap-2 mb-4">
+    <a asp-action="BackupDatabase" class="btn btn-success d-flex align-items-center">
+        <i class="bi bi-cloud-arrow-up-fill me-2"></i> Backup Now
+    </a>
+    <a asp-action="RestoreDatabase" class="btn btn-danger d-flex align-items-center">
+        <i class="bi bi-cloud-arrow-down-fill me-2"></i> Restore Database
+    </a>
+    <a asp-action="ManageBackups" class="btn btn-primary d-flex align-items-center">
+        <i class="bi bi-gear-fill me-2"></i> Manage Backups
+    </a>
+    <a asp-action="BackupHistory" class="btn btn-info d-flex align-items-center">
+        <i class="bi bi-clock-fill me-2"></i> Backup History
+    </a>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success d-flex align-items-center mt-2">
+        <i class="bi bi-check-circle-fill me-2"></i> @TempData["Success"]
+    </div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger d-flex align-items-center mt-2">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["Error"]
+    </div>
+}

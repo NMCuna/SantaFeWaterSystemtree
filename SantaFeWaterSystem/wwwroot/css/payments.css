@@ -1,0 +1,236 @@
+﻿/* --- General Styling --- */
+.card-title i {
+    color: #0d6efd;
+}
+
+.table-sm td,
+.table-sm th {
+    vertical-align: middle;
+}
+
+.card .table th,
+.card .table td {
+    padding: 0.5rem;
+}
+
+.badge.bg-warning.text-dark {
+    box-shadow: 0 0 8px rgba(255, 193, 7, 0.7);
+    font-weight: 600;
+}
+
+/* --- View Switching --- */
+/* Mobile-first: show cards, hide tables */
+.card-view {
+    display: block;
+}
+
+.table-view {
+    display: none;
+}
+
+@media (min-width: 768px) {
+    .card-view {
+        display: none;
+    }
+
+    .table-view {
+        display: table;
+    }
+}
+
+@media (min-width: 992px) {
+    .card-view {
+        display: block;
+    }
+
+    .table-view {
+        display: none;
+    }
+}
+
+/* --- Info Cards (Unified) --- */
+.info-card {
+    border: 1px solid #dee2e6;
+    border-left: 4px solid #198754;
+    border-radius: 8px;
+    padding: 0.75rem;
+    margin-bottom: 1rem;
+    background: #fff;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    font-size: clamp(0.8rem, 2.5vw, 0.95rem);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    line-height: 1.3;
+}
+
+    .info-card p {
+        display: flex;
+        align-items: center;
+        margin-bottom: 0.5rem;
+        flex-wrap: wrap;
+    }
+
+        .info-card p i {
+            margin-right: 6px;
+            flex-shrink: 0;
+            font-size: 0.95rem;
+        }
+
+    .info-card strong,
+    .info-card span {
+        font-size: inherit; /* clamp already applies to .info-card */
+    }
+
+    .info-card .btn {
+        font-size: clamp(0.75rem, 2.3vw, 0.9rem);
+    }
+
+/* Payment history special color */
+.history-card {
+    border-left: 4px solid #0d6efd;
+}
+
+/* View More button scaling */
+.view-more-btn {
+    display: block;
+    width: 100%;
+    text-align: center;
+    font-size: clamp(0.75rem, 2.3vw, 0.9rem);
+}
+
+/* --- Dark Mode --- */
+body.dark-mode .card,
+body.dark-mode .card-body {
+    background-color: #1f1f1f;
+    color: #e0e0e0;
+    border-color: #333;
+}
+
+body.dark-mode .info-card {
+    background-color: #2a2a2a;
+    color: #e0e0e0;
+    box-shadow: 0 2px 5px rgba(255, 255, 255, 0.05);
+}
+
+body.dark-mode .table {
+    background-color: #2a2a2a;
+    color: #e0e0e0;
+}
+
+    body.dark-mode .table thead {
+        background-color: #333;
+        color: #ddd;
+    }
+
+body.dark-mode .table-bordered td,
+body.dark-mode .table-bordered th {
+    border-color: #444;
+}
+
+body.dark-mode .btn-outline-primary,
+body.dark-mode .btn-outline-success {
+    border-color: #aaa;
+    color: #aaa;
+}
+
+    body.dark-mode .btn-outline-primary:hover,
+    body.dark-mode .btn-outline-success:hover {
+        background-color: #444;
+        color: white;
+    }
+
+body.dark-mode .text-muted {
+    color: #bbb !important;
+}
+
+body.dark-mode .badge.bg-warning.text-dark {
+    color: #111 !important;
+}
+
+/* --- Small Screens (<400px) --- */
+@media (max-width: 400px) {
+    .container {
+        padding: 0.5rem;
+    }
+
+    .info-card {
+        padding: 0.5rem;
+    }
+
+        .info-card p {
+            margin-bottom: 0.4rem;
+        }
+}
+
+/* --- Ultra Small (<320px) --- */
+@media (max-width: 320px) {
+    .info-card {
+        font-size: 0.8rem;
+    }
+
+    .btn-sm {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.5rem;
+    }
+
+    .btn {
+        font-size: 0.8rem;
+    }
+}
+
+/* General responsive font sizes */
+.card-title,
+.card-body,
+.badge,
+strong {
+    font-size: clamp(0.75rem, 2vw, 1rem); /* min 12px, scales, max 16px */
+}
+
+/* Badge auto-size & wrap */
+.badge {
+    white-space: normal; /* allow wrapping */
+    word-break: break-word; /* break long numbers */
+    padding: 0.3em 0.6em;
+    font-size: clamp(0.7rem, 1.8vw, 0.95rem);
+}
+
+/* Icons scale too */
+.card i {
+    font-size: clamp(0.85rem, 2.5vw, 1.2rem);
+}
+
+/* Card padding scales with screen size */
+.card {
+    padding: clamp(0.5rem, 2vw, 1rem);
+}
+
+/* Make columns stack fully on small screens */
+@media (max-width: 576px) {
+    .col-12.col-sm-6 {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+}
+
+/* For ultra-small devices (<=320px) */
+@media (max-width: 400px) {
+    .card-body {
+        padding: 0.4rem;
+    }
+
+    .card-title {
+        font-size: 0.85rem;
+    }
+
+    .d-flex strong {
+        font-size: 0.8rem;
+    }
+
+    .badge {
+        font-size: 0.75rem;
+        padding: 0.25em 0.5em;
+    }
+}
+.total-amount-blue {
+    color: #007bff; /* Bootstrap blue */
+}

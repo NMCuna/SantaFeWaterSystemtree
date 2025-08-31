@@ -1,0 +1,30 @@
+﻿@{
+    ViewData["Title"] = "Manage GCash QR Code";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Manage GCash QR Code</h2>
+
+@if (TempData["Message"] != null)
+{
+    <div class="alert alert-success">@TempData["Message"]</div>
+}
+
+@if (!string.IsNullOrEmpty(ViewBag.ImagePath as string))
+{
+    <div class="mb-3">
+        <img src="@ViewBag.ImagePath" alt="GCash QR Code" style="width:200px;" class="img-thumbnail" />
+
+        <form asp-action="DeleteQr" method="post" class="mt-2">
+            <button type="submit" class="btn btn-danger">Delete QR Code</button>
+        </form>
+    </div>
+}
+
+<form asp-action="GcashQr" method="post" enctype="multipart/form-data" class="mt-3">
+    <div class="form-group">
+        <label>Upload New QR Code</label>
+        <input type="file" name="qrImage" class="form-control" required />
+    </div>
+    <button type="submit" class="btn btn-primary mt-2">Upload</button>
+</form>

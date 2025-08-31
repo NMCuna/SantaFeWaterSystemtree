@@ -1,0 +1,71 @@
+﻿@model SantaFeWaterSystem.Models.HomePageContent
+
+@{
+    ViewData["Title"] = "Home Page";
+}
+
+@section Styles {
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet" />
+    <link rel="stylesheet" href="~/css/home.css" asp-append-version="true" />
+}
+
+<!-- 🌊 Wave Background -->
+<div class="svg-wave">
+    <svg viewBox="0 0 1440 320" preserveAspectRatio="none">
+        <path fill="#a5d6a7" fill-opacity="1"
+              d="M0,96L80,128C160,160,320,224,480,224C640,224,800,160,960,117.3C1120,75,1280,53,1360,42.7L1440,32L1440,0L0,0Z">
+            <animate attributeName="d" dur="10s" repeatCount="indefinite"
+                     values="M0,96L80,128C160,160,320,224,480,224C640,224,800,160,960,117.3C1120,75,1280,53,1360,42.7L1440,32L1440,0L0,0Z;
+                             M0,64L60,74.7C120,85,240,107,360,112C480,117,600,107,720,106.7C840,107,960,117,1080,128C1200,139,1320,149,1380,154.7L1440,160L1440,0L0,0Z;
+                             M0,96L80,128C160,160,320,224,480,224C640,224,800,160,960,117.3C1120,75,1280,53,1360,42.7L1440,32L1440,0L0,0Z" />
+        </path>
+    </svg>
+</div>
+
+<!-- 💧 Drops -->
+<div class="drop-behind drop-1"><i class="bi bi-droplet-fill"></i></div>
+<div class="drop-behind drop-2"><i class="bi bi-droplet-fill"></i></div>
+
+<!-- 🫧 Bubbles -->
+<div class="bubble"></div>
+<div class="bubble"></div>
+<div class="bubble"></div>
+<div class="bubble"></div>
+
+<!-- Main Content -->
+<div class="container py-5 mt-5">
+    <div class="text-center mb-5 position-relative">
+        <h1 class="display-5 fw-bold welcome-title">@Model.Title</h1>
+        <p class="lead text-muted">@Model.Subtitle</p>
+    </div>
+
+    <!-- Cards Row -->
+    <div class="row justify-content-center g-4">
+        @for (int i = 1; i <= 5; i++)
+        {
+            var title = Model.GetType().GetProperty($"Card{i}Title")?.GetValue(Model) as string;
+            var text = Model.GetType().GetProperty($"Card{i}Text")?.GetValue(Model) as string;
+            var icon = Model.GetType().GetProperty($"Card{i}Icon")?.GetValue(Model) as string;
+
+            if (!string.IsNullOrEmpty(title))
+            {
+                <div class="col-md-4">
+                    <div class="card shadow-sm border-0 text-center p-4 home-card">
+                        <div class="icon-circle">
+                            <i class="bi @icon display-6"></i>
+                        </div>
+                        <h5 class="card-title">@title</h5>
+                        <p class="card-text text-muted">@text</p>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+
+    <!-- Login Button -->
+    <div class="text-center mt-5 px-3">
+        <a class="btn btn-login btn-lg text-white w-100 w-sm-auto" asp-controller="Account" asp-action="UserLogin" style="max-width: 300px;">
+            <i class="bi bi-box-arrow-in-right me-2"></i>Login to Your Account
+        </a>
+    </div>
+</div>

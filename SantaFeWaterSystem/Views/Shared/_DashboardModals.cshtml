@@ -1,0 +1,154 @@
+﻿@model SantaFeWaterSystem.ViewModels.UserDashboardViewModel
+
+<!-- Bills Modal -->
+<div class="modal fade" id="billsModal" tabindex="-1" aria-labelledby="billsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title fw-bold" id="billsModalLabel">
+                    <i class="bi bi-receipt-cutoff me-2"></i>All Bills
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                @if (Model.RecentBills?.Any() == true)
+                {
+                    <div class="row g-3">
+                        @foreach (var bill in Model.RecentBills)
+                        {
+                            var statusClass = bill.Status switch
+                            {
+                                "Paid" => "bg-success text-white",
+                                "Unpaid" => "bg-danger text-white",
+                                "Pending" => "bg-warning text-dark",
+                                _ => "bg-secondary text-white"
+                            };
+                            <div class="col-12 col-sm-12 col-md-6">
+                                <div class="card shadow-sm h-100">
+                                    <div class="card-body">
+                                        <h6 class="card-title fw-bold mb-2">
+                                            Billing Date: @bill.BillingDate.ToString("MMM dd, yyyy")
+                                        </h6>
+
+                                        <p class="card-text mb-1">
+                                            Amount Due: <strong>₱@bill.AmountDue.ToString("N2")</strong>
+                                        </p>
+
+                                        @if (bill.Penalty > 0)
+                                        {
+                                            <p class="card-text text-danger mb-1">
+                                                <i class="bi bi-exclamation-circle me-1"></i>
+                                                <strong>Overdue Penalty:</strong> ₱@bill.Penalty.ToString("N2")
+                                            </p>
+                                        }
+
+                                        @if ((bill.AdditionalFees ?? 0) > 0)
+                                        {
+                                            <p class="card-text text-info mb-1">
+                                                <i class="bi bi-plus-circle me-1"></i>
+                                                <strong>Additional Fees:</strong> ₱@bill.AdditionalFees?.ToString("N2")
+                                            </p>
+                                        }
+
+                                        @if (bill.Penalty > 0 || (bill.AdditionalFees ?? 0) > 0)
+                                        {
+                                            <p class="card-text fw-bold text-primary mb-2">
+                                                <i class="bi bi-cash-coin me-1"></i>
+                                                <strong>Total Amount:</strong> ₱@bill.TotalAmount.ToString("N2")
+                                            </p>
+                                        }
+
+                                        <span class="badge @statusClass mb-2">@bill.Status</span>
+
+                                        <div>
+                                            @if (bill.Status == "Unpaid")
+                                            {
+                                                <a href="@Url.Action("Pay", "User", new { billId = bill.Id })" class="btn btn-sm btn-primary w-100">
+                                                    Pay Now
+                                                </a>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted">Already Paid</span>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <p class="text-muted">No bills to show.</p>
+                }
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Payments Modal -->
+<div class="modal fade" id="paymentsModal" tabindex="-1" aria-labelledby="paymentsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <!-- Modal Header -->
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title fw-bold" id="paymentsModalLabel">
+                    <i class="bi bi-wallet2 me-2"></i> All Payments
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="modal-body">
+                @if (Model.RecentPayments?.Any() == true)
+                {
+                    <div class="row g-3">
+                        @foreach (var p in Model.RecentPayments)
+                        {
+                            var methodClass = p.Method switch
+                            {
+                                "Cash" => "bg-light text-dark border",
+                                "Gcash" => "bg-info text-white",
+                                "Maya" => "bg-info text-white",
+                                "Online" => "bg-primary text-white",
+                                "Bank" => "bg-secondary text-white",
+                                _ => "bg-dark text-white"
+                            };
+
+                            <div class="col-12 col-md-6">
+                                <div class="card shadow-sm h-100">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <h6 class="card-title fw-bold mb-1">₱@p.AmountPaid.ToString("N2")</h6>
+                                            <span class="badge @methodClass">@p.Method</span>
+                                        </div>
+                                        <p class="card-text small mb-0" style="color: black;">
+                                            <i class="bi bi-calendar-event me-1"></i>Paid on: @p.PaymentDate.ToString("MMM dd, yyyy")
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center text-muted py-3">
+                        <i class="bi bi-info-circle me-2"></i>No payments recorded.
+                    </div>
+                }
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle me-1"></i> Close
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

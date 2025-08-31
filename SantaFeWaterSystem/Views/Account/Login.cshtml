@@ -1,0 +1,97 @@
+﻿@model UserLoginViewModel
+@{
+    ViewData["Title"] = "User Login";
+    Layout = "_AccountLayout";
+
+}
+
+<div class="container d-flex justify-content-center align-items-center" style="min-height: 100vh;">
+    <div class="col-md-6 col-lg-4 shadow-lg p-4 rounded-4 user-login-card">
+        <h3 class="text-center text-primary mb-4">
+            <i class="fas fa-user-circle me-2"></i> User Login
+        </h3>
+
+        <form method="post" autocomplete="off" novalidate>
+            <div class="mb-3">
+                <label for="accountNumber" class="form-label">Account Number</label>
+                <input name="accountNumber" id="accountNumber" class="form-control" type="text" value="@Model?.AccountNumber" />
+            </div>
+
+            <div class="mb-3 position-relative">
+                <label for="password" class="form-label">Password</label>
+                <input name="password" id="password" class="form-control" type="password" autocomplete="new-password" />
+                <i class="fas fa-eye toggle-password" toggle="#password"></i>
+            </div>
+
+            <div class="d-grid">
+                <button type="submit" class="btn btn-primary shadow-sm">
+                    <i class="fas fa-sign-in-alt me-1"></i> Login
+                </button>
+            </div>
+
+            @if (ViewBag.Error != null)
+            {
+                <div class="alert alert-danger mt-3 mb-0 p-2 text-center">
+                    @ViewBag.Error
+                </div>
+            }
+
+            <div class="text-center mt-3">
+                <a asp-action="ForgotPasswordUser" class="text-decoration-none">Forgot password?</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Styles {
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha512-" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        .user-login-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            animation: fadeInUp 0.6s ease;
+        }
+
+        @@keyframes fadeInUp {
+            from
+
+        {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        }
+
+        .toggle-password {
+            position: absolute;
+            top: 38px;
+            right: 15px;
+            cursor: pointer;
+            color: #6c757d;
+        }
+
+            .toggle-password:hover {
+                color: #0d6efd;
+            }
+    </style>
+}
+
+@section Scripts {
+    <script>
+        document.querySelectorAll('.toggle-password').forEach(icon => {
+            icon.addEventListener('click', function () {
+                const input = document.querySelector(this.getAttribute('toggle'));
+                const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
+                input.setAttribute('type', type);
+                this.classList.toggle('fa-eye');
+                this.classList.toggle('fa-eye-slash');
+            });
+        });
+    </script>
+}

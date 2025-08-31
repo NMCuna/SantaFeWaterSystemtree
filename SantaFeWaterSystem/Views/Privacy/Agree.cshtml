@@ -1,0 +1,67 @@
+﻿@model SantaFeWaterSystem.Models.PrivacyPolicy
+
+@{
+    ViewData["Title"] = "Privacy Policy Agreement";
+    Layout = "~/Views/Shared/_HomeLayout.cshtml";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/privacy-policy-agree.css" asp-append-version="true" />
+}
+
+<div class="privacy-container">
+    <!-- Header -->
+    <div class="privacy-header text-center">
+        <h1 class="privacy-title">@Model.Title</h1>
+    </div>
+
+    <!-- Policy Content (scrollable) -->
+    <div class="privacy-box border rounded shadow-sm privacy-scrollable">
+        @if (!string.IsNullOrWhiteSpace(Model.Content))
+        {
+            <p class="privacy-intro text-center">@Model.Content</p>
+        }
+
+        @if (Model.Sections != null && Model.Sections.Any(s => s.IsActive))
+        {
+            @foreach (var sec in Model.Sections.Where(s => s.IsActive))
+            {
+                <div class="privacy-section mb-3">
+                    <h5 class="privacy-section-title">@sec.SectionTitle</h5>
+                    <p class="privacy-section-content">@sec.Content</p>
+                </div>
+            }
+        }
+    </div>
+
+    <!-- Agreement Form (fixed bottom on mobile) -->
+    <form method="post" asp-action="AgreePolicy" asp-controller="Privacy" class="privacy-form">
+        <input type="hidden" name="policyVersion" value="@Model.Version" />
+
+        <div class="form-check mb-3">
+            <input class="form-check-input" type="checkbox" id="agreeCheckbox">
+            <label class="form-check-label fw-semibold" for="agreeCheckbox">
+                I have read and agree to the privacy policy.
+            </label>
+        </div>
+
+        <button type="submit" class="btn btn-success w-100 fw-bold" id="proceedBtn" disabled>
+            <i class="bi bi-check-circle me-2"></i>Agree & Proceed
+        </button>
+    </form>
+
+    <p class="text-muted text-end mt-3 fst-italic">
+        Last Updated: @Model.CreatedAt.ToString("MMMM dd, yyyy")
+    </p>
+</div>
+
+@section Scripts {
+    <script>
+        const checkbox = document.getElementById("agreeCheckbox");
+        const proceedBtn = document.getElementById("proceedBtn");
+
+        checkbox.addEventListener("change", function () {
+            proceedBtn.disabled = !this.checked;
+        });
+    </script>
+}

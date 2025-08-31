@@ -1,0 +1,246 @@
+﻿@model X.PagedList.IPagedList<SantaFeWaterSystem.Models.AuditTrail>
+@using X.PagedList
+@using X.PagedList.Mvc.Core
+
+@{
+    ViewData["Title"] = "My Account Activity";
+    Layout = "~/Views/Shared/_UserLayout.cshtml";
+
+    string ToPhilippineTime(DateTime utcDateTime)
+    {
+        var phTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Singapore Standard Time");
+        return TimeZoneInfo.ConvertTimeFromUtc(utcDateTime.ToUniversalTime(), phTimeZone).ToString("yyyy-MM-dd hh:mm tt");
+    }
+
+    string ToPhilippineTimeFull(DateTime utcDateTime)
+    {
+        var phTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Singapore Standard Time");
+        return TimeZoneInfo.ConvertTimeFromUtc(utcDateTime.ToUniversalTime(), phTimeZone).ToString("f");
+    }
+
+    string GetActionIcon(string action)
+    {
+        if (string.IsNullOrWhiteSpace(action)) return "bi bi-question-circle";
+        action = action.ToLower();
+
+        if (action.Contains("login")) return "bi bi-box-arrow-in-right";
+        if (action.Contains("logout")) return "bi bi-box-arrow-left";
+        if (action.Contains("update")) return "bi bi-pencil-square";
+        if (action.Contains("edit")) return "bi bi-pencil";
+        if (action.Contains("delete")) return "bi bi-trash";
+        if (action.Contains("create") || action.Contains("add")) return "bi bi-plus-circle";
+        if (action.Contains("view")) return "bi bi-eye";
+        if (action.Contains("archive")) return "bi bi-archive";
+        if (action.Contains("reset")) return "bi bi-arrow-clockwise";
+        return "bi bi-activity";
+    }
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/user-activity.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" />
+}
+
+<div class="container-fluid px-2 px-md-4">
+    <h2 class="page-title text-primary mb-4">
+        <i class="bi bi-clock-history me-2"></i>My Account Activity
+    </h2>
+
+    @if (TempData["Message"] != null)
+    {
+        <div class="alert alert-info alert-dismissible fade show" role="alert">
+            @TempData["Message"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <!-- 🔍 Filter Form -->
+    <form method="get" class="row g-3 mb-4 align-items-end">
+        <div class="col-md-4">
+            <label class="filter-label">Search by Action</label>
+            <input type="text" name="actionType" value="@ViewBag.ActionType" class="form-control" placeholder="e.g. Login, Update" />
+        </div>
+        <div class="col-md-3">
+            <label class="filter-label">Month</label>
+            <input type="month" name="month" value="@ViewBag.Month" class="form-control" />
+        </div>
+        <div class="col-md-5 d-flex gap-2">
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-funnel me-1"></i> Filter
+            </button>
+            <a href="@Url.Action("Index", "UserActivity")" class="btn btn-secondary">
+                <i class="bi bi-arrow-counterclockwise me-1"></i> Reset
+            </a>
+        </div>
+    </form>
+
+
+   
+    <!-- 📦 Archive & View Buttons (Responsive, Same Width, Single Line) -->
+    <div class="d-flex gap-2 mb-4" style="overflow: hidden;">
+        <form method="post" asp-action="ArchiveOwnLogs" class="w-50">
+            <button type="submit" class="btn btn-outline-danger btn-sm w-100 text-nowrap text-truncate">
+                <i class="bi bi-archive me-1"></i>
+                <span class="d-none d-sm-inline">Archive Logs</span>
+                <span class="d-inline d-sm-none">Archive</span>
+            </button>
+        </form>
+        <a asp-action="Archive" asp-controller="UserActivity" class="btn btn-outline-secondary btn-sm w-50 text-nowrap text-truncate">
+            <i class="bi bi-archive-fill me-1"></i>
+            <span class="d-none d-sm-inline">View Archived Logs</span>
+            <span class="d-inline d-sm-none">Archived</span>
+        </a>
+    </div>
+
+
+
+
+    <!-- 📋 TABLE View (Desktop) -->
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info text-center">No activity found for the selected filter.</div>
+    }
+    else
+    {
+        <div class="table-responsive d-none d-md-block">
+            <table class="table table-bordered table-hover align-middle">
+                <thead class="table-dark text-center">
+                    <tr>
+                        <th style="min-width: 140px;">Date & Time</th>
+                        <th>Action</th>
+                        <th>Details</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var log in Model)
+                    {
+                        <tr>
+                            <td class="text-nowrap">@ToPhilippineTime(log.Timestamp)</td>
+                            <td><i class="@GetActionIcon(log.Action) me-1"></i>@log.Action</td>
+                            <td>
+                                @if (!string.IsNullOrEmpty(log.Details) && log.Details.Length > 60)
+                                {
+                                    <span>@log.Details.Substring(0, 60)...</span>
+                                    <button class="btn btn-sm btn-link text-primary" data-bs-toggle="modal" data-bs-target="#modal-@log.Id">
+                                        <i class="bi bi-eye-fill"></i> View
+                                    </button>
+                                }
+                                else
+                                {
+                                    @log.Details
+                                }
+
+                                <!-- 💬 Modal -->
+                                <div class="modal fade" id="modal-@log.Id" tabindex="-1" aria-labelledby="modalLabel-@log.Id" aria-hidden="true">
+                                    <div class="modal-dialog modal-dialog-scrollable modal-lg">
+                                        <div class="modal-content">
+                                            <div class="modal-header bg-primary text-white">
+                                                <h5 class="modal-title" id="modalLabel-@log.Id">
+                                                    <i class="bi bi-info-circle me-2"></i>Activity Detail
+                                                </h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <p><strong>Action:</strong> @log.Action</p>
+                                                <p><strong>Date/Time:</strong> @ToPhilippineTimeFull(log.Timestamp)</p>
+                                                <hr />
+                                                <p>@log.Details</p>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                                    <i class="bi bi-x-circle me-1"></i> Close
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 📱 CARD View (Mobile Only) -->
+        <div class="d-block d-md-none">
+            @foreach (var log in Model)
+            {
+                <div class="card mb-3 shadow-sm">
+                    <div class="card-body">
+                        <h6 class="card-title text-primary">
+                            <i class="@GetActionIcon(log.Action) me-2"></i>@log.Action
+                        </h6>
+                        <p class="card-text text-muted mb-1">
+                            <i class="bi bi-calendar-event me-1"></i>@ToPhilippineTime(log.Timestamp)
+                        </p>
+                        <p class="card-text">
+                            @if (!string.IsNullOrEmpty(log.Details) && log.Details.Length > 100)
+                            {
+                                <span>@log.Details.Substring(0, 100)...</span>
+                                <button class="btn btn-sm btn-link text-primary" data-bs-toggle="modal" data-bs-target="#modal-@log.Id-sm">
+                                    View more
+                                </button>
+                            }
+                            else
+                            {
+                                @log.Details
+                            }
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Modal for Mobile -->
+                <div class="modal fade" id="modal-@log.Id-sm" tabindex="-1" aria-labelledby="modalLabel-@log.Id-sm" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-scrollable modal-lg">
+                        <div class="modal-content">
+                            <div class="modal-header bg-primary text-white">
+                                <h5 class="modal-title" id="modalLabel-@log.Id-sm">
+                                    <i class="bi bi-info-circle me-2"></i>Activity Detail
+                                </h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <p><strong>Action:</strong> @log.Action</p>
+                                <p><strong>Date/Time:</strong> @ToPhilippineTimeFull(log.Timestamp)</p>
+                                <hr />
+                                <p>@log.Details</p>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                    <i class="bi bi-x-circle me-1"></i> Close
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
+    <!-- 📄 Pagination -->
+    @if (Model.PageCount > 1)
+    {
+        <div class="d-flex justify-content-center mt-3">
+            @Html.PagedListPager(Model,
+            page => Url.Action("Index", new
+            {
+                page,
+                actionType = ViewBag.ActionType,
+                month = ViewBag.Month
+            }),
+                new PagedListRenderOptions
+                {
+                    DisplayLinkToPreviousPage = PagedListDisplayMode.Always,
+                    DisplayLinkToNextPage = PagedListDisplayMode.Always,
+                    DisplayLinkToFirstPage = PagedListDisplayMode.Always,
+                    DisplayLinkToLastPage = PagedListDisplayMode.Always,
+                    DisplayLinkToIndividualPages = true,
+                    MaximumPageNumbersToDisplay = 2,
+                    UlElementClasses = new[] { "pagination" },
+                    LiElementClasses = new[] { "page-item" },
+                    PageClasses = new[] { "page-link" }
+                }
+                )
+    </div>
+        }
+</div>

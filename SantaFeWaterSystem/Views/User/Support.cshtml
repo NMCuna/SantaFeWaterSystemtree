@@ -1,0 +1,199 @@
+﻿@model SantaFeWaterSystem.Models.ViewModels.UserSupportViewModel
+
+@{
+    ViewData["Title"] = "Support";
+    Layout = "~/Views/Shared/_UserLayout.cshtml";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" />
+    <style>
+        .support-container {
+            max-width: 700px;
+            margin: 2rem auto 4rem;
+        }
+
+        main.content {
+            padding-top: 70px;
+            min-height: 100vh;
+            background-color: #f4f7fa;
+        }
+
+        .ticket-card .card {
+            border-left: 4px solid #0d6efd;
+        }
+
+        #moreTickets {
+            display: none;
+        }
+    </style>
+}
+
+<h2 class="mb-4 text-primary fw-bold text-center">
+    <i class="bi bi-headset me-2"></i> Submit a Support Request
+</h2>
+
+<div class="card shadow-sm rounded-3 p-4 support-container bg-white">
+    <form asp-action="Support" method="post" novalidate>
+        <div class="mb-3">
+            <label asp-for="Subject" class="form-label d-flex align-items-center gap-1">
+                <i class="bi bi-tag text-secondary fs-5"></i> Subject
+            </label>
+            <input asp-for="Subject" class="form-control form-control-sm" placeholder="Enter a brief subject" />
+            <span asp-validation-for="Subject" class="text-danger"></span>
+        </div>
+
+        <div class="mb-4">
+            <label asp-for="Message" class="form-label d-flex align-items-center gap-1">
+                <i class="bi bi-chat-dots text-secondary fs-5"></i> Message
+            </label>
+            <textarea asp-for="Message" class="form-control form-control-sm" rows="5" placeholder="Describe your issue or request"></textarea>
+            <span asp-validation-for="Message" class="text-danger"></span>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-sm px-4">
+            <i class="bi bi-send me-1"></i> Submit
+        </button>
+    </form>
+
+    <hr class="my-4" />
+
+    <h4 class="mb-3 text-secondary fw-bold text-center">
+        <i class="bi bi-list-ul me-2"></i> Your Previous Tickets
+    </h4>
+
+    @if (Model.PreviousTickets != null && Model.PreviousTickets.Any())
+    {
+        <div class="ticket-card">
+            @{
+                var firstTicket = Model.PreviousTickets.First();
+                var statusFirst = firstTicket.Status.ToLowerInvariant();
+                var badgeClassFirst = statusFirst switch
+                {
+                    "resolved" => "bg-success",
+                    "pending" or "open" => "bg-warning text-dark",
+                    _ => "bg-secondary"
+                };
+            }
+
+            <!-- First Ticket Card -->
+            <div class="card shadow-sm mb-3">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span class="fw-bold">@firstTicket.Subject</span>
+                    <span class="badge @badgeClassFirst text-capitalize">@firstTicket.Status</span>
+                </div>
+                <div class="card-body">
+                    <p><strong>Created:</strong> @firstTicket.CreatedAt.ToString("yyyy-MM-dd")</p>
+                    <button type="button" class="btn btn-sm btn-info shadow-sm" data-bs-toggle="modal" data-bs-target="#ticketModal-@firstTicket.Id">
+                        <i class="bi bi-eye"></i> View
+                    </button>
+                </div>
+            </div>
+
+            @if (Model.PreviousTickets.Count > 1)
+            {
+                <div class="d-flex justify-content-center mb-3">
+                    <button id="toggleMoreTicketsBtn" class="btn btn-outline-primary btn-sm" aria-expanded="false" aria-controls="moreTickets">
+                        <i class="bi bi-chevron-down me-2"></i> Show All Tickets
+                    </button>
+                </div>
+
+                <!-- More Tickets -->
+                <div id="moreTickets">
+                    @foreach (var ticket in Model.PreviousTickets.Skip(1))
+                    {
+                        var status = ticket.Status.ToLowerInvariant();
+                        var badgeClass = status switch
+                        {
+                            "resolved" => "bg-success",
+                            "pending" or "open" => "bg-warning text-dark",
+                            _ => "bg-secondary"
+                        };
+
+                        <div class="card shadow-sm mb-3">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <span class="fw-bold">@ticket.Subject</span>
+                                <span class="badge @badgeClass text-capitalize">@ticket.Status</span>
+                            </div>
+                            <div class="card-body">
+                                <p><strong>Created:</strong> @ticket.CreatedAt.ToString("yyyy-MM-dd")</p>
+                                <button type="button" class="btn btn-sm btn-info shadow-sm" data-bs-toggle="modal" data-bs-target="#ticketModal-@ticket.Id">
+                                    <i class="bi bi-eye"></i> View
+                                </button>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <p class="text-muted fst-italic text-center">You have not submitted any support tickets yet.</p>
+    }
+</div>
+
+<!-- Modals for each ticket -->
+@if (Model.PreviousTickets != null)
+{
+    foreach (var ticket in Model.PreviousTickets)
+    {
+        var status = ticket.Status.ToLowerInvariant();
+        var badgeClass = status switch
+        {
+            "resolved" => "bg-success",
+            "pending" or "open" => "bg-warning text-dark",
+            _ => "bg-secondary"
+        };
+        <div class="modal fade" id="ticketModal-@ticket.Id" tabindex="-1" aria-labelledby="modalLabel-@ticket.Id" aria-hidden="true">
+            <div class="modal-dialog modal-lg modal-dialog-scrollable">
+                <div class="modal-content">
+                    <div class="modal-header bg-primary text-white">
+                        <h5 class="modal-title" id="modalLabel-@ticket.Id">
+                            <i class="bi bi-headset me-2"></i> Support Ticket: @ticket.Subject
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p><strong>Your Message:</strong><br />@ticket.Message</p>
+                        <hr />
+                        <p><strong>Status:</strong> <span class="badge @badgeClass text-capitalize">@ticket.Status</span></p>
+                        @if (!string.IsNullOrEmpty(ticket.AdminReply))
+                        {
+                            <p><strong>Admin Reply:</strong><br />@ticket.AdminReply</p>
+                            <p><strong>Resolved At:</strong> @ticket.ResolvedAt?.ToString("yyyy-MM-dd hh:mm tt")</p>
+                        }
+                        else
+                        {
+                            <p class="text-muted fst-italic">No reply yet.</p>
+                        }
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary shadow-sm" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+}
+
+@await Html.PartialAsync("_ToastNotification")
+
+<!-- Toggle Script -->
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const toggleBtn = document.getElementById('toggleMoreTicketsBtn');
+        const moreTickets = document.getElementById('moreTickets');
+
+        if (!toggleBtn || !moreTickets) return;
+
+        toggleBtn.addEventListener('click', () => {
+            const expanded = toggleBtn.getAttribute('aria-expanded') === 'true';
+            toggleBtn.setAttribute('aria-expanded', !expanded);
+            moreTickets.style.display = expanded ? 'none' : 'block';
+            toggleBtn.innerHTML = expanded
+                ? '<i class="bi bi-chevron-down me-2"></i> Show All Tickets'
+                : '<i class="bi bi-chevron-up me-2"></i> Hide Tickets';
+        });
+    });
+</script>

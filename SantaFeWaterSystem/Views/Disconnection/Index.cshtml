@@ -1,0 +1,207 @@
+﻿@model SantaFeWaterSystem.ViewModels.PaginatedList<SantaFeWaterSystem.ViewModels.DisconnectionViewModel>
+@{
+    ViewData["Title"] = "Disconnection List";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    var currentSort = ViewBag.CurrentSort as string;
+    var nameSortParam = String.IsNullOrEmpty(currentSort) ? "name_desc" : "";
+    var overdueSortParam = currentSort == "overdue" ? "overdue_desc" : "overdue";
+    var amountSortParam = currentSort == "amount" ? "amount_desc" : "amount";
+    var dueDateSortParam = currentSort == "duedate" ? "duedate_desc" : "duedate";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/disconnection.css" asp-append-version="true" />
+    <style>
+        /* Input focus style */
+        input.form-control:focus {
+            box-shadow: 0 0 5px 2px rgba(13, 110, 253, 0.5); /* Bootstrap primary blue shadow */
+            border-color: #0d6efd; /* Bootstrap primary color */
+        }
+
+        /* Clear button hover */
+        button.btn-outline-primary:hover {
+            background-color: #0d6efd;
+            color: white;
+        }
+    </style>
+
+}
+
+<h2 class="disconnection-title mb-4">Disconnection List</h2>
+<form method="get" asp-action="Index" class="mb-3 d-flex flex-wrap align-items-center gap-2" id="searchForm" role="search" aria-label="Disconnection search form">
+    <div class="position-relative" style="max-width: 300px; width: 100%;">
+        <input type="search"
+               name="searchTerm"
+               value="@ViewBag.SearchTerm"
+               class="form-control border-primary shadow-sm"
+               placeholder="Search by name or meter no..."
+               aria-label="Search by name or meter number"
+               oninput="autoSearch()"
+               style="transition: box-shadow 0.3s ease;" />
+        <button type="button"
+                class="btn btn-sm btn-outline-primary position-absolute top-50 end-0 translate-middle-y me-1"
+                onclick="clearSearch()"
+                aria-label="Clear search"
+                style="transition: background-color 0.3s, color 0.3s;">
+            <i class="bi bi-x-lg"></i>
+        </button>
+    </div>
+
+    <noscript>
+        <button type="submit" class="btn btn-primary">
+            <i class="bi bi-search"></i> Search
+        </button>
+    </noscript>
+</form>
+
+
+
+@if (TempData["Message"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert" id="tempAlert">
+        <i class="bi bi-check-circle-fill me-2"></i> @TempData["Message"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert" id="tempAlert">
+        <i class="bi bi-x-circle-fill me-2"></i> @TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@if (!Model.Any())
+{
+    <div class="alert alert-success">
+        <i class="bi bi-check-circle-fill me-2"></i>No consumers are currently eligible for disconnection.
+    </div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-bordered table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th>
+                        <a asp-action="Index" asp-route-sortOrder="@nameSortParam" asp-route-searchTerm="@ViewBag.SearchTerm">Consumer Name</a>
+                    </th>
+                    <th>
+                        <a asp-action="Index" asp-route-sortOrder="@overdueSortParam" asp-route-searchTerm="@ViewBag.SearchTerm">Overdue Bills</a>
+                    </th>
+                    <th>
+                        <a asp-action="Index" asp-route-sortOrder="@amountSortParam" asp-route-searchTerm="@ViewBag.SearchTerm">Total Unpaid</a>
+                    </th>
+                    <th>
+                        <a asp-action="Index" asp-route-sortOrder="@dueDateSortParam" asp-route-searchTerm="@ViewBag.SearchTerm">Latest Due Date</a>
+                    </th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>@item.ConsumerName</td>
+                        <td>@item.OverdueBillsCount</td>
+                        <td>@item.TotalUnpaidAmount.ToString("C")</td>
+                        <td>@item.LatestDueDate?.ToShortDateString()</td>
+                        <td>
+                            @if (item.IsDisconnected)
+                            {
+                                <span class="badge bg-danger">Disconnected</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-success">Active</span>
+                            }
+                        </td>
+                        <td class="d-flex gap-2 flex-wrap">
+                            @if (item.IsDisconnected)
+                            {
+                                <form asp-action="Reconnect" method="post" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@item.ConsumerId" />
+                                    <button type="submit" class="btn btn-sm btn-outline-success">
+                                        <i class="bi bi-plug"></i> Reconnect
+                                    </button>
+                                </form>
+                            }
+                            else
+                            {
+                                <form asp-action="Disconnect" method="post" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@item.ConsumerId" />
+                                    <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure you want to disconnect this consumer?');">
+                                        <i class="bi bi-plug-fill"></i> Disconnect
+                                    </button>
+                                </form>
+                            }
+
+                            <form asp-action="Notify" method="post" class="d-inline">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@item.ConsumerId" />
+                                <button type="submit" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-bell-fill"></i> Notify
+                                </button>
+                            </form>
+                            <a asp-action="Details" asp-route-id="@item.ConsumerId" class="btn btn-sm btn-outline-info">
+                                <i class="bi bi-eye-fill"></i> View Details
+                            </a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    <nav>
+        <ul class="pagination justify-content-center">
+            <li class="page-item @(Model.HasPreviousPage ? "" : "disabled")">
+                <a class="page-link" asp-action="Index" asp-route-page="@(Model.PageIndex - 1)" asp-route-searchTerm="@ViewBag.SearchTerm" asp-route-sortOrder="@ViewBag.CurrentSort">Previous</a>
+            </li>
+            @for (int i = 1; i <= Model.TotalPages; i++)
+            {
+                <li class="page-item @(i == Model.PageIndex ? "active" : "")">
+                    <a class="page-link" asp-action="Index" asp-route-page="@i" asp-route-searchTerm="@ViewBag.SearchTerm" asp-route-sortOrder="@ViewBag.CurrentSort">@i</a>
+                </li>
+            }
+            <li class="page-item @(Model.HasNextPage ? "" : "disabled")">
+                <a class="page-link" asp-action="Index" asp-route-page="@(Model.PageIndex + 1)" asp-route-searchTerm="@ViewBag.SearchTerm" asp-route-sortOrder="@ViewBag.CurrentSort">Next</a>
+            </li>
+        </ul>
+    </nav>
+}
+
+@section Scripts {
+    <script>
+        let searchTimeout;
+        function autoSearch() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                document.getElementById("searchForm").submit();
+            }, 800); // delay to avoid firing too fast
+        }
+
+        // Auto-remove alert after 5 seconds
+        setTimeout(function () {
+            var alert = document.getElementById("tempAlert");
+            if (alert) {
+                var bsAlert = bootstrap.Alert.getOrCreateInstance(alert);
+                bsAlert.close();
+            }
+        }, 5000);
+    </script>
+
+    <script>
+        function clearSearch() {
+          const input = document.querySelector('input[name="searchTerm"]');
+          if (input.value.length > 0) {
+            input.value = '';
+            input.dispatchEvent(new Event('input')); // trigger autoSearch()
+          }
+        }
+    </script>
+}

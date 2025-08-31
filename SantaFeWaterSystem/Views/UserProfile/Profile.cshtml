@@ -1,0 +1,124 @@
+﻿@model SantaFeWaterSystem.ViewModels.UserAdminProfileViewModel
+
+@{
+    ViewData["Title"] = "Profile";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    var isReadOnly = !Model.IsAdmin;
+}
+
+@section Styles {
+    <style>
+        .profile-avatar {
+            width: 120px;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 50%;
+            border: 3px solid #0d6efd;
+        }
+    </style>
+}
+
+<div class="container mt-4">
+    <h2 class="text-center mb-4 text-primary"><i class="bi bi-person-badge-fill"></i> My Profile</h2>
+
+    @if (TempData["Message"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            <i class="bi bi-check-circle me-2"></i> @TempData["Message"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body">
+            <form asp-action="Profile" method="post" enctype="multipart/form-data">
+                @Html.AntiForgeryToken()
+                <input type="hidden" asp-for="Id" />
+                <input type="hidden" asp-for="Role" />
+                <input type="hidden" asp-for="IsAdmin" />
+
+                <!-- Profile Image -->
+                <div class="text-center mb-4">
+                    <img id="profilePreview" src="~/images/profiles/@(Model.ExistingProfilePicture ?? "default.png")"
+                         class="profile-avatar shadow-sm mb-2"
+                         alt="Profile Picture" />
+
+                    <div class="d-flex justify-content-center gap-2 mt-2">
+                        <input asp-for="ProfileImage" type="file" class="form-control form-control-sm w-50" accept="image/*"
+                               onchange="previewSelectedImage(event)" />
+                             
+                    </div>
+                    <span asp-validation-for="ProfileImage" class="text-danger small"></span>
+                </div>
+
+                <!-- User Info -->
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label asp-for="Username" class="form-label fw-bold"><i class="bi bi-person"></i> Username</label>
+                        <input asp-for="Username" class="form-control" readonly />
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="FullName" class="form-label fw-bold"><i class="bi bi-card-text"></i> Full Name</label>
+                        @if (isReadOnly)
+                        {
+                            <input asp-for="FullName" class="form-control" readonly />
+                        }
+                        else
+                        {
+                            <input asp-for="FullName" class="form-control" />
+                        }
+                        <span asp-validation-for="FullName" class="text-danger small"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="IsMfaEnabled" class="form-label fw-bold"><i class="bi bi-shield-lock"></i> Enable MFA</label>
+                        <div class="form-check mt-1">
+                            @if (isReadOnly)
+                            {
+                                <input asp-for="IsMfaEnabled" class="form-check-input" disabled />
+                            }
+                            else
+                            {
+                                <input asp-for="IsMfaEnabled" class="form-check-input" />
+                            }
+                            <label class="form-check-label" for="IsMfaEnabled">Enable Two-Factor Authentication</label>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold"><i class="bi bi-award"></i> Role</label>
+                        <input class="form-control" value="@Model.Role" readonly />
+                    </div>
+                </div>
+
+                <div class="text-center mt-4 d-flex justify-content-center gap-3">
+                    <button type="submit" class="btn btn-primary px-4">
+                        <i class="bi bi-save2"></i> Save Changes
+                    </button>
+                    <a asp-action="ResetPassword" class="btn btn-outline-danger px-4">
+                        <i class="bi bi-key-fill"></i> Reset Password
+                    </a>
+                </div>
+
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        function previewSelectedImage(event) {
+            const input = event.target;
+            const file = input.files[0];
+            if (file && file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    document.getElementById('profilePreview').src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+    </script>
+}

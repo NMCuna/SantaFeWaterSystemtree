@@ -1,0 +1,35 @@
+﻿/* disconnection.css */
+
+.disconnection-title {
+    color: #dc3545; /* Bootstrap red */
+    font-weight: bold;
+    text-shadow: 0 0 5px rgba(220, 53, 69, 0.6), 0 0 10px rgba(220, 53, 69, 0.4), 0 0 20px rgba(220, 53, 69, 0.2);
+    animation: glowPulse 2s ease-in-out infinite;
+}
+
+@keyframes glowPulse {
+    0% {
+        text-shadow: 0 0 5px rgba(220, 53, 69, 0.6), 0 0 10px rgba(220, 53, 69, 0.4), 0 0 20px rgba(220, 53, 69, 0.2);
+    }
+
+    50% {
+        text-shadow: 0 0 10px rgba(220, 53, 69, 0.8), 0 0 20px rgba(220, 53, 69, 0.6), 0 0 30px rgba(220, 53, 69, 0.4);
+    }
+
+    100% {
+        text-shadow: 0 0 5px rgba(220, 53, 69, 0.6), 0 0 10px rgba(220, 53, 69, 0.4), 0 0 20px rgba(220, 53, 69, 0.2);
+    }
+}
+
+/* Removes underline and adds a hover effect to header links */
+.table thead a {
+    text-decoration: none;
+    color: #ffffff;
+    font-weight: 500;
+    transition: color 0.2s ease;
+}
+
+    .table thead a:hover {
+        color: #ffc107; /* Bootstrap warning color for hover effect */
+        text-decoration: none;
+    }

@@ -1,0 +1,49 @@
+﻿@model SantaFeWaterSystem.Models.User
+
+@{
+    ViewData["Title"] = "Account Locked";
+    Layout = "_AccountLayout";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow border-0">
+                <div class="card-header bg-danger text-white d-flex align-items-center">
+                    <i class="bi bi-lock-fill fs-4 me-2"></i>
+                    <h5 class="mb-0">Account Locked</h5>
+                </div>
+                <div class="card-body text-center">
+                    <p class="text-muted">
+                        Your account has been <strong>locked by an administrator</strong>. This means you can no longer log in.
+                    </p>
+
+                    <div class="mb-3">
+                        <strong>Account Number:</strong> @Model.AccountNumber
+                    </div>
+                    <div class="mb-4">
+                        <strong>Username:</strong> @Model.Username
+                    </div>
+
+                    <p>If you believe this was a mistake or need assistance, please contact our support team.</p>
+
+                    <!-- ✅ Side-by-side buttons with smaller text -->
+                    <div class="text-center mt-4">
+                        <div class="row g-2 justify-content-center">
+                            <div class="col-6">
+                                <a asp-action="Contact" asp-controller="Home" class="btn btn-primary w-100 text-nowrap fs-6">
+                                    <i class="bi bi-envelope-fill me-1"></i> Contact
+                                </a>
+                            </div>
+                            <div class="col-6">
+                                <a asp-action="UserLogin" asp-controller="Account" class="btn btn-outline-secondary w-100 text-nowrap fs-6">
+                                    <i class="bi bi-arrow-left-circle me-1"></i> Back
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div> <!-- Close .card-body -->
+            </div> <!-- Close .card -->
+        </div> <!-- Close .col -->
+    </div> <!-- Close .row -->
+</div> <!-- Close .container -->

@@ -1,0 +1,46 @@
+﻿@model SantaFeWaterSystem.Models.User
+
+@{
+    ViewData["Title"] = "Confirm Account Unlock";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card shadow-lg border-0">
+                <div class="card-header bg-success text-white d-flex align-items-center">
+                    <i class="bi bi-unlock-fill fs-4 me-2"></i>
+                    <h5 class="mb-0">Confirm Account Unlock</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">
+                        You are about to <strong class="text-success">unlock</strong> this user's account. This will allow the user to log in again.
+                    </p>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Account Number:</label>
+                        <div class="form-control bg-light">@Model.AccountNumber</div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Username:</label>
+                        <div class="form-control bg-light">@Model.Username</div>
+                    </div>
+
+                    <form asp-action="UnlockUser" method="post">
+                        <input type="hidden" name="id" value="@Model.Id" />
+                        <div class="d-flex justify-content-end gap-2">
+                            <a asp-action="ManageUsers" class="btn btn-outline-secondary">
+                                <i class="bi bi-x-circle"></i> Cancel
+                            </a>
+                            <button type="submit" class="btn btn-success">
+                                <i class="bi bi-unlock-fill"></i> Confirm Unlock
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

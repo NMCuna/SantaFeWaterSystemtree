@@ -1,0 +1,128 @@
+﻿@model SantaFeWaterSystem.Models.Billing
+@{
+    ViewData["Title"] = "Edit Billing";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+@section Styles {
+    <style>
+        .edit-billing-container {
+            max-width: 750px;
+            margin: 30px auto;
+        }
+
+            .edit-billing-container .card {
+                border-radius: 10px;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            }
+
+            .edit-billing-container h2 {
+                font-weight: 600;
+                color: #0d6efd;
+                margin-bottom: 20px;
+            }
+
+        .form-label {
+            font-weight: 500;
+        }
+    </style>
+}
+
+<div class="edit-billing-container">
+    <div class="card p-4">
+        <h2 class="text-center">Edit Billing</h2>
+
+        <form asp-action="Edit" method="post">
+            <input type="hidden" asp-for="Id" />
+
+            <div class="mb-3">
+                <label asp-for="BillNo" class="form-label"></label>
+                <input asp-for="BillNo" class="form-control" />
+                <span asp-validation-for="BillNo" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="ConsumerId" class="form-label">Consumer</label>
+                <select asp-for="ConsumerId" class="form-control" asp-items="@(new SelectList(ViewBag.Consumers, "Id", "FullName", Model.ConsumerId))"></select>
+                <span asp-validation-for="ConsumerId" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="BillingDate" class="form-label"></label>
+                <input asp-for="BillingDate" type="date" class="form-control" />
+                <span asp-validation-for="BillingDate" class="text-danger"></span>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label asp-for="PreviousReading" class="form-label"></label>
+                    <input asp-for="PreviousReading" type="number" step="0.01" class="form-control" />
+                    <span asp-validation-for="PreviousReading" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label asp-for="PresentReading" class="form-label"></label>
+                    <input asp-for="PresentReading" type="number" step="0.01" class="form-control" />
+                    <span asp-validation-for="PresentReading" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="CubicMeterUsed" class="form-label"></label>
+                <input asp-for="CubicMeterUsed" type="number" step="0.01" class="form-control" readonly />
+                <span asp-validation-for="CubicMeterUsed" class="text-danger"></span>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label asp-for="AmountDue" class="form-label"></label>
+                    <input asp-for="AmountDue" type="number" step="0.01" class="form-control" />
+                    <span asp-validation-for="AmountDue" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label asp-for="Penalty" class="form-label"></label>
+                    <input asp-for="Penalty" type="number" step="0.01" class="form-control" readonly />
+                    <span asp-validation-for="Penalty" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="AdditionalFees" class="form-label"></label>
+                <input asp-for="AdditionalFees" type="number" step="0.01" class="form-control" />
+                <span asp-validation-for="AdditionalFees" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="TotalAmount" class="form-label"></label>
+                <input asp-for="TotalAmount" type="number" step="0.01" class="form-control" readonly />
+                <span asp-validation-for="TotalAmount" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="DueDate" class="form-label"></label>
+                <input asp-for="DueDate" type="date" class="form-control" />
+                <span asp-validation-for="DueDate" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Status" class="form-label"></label>
+                <select asp-for="Status" class="form-control">
+                    <option value="Pending" selected="@(Model.Status == "Pending" ? "selected" : null)">Pending</option>
+                    <option value="Paid" selected="@(Model.Status == "Paid" ? "selected" : null)">Paid</option>
+                    <option value="Unpaid" selected="@(Model.Status == "Unpaid" ? "selected" : null)">Unpaid</option>
+                </select>
+                <span asp-validation-for="Status" class="text-danger"></span>
+            </div>
+
+            <div class="d-flex justify-content-end">
+                <button type="submit" class="btn btn-primary me-2">Save</button>
+                <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+}

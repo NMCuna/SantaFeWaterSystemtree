@@ -1,0 +1,97 @@
+﻿/* === Receipt Container === */
+.receipt-container {
+    max-width: 900px;
+    margin: 40px auto;
+    padding: 30px;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.07);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* === Header Styling === */
+.receipt-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+    .receipt-header h2 {
+        font-size: 2rem;
+        font-weight: bold;
+        color: #007bff;
+        text-shadow: 0 0 8px rgba(0, 123, 255, 0.4);
+    }
+
+    .receipt-header i {
+        color: #007bff;
+        margin-right: 10px;
+    }
+
+/* === Section Styling === */
+.receipt-section {
+    margin-bottom: 30px;
+}
+
+    .receipt-section h5 {
+        font-size: 1.2rem;
+        border-bottom: 2px solid #ccc;
+        padding-bottom: 6px;
+        margin-bottom: 20px;
+        font-weight: 600;
+        color: #444;
+    }
+
+/* === Label + Value Item Lines === */
+.receipt-line-item {
+    margin-bottom: 6px;
+    font-size: 16px;
+    white-space: nowrap;
+    margin-right: 20px;
+}
+
+    .receipt-line-item strong {
+        color: #333;
+    }
+
+/* === Responsive Fix for Small Screens === */
+@media (max-width: 576px) {
+    .receipt-line-item {
+        width: 100%;
+        white-space: normal;
+        margin-right: 0;
+    }
+}
+
+/* === Print Mode === */
+@media print {
+    .no-print {
+        display: none !important;
+    }
+
+    .receipt-container {
+        box-shadow: none;
+        border: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    body {
+        background: white;
+    }
+}
+
+/* === Optional Glow Effect for Header === */
+.glow {
+    font-size: clamp(0.9rem, 3.5vw, 1.75rem);
+    white-space: nowrap; /* Prevent line break */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.no-image {
+    display: none !important;
+}

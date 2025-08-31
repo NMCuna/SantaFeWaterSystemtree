@@ -1,0 +1,22 @@
+﻿@model bool
+
+@if (Model)
+{
+    <li>
+        <form asp-controller="Account" asp-action="Reset2FAAdmin" method="post" class="px-3"
+              onsubmit="return confirm('Are you sure you want to disable 2FA?');">
+            @Html.AntiForgeryToken()
+            <button type="submit" class="dropdown-item text-danger">
+                <i class="bi bi-shield-x me-2"></i> Disable 2FA
+            </button>
+        </form>
+    </li>
+}
+else
+{
+    <li>
+        <a class="dropdown-item" href="@Url.Action("Setup2FAAdmin", "Account")">
+            <i class="bi bi-shield-lock me-2"></i> Enable 2FA
+        </a>
+    </li>
+}

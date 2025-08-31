@@ -1,0 +1,169 @@
+﻿@model SantaFeWaterSystem.Models.Billing
+@{
+    ViewData["Title"] = "Billing Details";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+@section Styles {
+    <style>
+        .details-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .details-card {
+            background-color: #f9f9fc;
+            border: 1px solid #dee2e6;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            font-size: 1rem;
+        }
+
+        h2.page-header {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #0d6efd;
+            border-left: 5px solid #0d6efd;
+            padding-left: 15px;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+        }
+
+        dt {
+            font-weight: bold;
+            color: #343a40;
+        }
+
+        dd {
+            margin-bottom: 15px;
+        }
+
+        .audit-section {
+            background-color: #eef5ff;
+            border-left: 5px solid #0d6efd;
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-top: 25px;
+            box-shadow: 0 0 5px rgba(13, 110, 253, 0.1);
+        }
+
+            .audit-section h5 {
+                margin-bottom: 10px;
+                color: #0d6efd;
+            }
+    </style>
+}
+
+<div class="details-container">
+    <h2 class="page-header"><i class="bi bi-receipt"></i> Billing Details</h2>
+
+    <div class="details-card">
+        <div class="row mb-2">
+            <div class="col-md-6">
+                <strong>Bill No:</strong>
+                <div>@Model.BillNo</div>
+            </div>
+            <div class="col-md-6">
+                <strong>Consumer:</strong>
+                <div>@($"{Model.Consumer?.FirstName} {Model.Consumer?.LastName}")</div>
+            </div>
+        </div>
+
+        <div class="row mb-2">
+            <div class="col-md-6">
+                <strong>Account Type:</strong>
+                <div>@Model.Consumer?.AccountType</div>
+            </div>
+            <div class="col-md-6">
+                <strong>Billing Date:</strong>
+                <div>@Model.BillingDate.ToShortDateString()</div>
+            </div>
+        </div>
+
+        <div class="row mb-2">
+            <div class="col-md-6">
+                <strong>Previous Reading:</strong>
+                <div>@Model.PreviousReading.ToString("F2")</div>
+            </div>
+            <div class="col-md-6">
+                <strong>Present Reading:</strong>
+                <div>@Model.PresentReading.ToString("F2")</div>
+            </div>
+        </div>
+
+        <div class="row mb-2">
+            <div class="col-md-6">
+                <strong>Cubic Meter Used:</strong>
+                <div>@Model.CubicMeterUsed.ToString("F2")</div>
+            </div>
+            <div class="col-md-6">
+                <strong>Amount Due:</strong>
+                <div>@Model.AmountDue.ToString("C")</div>
+            </div>
+        </div>
+
+        <div class="row mb-2">
+            <div class="col-md-6">
+                <strong>Penalty:</strong>
+                <div>@Model.Penalty.ToString("C")</div>
+            </div>
+            <div class="col-md-6">
+                <strong>Additional Fees:</strong>
+                <div>@((Model.AdditionalFees ?? 0).ToString("C"))</div>
+            </div>
+        </div>
+
+        <div class="row mb-2">
+            <div class="col-md-6">
+                <strong>Total Amount:</strong>
+                <div>@Model.TotalAmount.ToString("C")</div>
+            </div>
+            <div class="col-md-6">
+                <strong>Due Date:</strong>
+                <div>@Model.DueDate.ToShortDateString()</div>
+            </div>
+        </div>
+
+        <div class="row mb-2">
+            <div class="col-md-6">
+                <strong>Status:</strong>
+                <div>
+                    @if (Model.Status == "Paid")
+                    {
+                        <span class="badge bg-success">Paid</span>
+                    }
+                    else if (Model.Status == "Unpaid")
+                    {
+                        <span class="badge bg-danger">Unpaid</span>
+                    }
+                    else if (Model.Status == "Pending")
+                    {
+                        <span class="badge bg-warning text-dark">Pending</span>
+                    }
+                </div>
+            </div>
+        </div>
+
+        @if (Model.Penalty > 0)
+        {
+            <div class="audit-section mt-4">
+                <h5><i class="bi bi-clock-history"></i> Audit Trail</h5>
+                <p>This billing record has a penalty applied. You may view its audit logs:</p>
+                <a asp-controller="AuditTrail"
+                   asp-action="Index"
+                   asp-route-actionType="PenaltyApplied"
+                   asp-route-search="@Model.BillNo"
+                   class="btn btn-outline-primary btn-sm mt-2">
+                    <i class="bi bi-eye"></i> View Audit Logs
+                </a>
+            </div>
+        }
+    </div>
+
+    <div class="mt-4 d-flex justify-content-between">
+        <a asp-action="Index" class="btn btn-secondary"><i class="bi bi-arrow-left-circle"></i> Back to List</a>
+        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary"><i class="bi bi-pencil-square"></i> Edit</a>
+    </div>
+</div>

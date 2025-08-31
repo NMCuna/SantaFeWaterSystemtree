@@ -1,0 +1,406 @@
+﻿/* Smooth transition for background and text */
+body {
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+    /* === DARK MODE ROOT === */
+    body.dark-mode {
+        background-color: #121212;
+        color: #e0e0e0;
+    }
+
+/* === NAVIGATION & SIDEBAR === */
+.dark-mode .navbar,
+.dark-mode .sidebar,
+.dark-mode .dropdown-menu {
+    background-color: #1e1e1e !important;
+    color: #e0e0e0 !important;
+}
+
+.dark-mode .nav-link,
+.dark-mode .dropdown-item {
+    color: #e0e0e0 !important;
+}
+
+    .dark-mode .dropdown-item:hover {
+        background-color: #2a2a2a !important;
+    }
+
+/* === BUTTONS === */
+.dark-mode .btn {
+    background-color: #2a2a2a !important;
+    color: #ffffff !important;
+    border-color: #444 !important;
+}
+
+.dark-mode .btn-outline-light {
+    color: #e0e0e0 !important;
+    border-color: #e0e0e0 !important;
+}
+
+.dark-mode .btn-outline-dark {
+    color: #e0e0e0 !important;
+    border-color: #999 !important;
+}
+
+    .dark-mode .btn-outline-dark:hover {
+        background-color: #333 !important;
+        color: #fff !important;
+        border-color: #666 !important;
+    }
+
+/* === HEADINGS === */
+.dark-mode h1,
+.dark-mode h2,
+.dark-mode h3,
+.dark-mode h4,
+.dark-mode h5,
+.dark-mode .page-header {
+    color: #ffffff !important;
+}
+
+.dark-mode .text-primary {
+    color: #66b2ff !important;
+}
+
+/* === MAIN CONTENT CONTAINERS === */
+.dark-mode main,
+.dark-mode .container,
+.dark-mode .content-wrapper {
+    background-color: #121212 !important;
+    color: #e0e0e0 !important;
+}
+
+/* === CARDS === */
+.dark-mode .card,
+.dark-mode .card-header,
+.dark-mode .card-footer {
+    background-color: #1e1e1e !important;
+    color: #e0e0e0 !important;
+}
+
+    .dark-mode .card-header.bg-light,
+    .dark-mode .card-footer.bg-white {
+        background-color: #1e1e1e !important;
+        color: #e0e0e0 !important;
+    }
+
+/* === FORMS === */
+.dark-mode input,
+.dark-mode select,
+.dark-mode textarea,
+.dark-mode .form-control {
+    background-color: #2a2a2a !important;
+    color: #ffffff !important;
+    border-color: #444 !important;
+}
+
+/* === TABLES === */
+.dark-mode .table {
+    background-color: #1e1e1e !important;
+    color: #e0e0e0 !important;
+}
+
+    .dark-mode .table th,
+    .dark-mode .table td {
+        border-color: #333 !important;
+    }
+
+/* === CHART TOOLTIP OVERRIDE (Chart.js) === */
+.dark-mode .chartjs-tooltip {
+    background-color: #2a2a2a !important;
+    color: #fff !important;
+    border-color: #444 !important;
+}
+
+/* === GRAPH NODES (if needed) === */
+.dark-mode .graph-node.bg-primary {
+    background-color: #375a7f !important;
+}
+
+.dark-mode .graph-node.bg-info {
+    background-color: #138496 !important;
+}
+
+.dark-mode .graph-node.bg-success {
+    background-color: #1e7e34 !important;
+}
+
+.dark-mode .graph-node.bg-danger {
+    background-color: #c82333 !important;
+}
+
+.dark-mode .graph-node.bg-warning {
+    background-color: #e0a800 !important;
+    color: #212529 !important;
+}
+
+/* Optional: fix tooltips */
+.dark-mode .tooltip-inner {
+    background-color: #2a2a2a;
+    color: #ffffff;
+}
+
+.dark-mode .tooltip.bs-tooltip-top .arrow::before,
+.dark-mode .tooltip.bs-tooltip-bottom .arrow::before,
+.dark-mode .tooltip.bs-tooltip-left .arrow::before,
+.dark-mode .tooltip.bs-tooltip-right .arrow::before {
+    border-top-color: #2a2a2a;
+    border-bottom-color: #2a2a2a;
+    border-left-color: #2a2a2a;
+    border-right-color: #2a2a2a;
+}
+/* === SUMMARY CARD === */
+.dark-mode .summary-card {
+    background-color: #1e1e1e !important;
+    color: #e0e0e0 !important;
+    border-left-color: #0d6efd !important;
+    box-shadow: 0 0 8px rgba(255, 255, 255, 0.05) !important;
+}
+
+/* === CARD COMPONENTS === */
+.dark-mode .card {
+    background-color: #1e1e1e !important;
+    color: #e0e0e0 !important;
+    box-shadow: 0 0 8px rgba(255, 255, 255, 0.05) !important;
+}
+
+.dark-mode .card-header,
+.dark-mode .card-footer {
+    background-color: #1a1a1a !important;
+    color: #e0e0e0 !important;
+}
+
+/* === NAV TABS === */
+.dark-mode .nav-tabs {
+    border-bottom-color: #444 !important;
+}
+
+    .dark-mode .nav-tabs .nav-link {
+        background-color: transparent !important;
+        color: #e0e0e0 !important;
+        border-color: #444 !important;
+    }
+
+        .dark-mode .nav-tabs .nav-link.active {
+            background-color: #2a2a2a !important;
+            border-color: #666 #666 #2a2a2a !important;
+            color: #fff !important;
+            font-weight: bold;
+        }
+
+/* === TABLES === */
+.dark-mode .table-striped > tbody > tr:nth-of-type(odd) {
+    background-color: #222 !important;
+}
+
+.dark-mode .table-hover tbody tr:hover {
+    background-color: #2d2d2d !important;
+}
+
+/* === MODAL === */
+.dark-mode .modal-content {
+    background-color: #1e1e1e !important;
+    color: #e0e0e0 !important;
+}
+
+.dark-mode .modal-header,
+.dark-mode .modal-footer {
+    background-color: #1a1a1a !important;
+    color: #e0e0e0 !important;
+}
+
+    .dark-mode .modal-header .btn-close {
+        filter: invert(1);
+    }
+/* === HEADERS === */
+.dark-mode .page-header {
+    border-left-color: #0d6efd;
+    color: #0d6efd !important;
+}
+
+/* === FILTER FORM === */
+.dark-mode .form-label {
+    color: #e0e0e0 !important;
+}
+
+.dark-mode .form-control,
+.dark-mode .form-select {
+    background-color: #2a2a2a !important;
+    color: #fff !important;
+    border-color: #444 !important;
+}
+
+/* === MONTHLY SUMMARY BOX === */
+.dark-mode .monthly-summary {
+    background-color: #1e1e1e !important;
+    color: #e0e0e0 !important;
+}
+
+/* === CARDS (Colored Bootstrap variants) === */
+.dark-mode .card.bg-success,
+.dark-mode .card.bg-primary,
+.dark-mode .card.bg-danger,
+.dark-mode .card.bg-dark {
+    background-color: inherit !important;
+    background-blend-mode: multiply;
+    color: #fff !important;
+    border: 1px solid #444;
+    box-shadow: 0 0 5px rgba(255, 255, 255, 0.05);
+}
+
+/* === TABLE STYLES === */
+.dark-mode .table {
+    background-color: #1e1e1e !important;
+    color: #e0e0e0 !important;
+}
+
+.dark-mode .table-bordered th,
+.dark-mode .table-bordered td {
+    border-color: #444 !important;
+}
+
+.dark-mode .table-striped > tbody > tr:nth-of-type(odd) {
+    background-color: #1c1c1c !important;
+}
+
+.dark-mode .table-light {
+    background-color: #2a2a2a !important;
+    color: #fff !important;
+}
+
+/* === BADGES === */
+.dark-mode .badge.bg-danger,
+.dark-mode .badge.bg-dark,
+.dark-mode .badge.bg-success {
+    color: #fff !important;
+}
+
+.dark-mode .badge {
+    background-color: #333 !important;
+    color: #e0e0e0 !important;
+}
+
+/* === PAGINATION === */
+.dark-mode .pagination .page-link {
+    background-color: #2a2a2a !important;
+    color: #e0e0e0 !important;
+    border-color: #444 !important;
+}
+
+.dark-mode .pagination .page-item.active .page-link {
+    background-color: #0d6efd !important;
+    border-color: #0d6efd !important;
+    color: #fff !important;
+}
+/* === HEADERS === */
+.dark-mode .page-header {
+    border-left-color: #0d6efd;
+    color: #0d6efd !important;
+}
+
+/* === FORM CONTROLS === */
+.dark-mode .form-control,
+.dark-mode .form-select {
+    background-color: #2a2a2a !important;
+    color: #fff !important;
+    border-color: #444 !important;
+}
+
+    .dark-mode .form-control::placeholder {
+        color: #aaa !important;
+    }
+
+/* === INPUT GROUP TEXT === */
+.dark-mode .input-group-text {
+    background-color: #1e1e1e !important;
+    color: #e0e0e0 !important;
+    border-color: #444 !important;
+}
+
+/* === TABLE === */
+.dark-mode .table {
+    background-color: #1e1e1e !important;
+    color: #e0e0e0 !important;
+}
+
+.dark-mode .table-bordered th,
+.dark-mode .table-bordered td {
+    border-color: #444 !important;
+}
+
+.dark-mode .table-striped > tbody > tr:nth-of-type(odd) {
+    background-color: #1b1b1b !important;
+}
+
+.dark-mode .table-danger {
+    background-color: #5a1e1e !important;
+    color: #fff !important;
+}
+
+.dark-mode .table-warning {
+    background-color: #665c1e !important;
+    color: #fff !important;
+}
+
+/* === BUTTONS === */
+.dark-mode .btn {
+    border-color: #444;
+}
+
+.dark-mode .btn-outline-secondary {
+    color: #ccc;
+    border-color: #666;
+}
+
+/* === BADGES === */
+.dark-mode .status-badge {
+    padding: 0.4em 0.75em;
+    font-weight: bold;
+    border-radius: 5px;
+}
+
+.dark-mode .status-paid {
+    background-color: #198754 !important;
+    color: #fff !important;
+}
+
+.dark-mode .status-unpaid {
+    background-color: #dc3545 !important;
+    color: #fff !important;
+}
+
+.dark-mode .status-pending {
+    background-color: #ffc107 !important;
+    color: #000 !important;
+}
+
+/* === PAGINATION === */
+.dark-mode .pagination .page-link {
+    background-color: #2a2a2a !important;
+    color: #e0e0e0 !important;
+    border-color: #444 !important;
+}
+
+.dark-mode .pagination .page-item.active .page-link {
+    background-color: #0d6efd !important;
+    border-color: #0d6efd !important;
+    color: #fff !important;
+}
+
+/* === ACTION BUTTONS SHADOW === */
+.dark-mode .action-buttons-bar .btn,
+.dark-mode .export-summary-form .btn {
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+/* Fix white text on light table headers in dark mode */
+.dark-mode .table-light {
+    background-color: #2a2a2a !important;
+    color: #ffffff !important;
+}
+
+.dark-mode .table-support th,
+.dark-mode .table-support td {
+    color: #e0e0e0 !important;
+    border-color: #444 !important;
+}

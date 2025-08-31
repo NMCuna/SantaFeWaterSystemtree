@@ -1,0 +1,73 @@
+﻿@model SantaFeWaterSystem.Models.SystemBranding
+@{
+    ViewData["Title"] = "Delete Branding";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        h2 {
+            color: #dc3545;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+
+        .confirm-container {
+            background: #fff;
+            border-radius: 8px;
+            padding: 25px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.05);
+            max-width: 600px;
+        }
+
+        .branding-preview {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+            .branding-preview img {
+                max-height: 40px;
+            }
+
+        .alert {
+            font-size: 1.05rem;
+        }
+    </style>
+}
+
+<h2><i class="bi bi-trash"></i> Delete Branding</h2>
+
+<div class="confirm-container">
+    <div class="branding-preview">
+        @if (!string.IsNullOrEmpty(Model.LogoPath))
+        {
+            <img src="@Model.LogoPath" alt="Logo" />
+        }
+        else
+        {
+            <i class="@Model.IconClass fs-2 text-secondary"></i>
+        }
+        <span class="fw-bold">@Model.SystemName</span>
+    </div>
+
+    <div class="alert alert-warning">
+        <i class="bi bi-exclamation-triangle"></i>
+        Are you sure you want to delete <strong>@Model.SystemName</strong>? This action cannot be undone.
+    </div>
+
+    <form asp-action="Delete" method="post">
+        <input type="hidden" asp-for="Id" />
+        <button type="submit" class="btn btn-danger">
+            <i class="bi bi-check-circle"></i> Yes, Delete
+        </button>
+        <a asp-action="Index" class="btn btn-secondary ms-2">
+            <i class="bi bi-x-circle"></i> Cancel
+        </a>
+    </form>
+</div>

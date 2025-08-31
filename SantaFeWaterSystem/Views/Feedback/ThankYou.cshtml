@@ -1,0 +1,51 @@
+﻿@{
+    ViewData["Title"] = "Thank You";
+    Layout = "~/Views/Shared/_UserLayout.cshtml";
+}
+
+<style>
+    .thank-you-card {
+        max-width: 600px;
+        margin: 80px auto;
+        padding: 40px 30px;
+        text-align: center;
+        background-color: #f8f9fa;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        border-left: 6px solid #0d6efd;
+    }
+
+        .thank-you-card h2 {
+            font-size: 2rem;
+            color: #0d6efd;
+            margin-bottom: 15px;
+        }
+
+        .thank-you-card p {
+            font-size: 1.1rem;
+            color: #555;
+            margin-bottom: 25px;
+        }
+
+        .thank-you-card .btn {
+            padding: 10px 20px;
+            font-size: 1rem;
+        }
+
+    .thank-you-icon {
+        font-size: 3rem;
+        color: #0d6efd;
+        margin-bottom: 20px;
+    }
+</style>
+
+<div class="thank-you-card">
+    <div class="thank-you-icon">
+        <i class="bi bi-check-circle-fill"></i>
+    </div>
+    <h2>Thank you for your feedback!</h2>
+    <p>We appreciate your input and will review your feedback shortly.</p>
+    <a href="@Url.Action("UserFeedbacks", "Feedback")" class="btn btn-primary">
+        <i class="bi bi-card-list"></i> View My Feedbacks
+    </a>
+</div>

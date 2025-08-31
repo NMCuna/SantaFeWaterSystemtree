@@ -1,0 +1,124 @@
+﻿@{
+    ViewData["Title"] = "Manage QR Codes";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+@section Styles {
+    <style>
+        .qr-section {
+            background-color: #f8f9fa;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(13, 110, 253, 0.1);
+            padding: 20px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+            .qr-section:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 0 30px rgba(13, 110, 253, 0.3);
+            }
+
+            .qr-section h4 {
+                color: #0d6efd;
+                font-weight: bold;
+                margin-bottom: 15px;
+            }
+
+            .qr-section img {
+                border: 3px solid #0d6efd;
+                border-radius: 10px;
+                box-shadow: 0 0 10px rgba(13, 110, 253, 0.5);
+                transition: box-shadow 0.3s;
+            }
+
+                .qr-section img:hover {
+                    box-shadow: 0 0 20px rgba(13, 110, 253, 0.8);
+                }
+
+        .btn-primary {
+            background-color: #0d6efd;
+            border: none;
+        }
+
+            .btn-primary:hover {
+                background-color: #084298;
+            }
+
+        .btn-danger {
+            background-color: #dc3545;
+            border: none;
+        }
+
+            .btn-danger:hover {
+                background-color: #a71d2a;
+            }
+    </style>
+}
+
+<h2 class="mb-4 text-primary">Manage GCash and Maya QR Codes</h2>
+
+@if (TempData["Message"] != null)
+{
+    <div class="alert alert-success">@TempData["Message"]</div>
+}
+
+<div class="row">
+    <!-- GCash QR Code -->
+    <div class="col-md-6 mb-4">
+        <div class="qr-section">
+            <h4>GCash QR Code</h4>
+
+            @if (!string.IsNullOrEmpty(ViewBag.GcashImagePath as string))
+            {
+                // 👇 Add timestamp to prevent caching
+                var gcashImageWithTimestamp = $"{ViewBag.GcashImagePath}?t={DateTime.Now.Ticks}";
+                <img src="@gcashImageWithTimestamp" alt="GCash QR Code" style="width:200px;" class="img-thumbnail mb-2" />
+
+                <form asp-action="DeleteGcashQr" method="post">
+                    <button type="submit" class="btn btn-danger">Delete GCash QR Code</button>
+                </form>
+            }
+            else
+            {
+                <p>No GCash QR Code uploaded yet.</p>
+            }
+
+            <form asp-action="UploadGcashQr" method="post" enctype="multipart/form-data" class="mt-3">
+                <div class="form-group">
+                    <label>Upload New GCash QR Code</label>
+                    <input type="file" name="qrImage" class="form-control" required />
+                </div>
+                <button type="submit" class="btn btn-primary mt-2">Upload GCash QR</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Maya QR Code -->
+    <div class="col-md-6 mb-4">
+        <div class="qr-section">
+            <h4>Maya QR Code</h4>
+
+            @if (!string.IsNullOrEmpty(ViewBag.MayaImagePath as string))
+            {
+                var mayaImageWithTimestamp = $"{ViewBag.MayaImagePath}?t={DateTime.Now.Ticks}";
+                <img src="@mayaImageWithTimestamp" alt="Maya QR Code" style="width:200px;" class="img-thumbnail mb-2" />
+
+                <form asp-action="DeleteMayaQr" method="post">
+                    <button type="submit" class="btn btn-danger">Delete Maya QR Code</button>
+                </form>
+            }
+            else
+            {
+                <p>No Maya QR Code uploaded yet.</p>
+            }
+
+            <form asp-action="UploadMayaQr" method="post" enctype="multipart/form-data" class="mt-3">
+                <div class="form-group">
+                    <label>Upload New Maya QR Code</label>
+                    <input type="file" name="qrImage" class="form-control" required />
+                </div>
+                <button type="submit" class="btn btn-primary mt-2">Upload Maya QR</button>
+            </form>
+        </div>
+    </div>
+</div>

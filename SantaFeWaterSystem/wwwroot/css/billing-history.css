@@ -1,0 +1,76 @@
+﻿/* billing-history.css */
+#toggleBillsBtn {
+    font-weight: 600;
+    font-size: 1rem;
+    color: #0d6efd;
+    cursor: pointer;
+}
+
+    #toggleBillsBtn:hover {
+        text-decoration: underline;
+    }
+
+
+.collapsible-bill {
+    transition: all 0.3s ease-in-out;
+}
+
+#toggleBillsBtn {
+    font-weight: bold;
+    text-decoration: none;
+}
+
+    #toggleBillsBtn i {
+        transition: transform 0.2s ease;
+    }
+
+
+
+.badge i {
+    vertical-align: middle;
+}
+
+
+.card-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.badge {
+    font-size: 0.9rem;
+    padding: 0.4em 0.6em;
+}
+
+
+
+
+h2 {
+    font-size: clamp(1.5rem, 2vw, 2rem);
+}
+
+.table thead th {
+    font-weight: 600;
+    font-size: clamp(0.9rem, 1vw, 1rem);
+}
+
+.table td,
+.table th {
+    font-size: clamp(0.85rem, 1vw, 1rem);
+}
+
+.badge {
+    font-size: 0.85rem;
+    padding: 0.4em 0.6em;
+}
+
+.table-responsive {
+    overflow-x: auto;
+    border-radius: 0.5rem;
+}
+
+@media (max-width: 576px) {
+    .table td,
+    .table th {
+        white-space: nowrap;
+    }
+}

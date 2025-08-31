@@ -1,0 +1,101 @@
+﻿@model SantaFeWaterSystem.Models.SystemBranding
+@{
+    ViewData["Title"] = "Create Branding";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        h2 {
+            color: #0d6efd;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+
+        .form-container {
+            background: #fff;
+            border-radius: 8px;
+            padding: 25px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.05);
+            max-width: 650px;
+        }
+
+        .form-label {
+            font-weight: 600;
+        }
+
+        .preview-box {
+            margin-top: 10px;
+            padding: 10px;
+            border: 1px dashed #ccc;
+            border-radius: 5px;
+            display: inline-block;
+            min-height: 50px;
+            min-width: 50px;
+            text-align: center;
+            background: #f8f9fa;
+        }
+
+        #logoPreview {
+            max-height: 60px;
+        }
+    </style>
+}
+
+<h2><i class="bi bi-plus-circle"></i> Create Branding</h2>
+
+<div class="form-container">
+    <form asp-action="Create" method="post" enctype="multipart/form-data">
+        <div class="mb-3">
+            <label asp-for="SystemName" class="form-label">System Name</label>
+            <input asp-for="SystemName" class="form-control" />
+            <span asp-validation-for="SystemName" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="IconClass" class="form-label">Icon Class</label>
+            <input asp-for="IconClass" class="form-control" placeholder="bi bi-droplet-half" />
+            <div class="preview-box">
+                <i id="iconPreview" class="text-secondary fs-3"></i>
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Upload Logo</label>
+            <input type="file" name="LogoFile" class="form-control" accept="image/*" />
+            <div class="preview-box">
+                <img id="logoPreview" src="" alt="Logo Preview" style="display:none;" />
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-success">
+            <i class="bi bi-check-circle"></i> Create
+        </button>
+        <a asp-action="Index" class="btn btn-secondary ms-2">
+            <i class="bi bi-x-circle"></i> Cancel
+        </a>
+    </form>
+</div>
+
+@section Scripts {
+    <script>
+        document.querySelector('[name="IconClass"]').addEventListener('input', function () {
+            document.getElementById('iconPreview').className = this.value + ' fs-3 text-secondary';
+        });
+
+        document.querySelector('[name="LogoFile"]').addEventListener('change', function (event) {
+            const file = event.target.files[0];
+            const preview = document.getElementById('logoPreview');
+            if (file) {
+                preview.src = URL.createObjectURL(file);
+                preview.style.display = "inline-block";
+            } else {
+                preview.style.display = "none";
+            }
+        });
+    </script>
+}

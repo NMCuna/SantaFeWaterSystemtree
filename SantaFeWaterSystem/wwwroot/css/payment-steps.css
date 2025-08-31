@@ -1,0 +1,356 @@
+﻿.instruction-modal {
+    border-radius: 1rem;
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.15);
+    overflow: hidden;
+}
+
+.modal-header.bg-gradient-primary {
+    background: linear-gradient(to right, #007bff, #00bfff);
+}
+
+.payment-instructions li {
+    padding: 0.5rem 0;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    transition: transform 0.2s ease-in-out;
+}
+
+    .payment-instructions li:hover {
+        transform: translateX(5px);
+    }
+
+.modal-footer .btn-success {
+    font-weight: 600;
+    padding: 0.5rem 1.5rem;
+}
+
+@media (max-width: 576px) {
+    .payment-instructions li {
+        font-size: 0.95rem;
+    }
+}
+
+.glowing-text {
+    font-size: 2.5rem;
+    font-weight: 700;
+    text-align: center;
+    background: linear-gradient(90deg, #ffc107, #fd7e14, #0d6efd);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    color: transparent;
+    text-shadow: 0 0 5px rgba(255, 193, 7, 0.6), 0 0 10px rgba(253, 126, 20, 0.6), 0 0 20px rgba(13, 110, 253, 0.6);
+    transition: all 0.3s ease-in-out;
+}
+
+    /* Optional glow on hover */
+    .glowing-text:hover {
+        text-shadow: 0 0 10px rgba(255, 193, 7, 0.9), 0 0 20px rgba(253, 126, 20, 0.9), 0 0 40px rgba(13, 110, 253, 0.9);
+    }
+
+
+
+
+/* Mobile and Desktop Friendly Styling */
+.step-section {
+    animation-duration: 0.8s;
+    padding: 1rem;
+    max-width: 800px;
+    margin: auto;
+}
+
+    /* Card style tweaks */
+    .step-section .card {
+        border-radius: 16px;
+        border: none;
+        background: linear-gradient(to bottom right, #f8f9fa, #ffffff);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        transition: transform 0.3s;
+    }
+
+        .step-section .card:hover {
+            transform: scale(1.01);
+        }
+
+    .step-section .card-title {
+        font-size: 1.2rem;
+        color: #0d6efd;
+        font-weight: 600;
+        margin-bottom: 1rem;
+    }
+
+    .step-section p {
+        margin-bottom: 0.4rem;
+        font-size: 0.95rem;
+    }
+
+.btn-success {
+    width: 100%;
+    max-width: 300px;
+    display: block;
+    margin: 1rem auto 0;
+    font-weight: bold;
+    font-size: 1rem;
+    padding: 0.6rem 1.2rem;
+    border-radius: 30px;
+    box-shadow: 0 0 10px rgba(40, 167, 69, 0.3);
+}
+
+@media (max-width: 576px) {
+    .step-section .card-body {
+        padding: 1rem;
+    }
+
+    .step-section p {
+        font-size: 0.9rem;
+    }
+}
+
+
+
+
+/* STEP 2 specific styles */
+.step-section ol {
+    padding-left: 1.2rem;
+}
+#qrCodeImage {
+    display: unset !important;
+}
+
+.qr-img {
+    transition: transform 0.3s ease;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+    border: 5px solid #f1f1f1;
+}
+
+    .qr-img:hover {
+        transform: scale(1.03);
+        border-color: #0d6efd;
+    }
+
+#qrPlaceholder {
+    font-size: 0.95rem;
+    margin-bottom: 10px;
+}
+
+#paymentMethodSelect {
+    max-width: 300px;
+    margin: 0 auto;
+}
+
+.step-section h5,
+.step-section h4 {
+    color: #0d6efd;
+}
+
+@media (max-width: 576px) {
+    .qr-img {
+        max-width: 100%;
+    }
+
+    .step-section ol {
+        font-size: 0.9rem;
+    }
+}
+
+
+
+.glowing-btn {
+    background-color: #0d6efd;
+    color: white;
+    font-weight: 600;
+    border: none;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(13, 110, 253, 0.4);
+    transition: all 0.3s ease;
+}
+
+    .glowing-btn:hover {
+        box-shadow: 0 0 16px rgba(13, 110, 253, 0.8);
+        transform: scale(1.03);
+    }
+
+@media (max-width: 576px) {
+    .glowing-btn {
+        width: 100%;
+    }
+
+    .alert-warning {
+        font-size: 0.95rem;
+    }
+}
+
+
+
+
+
+/* Glowing Main Action Button (e.g., Pay Now) */
+.glowing-btn {
+    background-color: #0d6efd;
+    color: #fff;
+    font-weight: 600;
+    border-radius: 10px;
+    border: none;
+    box-shadow: 0 0 10px rgba(13, 110, 253, 0.3);
+    transition: all 0.3s ease-in-out;
+}
+
+    .glowing-btn:hover {
+        box-shadow: 0 0 20px rgba(13, 110, 253, 0.6);
+        transform: scale(1.03);
+    }
+
+/* Navigation Buttons for Steps */
+.step-btn {
+    font-weight: 600;
+    padding: 10px 24px;
+    border-radius: 10px;
+    margin-top: 10px;
+    box-shadow: 0 4px 8px rgba(40, 167, 69, 0.2);
+    transition: all 0.3s ease-in-out;
+}
+
+    .step-btn:hover {
+        background-color: #198754;
+        box-shadow: 0 0 16px rgba(25, 135, 84, 0.5);
+        transform: scale(1.03);
+    }
+
+/* Mobile responsiveness */
+@media (max-width: 576px) {
+    .glowing-btn, .step-btn {
+        width: 100%;
+        display: block;
+    }
+}
+
+
+
+
+
+
+/* Glowing Title */
+.glowing-text {
+    color: #0d6efd;
+    text-shadow: 0 0 10px rgba(13, 110, 253, 0.7), 0 0 20px rgba(13, 110, 253, 0.5), 0 0 30px rgba(13, 110, 253, 0.3);
+}
+
+/* Step Navigation */
+.step-navigation button {
+    transition: 0.3s;
+    min-width: 160px;
+}
+
+    .step-navigation button.btn-primary {
+        box-shadow: 0 0 10px rgba(13, 110, 253, 0.6);
+    }
+
+/* Progress Bar */
+.progress-container {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.progress-labels {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #555;
+    margin-bottom: 5px;
+}
+
+.step-label.active {
+    color: #0d6efd;
+}
+
+.progress {
+    height: 12px;
+    border-radius: 6px;
+    background-color: #e9ecef;
+}
+
+.progress-bar {
+    background-color: #0d6efd;
+    transition: width 0.4s ease-in-out;
+}
+
+/* Step Sections */
+.step-section {
+    animation-duration: 0.7s;
+}
+
+/* Cards */
+.card {
+    border: none;
+    border-radius: 12px;
+    background: #ffffff;
+}
+
+.card-title {
+    font-weight: bold;
+    color: #333;
+}
+
+/* Buttons */
+.btn-success,
+.btn-primary {
+    padding: 10px 20px;
+    font-weight: 600;
+    border-radius: 30px;
+}
+
+    .btn-success:hover,
+    .btn-primary:hover {
+        opacity: 0.9;
+    }
+
+.btn i {
+    font-size: 1.1rem;
+}
+
+/* Responsive Padding */
+@media (max-width: 768px) {
+    .step-navigation {
+        flex-direction: column;
+    }
+
+        .step-navigation button {
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+    .progress-labels {
+        font-size: 0.8rem;
+        flex-direction: column;
+        gap: 5px;
+    }
+}
+
+
+
+
+.total-amount-text {
+    font-size: 1.5rem; /* default size */
+}
+
+@media (max-width: 576px) {
+    .total-amount-text {
+        font-size: 1.25rem; /* slightly smaller on small devices */
+    }
+}
+
+@media (max-width: 360px) {
+    .total-amount-text {
+        font-size: 1rem; /* even smaller on very small devices */
+    }
+}
+
+
+
+
+
+
+
+

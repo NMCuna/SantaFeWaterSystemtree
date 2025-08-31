@@ -1,0 +1,174 @@
+﻿@{
+    ViewData["Title"] = "Payment Confirmation";
+    Layout = "_AccountLayout";
+
+    var culture = new System.Globalization.CultureInfo("en-PH");
+
+    string transactionId = ViewBag.TransactionId ?? "N/A";
+    string method = ViewBag.Method ?? "N/A";
+    string date = ViewBag.Date ?? "N/A";
+
+    string amountPaidFormatted = "₱0.00";
+    decimal amountPaid = 0;
+
+    if (ViewBag.AmountPaid != null && decimal.TryParse(ViewBag.AmountPaid.ToString(), out amountPaid))
+    {
+        amountPaidFormatted = amountPaid.ToString("C", culture);
+    }
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/payment-confirmation.css" asp-append-version="true" />
+    <style>
+        .receipt-container {
+            background-color: #e0f8f1;
+            border-radius: 16px;
+            max-width: 420px;
+            margin: 0 auto;
+            padding: 30px 25px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            border: 1px solid #aee3d8;
+        }
+
+        .receipt-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .receipt-icon {
+            width: 80px;
+            height: 80px;
+            background-color: #27ae60;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 10px auto;
+            color: white;
+            font-size: 36px;
+            box-shadow: 0 0 0 5px rgba(39, 174, 96, 0.4), 0 0 0 10px rgba(39, 174, 96, 0.2), 0 0 0 15px rgba(39, 174, 96, 0.1), 0 0 20px rgba(39, 174, 96, 0.3);
+        }
+
+        .receipt-title {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: #27ae60;
+        }
+
+        .receipt-subtitle {
+            font-size: 0.9rem;
+            color: #555;
+        }
+
+        .receipt-line {
+            border-top: 2px dashed #b2dfdb;
+            margin: 20px 0;
+        }
+
+        .receipt-detail {
+            margin: 8px 0;
+            display: flex;
+            justify-content: flex-start;
+            font-size: 1rem;
+        }
+
+        .receipt-label {
+            color: #000000; /* Pure black */
+            font-weight: 600;
+        }
+
+
+        .receipt-value {
+            color: #000;
+            text-align: right;
+            max-width: 200px;
+            word-break: break-word;
+        }
+
+        .receipt-footer {
+            text-align: center;
+            font-size: 0.9rem;
+            color: #555;
+            margin-top: 20px;
+        }
+
+        .btn-glow {
+            box-shadow: 0 0 12px rgba(0, 123, 255, 0.4);
+        }
+
+        .action-buttons {
+            margin-top: 30px;
+        }
+    </style>
+}
+
+<div class="container my-5">
+    <div id="confirmationContent" class="receipt-container">
+        <div class="receipt-header">
+            <div class="receipt-icon">
+                <i class="bi bi-check"></i>
+            </div>
+            <div class="receipt-title">Payment Confirmation</div>
+            <div class="receipt-subtitle">Submitted successfully and pending verification</div>
+        </div>
+
+        <div class="receipt-line"></div>
+
+        <div class="d-flex mb-1">
+            <div class="receipt-label">Txn ID:</div>
+            <div class="receipt-value ms-2">@transactionId</div>
+        </div>
+        <div class="d-flex mb-1">
+            <div class="receipt-label">Date Paid:</div>
+            <div class="receipt-value ms-2">@date</div>
+        </div>
+        <div class="d-flex mb-1">
+            <div class="receipt-label">Payment Method:</div>
+            <div class="receipt-value ms-2">@method</div>
+        </div>
+        <div class="d-flex mb-1">
+            <div class="receipt-label">Total Amount:</div>
+            <div class="receipt-value ms-2">@amountPaidFormatted</div>
+        </div>
+      
+
+
+
+
+        <div class="receipt-line"></div>
+
+        <div class="receipt-footer">
+            Thank you for using our service!
+        </div>
+    </div>
+
+    <div class="text-center action-buttons">
+        <div class="d-flex justify-content-center gap-3 flex-wrap">
+            <button class="btn btn-success btn-lg" id="downloadImageBtn">
+                <i class="bi bi-download me-2"></i> Download
+            </button>
+
+            <a asp-controller="User" asp-action="Dashboard" class="btn btn-primary btn-lg btn-glow">
+                <i class="bi bi-house-door me-2"></i> Back
+            </a>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <script>
+        document.getElementById("downloadImageBtn").addEventListener("click", function () {
+            const element = document.getElementById("confirmationContent");
+
+            html2canvas(element, { scale: 2 }).then(canvas => {
+                const imageData = canvas.toDataURL("image/png");
+                const link = document.createElement("a");
+                link.download = "payment-confirmation.png";
+                link.href = imageData;
+                link.click();
+            });
+        });
+    </script>
+}

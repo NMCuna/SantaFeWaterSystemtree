@@ -1,0 +1,86 @@
+﻿@model List<SantaFeWaterSystem.Models.BackupLog>
+@{
+    ViewData["Title"] = "Backup History";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="backup-title">
+        <i class="bi bi-clock-history me-2 text-primary"></i> Backup History
+    </h2>
+
+    <a asp-action="Index" class="btn btn-primary">
+        <i class="bi bi-arrow-left-circle me-1"></i> Back to Dashboard
+    </a>
+</div>
+
+@section Styles {
+    <style>
+        .table td i {
+            font-size: 1rem;
+        }
+
+        h2.backup-title {
+            color: #0d6efd; /* Bootstrap primary color */
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+    </style>
+}
+
+<div class="card mb-4 shadow-sm border-primary">
+    <div class="card-body">
+        <h5 class="card-title text-secondary">
+            <i class="bi bi-list-check me-2 text-success"></i> All Backup Logs
+        </h5>
+
+        <div class="table-responsive mt-3">
+            <table class="table table-bordered table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th><i class="bi bi-gear-fill text-primary me-1"></i> Action</th>
+                        <th><i class="bi bi-file-earmark-text text-info me-1"></i> File Name</th>
+                        <th><i class="bi bi-person-circle text-warning me-1"></i> Performed By</th>
+                        <th><i class="bi bi-calendar-event text-danger me-1"></i> Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var log in Model)
+                    {
+                        <tr>
+                            <td>
+                                <i class="bi bi-gear-wide-connected text-primary me-1"></i> @log.Action
+                            </td>
+                            <td>
+                                <i class="bi bi-file-earmark-text-fill text-info me-1"></i> @log.FileName
+                            </td>
+                            <td>
+                                <i class="bi bi-person-fill text-warning me-1"></i> @log.PerformedBy
+                            </td>
+                            <td>
+                                <i class="bi bi-calendar-check-fill text-danger me-1"></i>
+                                @log.ActionDate.ToString("yyyy-MM-dd hh:mm tt")
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success d-flex align-items-center mt-2">
+        <i class="bi bi-check-circle-fill text-white me-2"></i> @TempData["Success"]
+    </div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger d-flex align-items-center mt-2">
+        <i class="bi bi-exclamation-triangle-fill text-white me-2"></i> @TempData["Error"]
+    </div>
+}

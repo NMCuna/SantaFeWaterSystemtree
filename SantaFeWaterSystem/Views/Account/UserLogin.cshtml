@@ -1,0 +1,140 @@
+﻿@model UserLoginViewModel
+
+@{
+    ViewData["Title"] = "Consumer Login";
+    Layout = "_AccountLayout";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/user-login.css" asp-append-version="true" />
+    <style>
+        .close-home-btn-inside {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 2rem;
+            color: #ff4d4d; /* Eye-catching red */
+            text-decoration: none;
+            z-index: 10;
+            font-weight: bold;
+            text-shadow: 0 0 8px rgba(255, 77, 77, 0.6);
+            transition: transform 0.2s ease, color 0.3s ease, text-shadow 0.3s;
+        }
+
+            .close-home-btn-inside:hover {
+                color: #fff;
+                transform: scale(1.2);
+                text-shadow: 0 0 12px rgba(255, 255, 255, 0.9), 0 0 20px rgba(255, 77, 77, 0.9);
+            }
+
+        .toggle-password {
+            position: absolute;
+            top: 70%;
+            right: 15px;
+            transform: translateY(-50%);
+            color: #555;
+            cursor: pointer;
+            font-size: 1.2rem;
+        }
+
+        /* Forgot Password link - no underline, highlight on hover */
+        .forgot-password-link {
+            text-decoration: none; /* Remove underline */
+            font-weight: 500; /* Slightly bolder text */
+        }
+
+            .forgot-password-link:hover {
+                background-color: rgba(25, 135, 84, 0.15); /* Light green highlight */
+                border-radius: 4px; /* Rounded highlight edges */
+                padding: 2px 6px; /* Small padding for highlight */
+            }
+
+    </style>
+}
+
+<div class="login-wrapper user-theme">
+    <div class="login-card position-relative">
+        <!-- X Button inside card -->
+        <a href="~/Home/Index" class="close-home-btn-inside" title="Go to Home">
+            &times;
+        </a>
+
+        <h3 class="text-center mb-4 text-theme">
+            <i class="bi bi-person-badge me-2"></i>Login
+        </h3>
+
+        @if (!ViewData.ModelState.IsValid)
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                {
+                    <div><i class="bi bi-exclamation-triangle-fill me-1"></i> @error.ErrorMessage</div>
+                }
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+
+        <form asp-action="UserLogin" method="post" novalidate>
+            <div class="mb-3">
+                <label asp-for="AccountNumber" class="form-label" for="AccountNumber">Account Number</label>
+                <input asp-for="AccountNumber" class="form-control" id="AccountNumber" />
+                <span asp-validation-for="AccountNumber" class="text-danger small"></span>
+            </div>
+
+            <div class="mb-3 position-relative">
+                <label asp-for="Password" class="form-label" for="Password">Password</label>
+                <input asp-for="Password" class="form-control" type="password" id="Password" />
+                <i class="bi bi-eye-slash toggle-password" id="togglePassword" role="button" tabindex="0" aria-label="Toggle password visibility"></i>
+                <span asp-validation-for="Password" class="text-danger small"></span>
+            </div>
+
+            <div class="form-check mb-3">
+                <input asp-for="RememberMe" class="form-check-input" id="RememberMe" />
+                <label asp-for="RememberMe" class="form-check-label" for="RememberMe">Remember me</label>
+            </div>
+
+            <div class="d-grid">
+                <button type="submit" class="btn btn-theme">
+                    <i class="bi bi-box-arrow-in-right me-1"></i> Login
+                </button>
+            </div>
+
+            <div class="text-center mt-3">
+                <a asp-action="ForgotPasswordUser" class="btn btn-link text-success forgot-password-link">
+                    Forgot Password?
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        const toggle = document.getElementById("togglePassword");
+        if (toggle) {
+            toggle.addEventListener("click", function () {
+                const passwordInput = document.getElementById("Password");
+                const icon = this;
+                const isVisible = passwordInput.type === "text";
+                passwordInput.type = isVisible ? "password" : "text";
+                icon.classList.toggle("bi-eye");
+                icon.classList.toggle("bi-eye-slash");
+            });
+
+            toggle.addEventListener("keydown", function (e) {
+                if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    this.click();
+                }
+            });
+        }
+
+        setTimeout(() => {
+            const alert = document.querySelector(".alert-dismissible");
+            if (alert) {
+                const bsAlert = bootstrap.Alert.getOrCreateInstance(alert);
+                bsAlert.close();
+            }
+        }, 5000);
+    </script>
+}

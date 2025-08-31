@@ -1,0 +1,96 @@
+﻿@model SantaFeWaterSystem.ViewModels.BillingViewModel
+
+@{
+    var status = Model.Status?.ToLower() ?? "";
+    var badgeClass = status switch
+    {
+        "paid" => "bg-success text-white",
+        "unpaid" => "bg-danger text-white",
+        "pending" => "bg-warning text-dark",
+        "overdue" => "bg-orange  text-white",
+        _ => "bg-light text-dark"
+    };
+
+    var iconClass = status switch
+    {
+        "paid" => "bi-check-circle-fill",
+        "unpaid" => "bi-x-circle-fill",
+        "pending" => "bi-hourglass-split",
+        "overdue" => "bi-exclamation-triangle-fill",
+        _ => "bi-question-circle-fill"
+    };
+
+    bool isOverdue = Model.Status?.ToLower() != "paid" && DateTime.Now.Date > Model.DueDate.Date;
+}
+
+<div class="col-md-6 @(ViewData["IsCollapsed"] as bool? == true ? "collapsible-bill d-none" : "")">
+    <div class="card billing-card shadow-sm h-100">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h5 class="card-title mb-0">Billing</h5>
+                <span class="badge @badgeClass text-capitalize">
+                    <i class="bi @iconClass me-1"></i> @Model.Status
+                </span>
+            </div>
+            @if (isOverdue)
+            {
+                <div class="alert alert-danger py-1 px-2 mb-2 small">
+                    <i class="bi bi-exclamation-circle me-1"></i> Overdue - please settle immediately.
+                </div>
+            }
+
+            <ul class="list-unstyled small mb-0">
+                <li>
+                    <i class="bi bi-receipt me-1"></i>
+                    <strong>Billing No:</strong> @Model.BillNo
+                </li>
+                <li>
+                    <i class="bi bi-calendar-event me-1"></i>
+                    <strong>Billing Date:</strong> @Model.BillingDate.ToString("MMM dd, yyyy")
+                </li>
+                <li>
+                    <i class="bi bi-calendar-check me-1"></i>
+                    <strong>Due Date:</strong> @Model.DueDate.ToString("MMM dd, yyyy")
+                </li>
+                <li>
+                    <i class="bi bi-cash-coin me-1"></i>
+                    <strong>Amount:</strong> ₱@Model.AmountDue.ToString("N2")
+                </li>
+
+                @if (Model.Penalty > 0)
+                {
+                    <li class="text-danger">
+                        <i class="bi bi-exclamation-circle me-1"></i>
+                        <strong>Penalty:</strong> ₱@Model.Penalty.ToString("N2")
+                    </li>
+                }
+
+                @if ((Model.AdditionalFees ?? 0) > 0)
+                {
+                    <li class="text-info">
+                        <i class="bi bi-plus-circle me-1"></i>
+                        <strong>Additional Fees:</strong> ₱@Model.AdditionalFees?.ToString("N2")
+                    </li>
+                }
+
+                @if (Model.Penalty > 0 || (Model.AdditionalFees ?? 0) > 0)
+                {
+                    <li class="fw-bold text-primary">
+                        <i class="bi bi-cash-coin me-1"></i>
+                        <strong>Total Amount:</strong> ₱@Model.TotalAmount.ToString("N2")
+                    </li>
+                }
+            </ul>
+          
+
+            <div class="text-end mt-2">
+                <a asp-action="BillingDetails" asp-route-id="@Model.Id" class="btn btn-sm btn-outline-primary me-2">
+                    <i class="bi bi-eye me-1"></i> View Details
+                </a>
+
+               
+            </div>
+
+        </div>
+    </div>
+</div>

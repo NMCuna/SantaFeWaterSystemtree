@@ -1,0 +1,60 @@
+﻿@{
+    ViewData["Title"] = "Profile Settings";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+@section Styles {
+    <style>
+        .profile-card {
+            background-color: #ffffff;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .profile-avatar {
+            width: 120px;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 50%;
+            border: 3px solid #0d6efd;
+        }
+
+        .form-label {
+            font-weight: 600;
+        }
+    </style>
+}
+
+<div class="container mt-4">
+    <h2 class="mb-4"><i class="bi bi-person-circle me-2 text-primary"></i>Profile Settings</h2>
+
+    @if (TempData["Message"] != null)
+    {
+        <div class="alert alert-info alert-dismissible fade show" role="alert">
+            <i class="bi bi-info-circle-fill me-2"></i>@TempData["Message"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="profile-card">
+        <div class="mb-4 text-center">
+            <label class="form-label">Current Profile Image</label><br />
+            <img src="@ViewBag.ProfileImage" alt="Profile Image" class="profile-avatar mb-2" />
+        </div>
+
+        <form asp-action="UploadProfileImage" method="post" enctype="multipart/form-data">
+            <div class="mb-3">
+                <label for="profileImage" class="form-label"><i class="bi bi-upload me-1"></i>Upload New Profile Image</label>
+                <input type="file" name="profileImage" class="form-control" accept=".jpg,.jpeg,.png,.gif" required />
+                <small class="form-text text-muted"><i class="bi bi-info-circle"></i> Only JPG, PNG, GIF up to 2MB.</small>
+            </div>
+
+            <div class="text-end">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-cloud-arrow-up me-1"></i>Upload
+                </button>
+            </div>
+        </form>
+    </div>
+</div>

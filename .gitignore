@@ -1,0 +1,68 @@
+##############################
+# IDE / Visual Studio
+##############################
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+##############################
+# Build outputs
+##############################
+bin/
+obj/
+[Bb]uild/
+[Bb]uildArtifacts/
+[Ll]og/
+[Ll]ogs/
+[Tt]emp/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+
+##############################
+# NuGet
+##############################
+*.nupkg
+*.snupkg
+packages/
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+##############################
+# ASP.NET Core configs & secrets
+##############################
+appsettings.json
+appsettings.Development.json
+*.env
+*.pfx
+*.key
+
+##############################
+# Project-specific ignores
+##############################
+SantaFeWaterSystem/wwwroot/uploads/
+SantaFeWaterSystem/App_Data/Backups/
+SantaFeWaterSystem/wwwroot/lib/
+
+##############################
+# Logs, DB, Temp
+##############################
+*.log
+*.tmp
+*.db
+*.sqlite
+*.mdf
+*.ldf
+
+##############################
+# OS generated files
+##############################
+.DS_Store
+Thumbs.db
+desktop.ini

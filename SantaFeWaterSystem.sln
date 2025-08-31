@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.13.35931.197 d17.13
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SantaFeWaterSystem", "SantaFeWaterSystem\SantaFeWaterSystem.csproj", "{542567C7-1E18-4C23-8783-79BC597B801D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{542567C7-1E18-4C23-8783-79BC597B801D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{542567C7-1E18-4C23-8783-79BC597B801D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{542567C7-1E18-4C23-8783-79BC597B801D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{542567C7-1E18-4C23-8783-79BC597B801D}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {C5C8A9F8-4BBA-407D-81D8-1169CF8AD3E9}
+	EndGlobalSection
+EndGlobal

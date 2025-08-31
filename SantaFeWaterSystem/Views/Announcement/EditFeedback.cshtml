@@ -1,0 +1,35 @@
+﻿@model SantaFeWaterSystem.Models.Feedback
+@{
+    ViewData["Title"] = "Edit Feedback";
+    Layout = "~/Views/Shared/_HomeLayout.cshtml";
+}
+
+<h2 class="mb-4"><i class="bi bi-pencil-square text-primary"></i> Edit Feedback</h2>
+
+<form asp-action="EditFeedback" method="post" enctype="multipart/form-data">
+    <input type="hidden" name="id" value="@Model.Id" />
+
+    <div class="mb-3">
+        <label for="comment" class="form-label"><i class="bi bi-chat-dots"></i> Feedback</label>
+        <textarea name="comment" id="comment" class="form-control" rows="3" required>@Model.Comment</textarea>
+    </div>
+
+    <div class="mb-3">
+        <label for="image" class="form-label"><i class="bi bi-image"></i> Image (optional)</label>
+        <input type="file" name="image" id="image" class="form-control" accept="image/*" />
+
+        @if (!string.IsNullOrEmpty(Model.ImagePath))
+        {
+            <div class="mt-2">
+                <img src="@Model.ImagePath" class="img-fluid rounded" style="max-width:200px;" />
+            </div>
+        }
+    </div>
+
+    <button type="submit" class="btn btn-success">
+        <i class="bi bi-save-fill"></i> Save Changes
+    </button>
+    <a asp-action="Index" class="btn btn-secondary ms-2">
+        <i class="bi bi-x-circle"></i> Cancel
+    </a>
+</form>

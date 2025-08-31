@@ -1,0 +1,207 @@
+﻿/* GENERAL RESET */
+body {
+    margin: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+/* THEME TOGGLE BUTTON */
+.theme-toggle-btn {
+    position: absolute;
+    top: 1rem;
+    left: 1rem;
+    z-index: 10;
+    background: none;
+    border: none;
+    color: inherit;
+    font-size: 1.4rem;
+    cursor: pointer;
+}
+
+/* DARK/LIGHT THEMES */
+.admin-theme-light {
+    background-color: #f8f9fa;
+    color: #212529;
+}
+
+.admin-theme-dark {
+    background-color: #121212;
+    color: #f0f0f0;
+}
+
+/* LOGIN CARD BASE STYLING */
+.login-card {
+    border-radius: 10px;
+    transition: background-color 0.3s, color 0.3s;
+    position: relative;
+    z-index: 0;
+}
+
+/* RAINBOW GLOW EFFECT WRAPPER */
+.rainbow-glow-border {
+    position: relative;
+    z-index: 0;
+}
+
+    .rainbow-glow-border::before {
+        content: '';
+        position: absolute;
+        top: -3px;
+        left: -3px;
+        right: -3px;
+        bottom: -3px;
+        z-index: -1;
+        background: linear-gradient( 45deg, red, orange, yellow, green, blue, indigo, violet, red );
+        background-size: 400% 400%;
+        animation: rainbowGlow 6s linear infinite;
+        border-radius: 12px;
+        filter: blur(6px);
+        opacity: 0.9;
+    }
+
+/* DARK & LIGHT CARD COLOR */
+.admin-theme-light .login-card {
+    background-color: #ffffff;
+    color: #212529;
+}
+
+.admin-theme-dark .login-card {
+    background-color: #1e1e1e;
+    color: #f0f0f0;
+}
+
+/* RAINBOW MOVING TEXT */
+.rainbow-text {
+    background: linear-gradient( 270deg, red, orange, yellow, green, blue, indigo, violet, red );
+    background-size: 800% 800%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: rainbowGlow 5s linear infinite;
+}
+
+/* GLOW ANIMATION KEYFRAME */
+@keyframes rainbowGlow {
+    0% {
+        background-position: 0% 50%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
+
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+/* FORM ELEMENTS */
+.form-label,
+.form-check-label {
+    color: inherit;
+}
+
+.form-control {
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.admin-theme-dark .form-control {
+    background-color: #2c2c2c;
+    color: #fff;
+    border: 1px solid #444;
+}
+
+.admin-theme-light .form-control {
+    background-color: #fff;
+    color: #000;
+    border: 1px solid #ccc;
+}
+
+.admin-theme-dark .form-control:focus {
+    border-color: #0d6efd;
+    box-shadow: none;
+}
+
+/* CHECKBOX */
+.form-check-input {
+    background-color: #2c2c2c;
+    border-color: #666;
+}
+
+    .form-check-input:checked {
+        background-color: #0d6efd;
+        border-color: #0d6efd;
+    }
+
+/* BUTTONS */
+.btn-theme {
+    background-color: #0d6efd;
+    border: none;
+    color: #fff;
+}
+
+    .btn-theme:hover {
+        background-color: #0b5ed7;
+    }
+
+.btn-glow {
+    box-shadow: 0 0 10px #0d6efd;
+}
+
+/* ALERT */
+.alert-danger {
+    background-color: #dc3545;
+    color: #fff;
+    border: none;
+}
+
+.btn-close {
+    filter: invert(1);
+}
+
+/* PASSWORD TOGGLE ICON */
+.toggle-password {
+    position: absolute;
+    top: 70%;
+    right: 15px;
+    transform: translateY(-50%);
+    color: #212529;
+    cursor: pointer;
+}
+
+.admin-theme-light .toggle-password {
+    color: #555;
+}
+
+/* X BUTTON INSIDE CARD */
+.close-home-btn-inside {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 1.3rem;
+    color: #bbb;
+    text-decoration: none;
+    z-index: 10;
+}
+
+    .close-home-btn-inside:hover {
+        color: #fff;
+    }
+
+/* RESPONSIVE */
+@media (max-width: 576px) {
+    .login-card {
+        padding: 1.5rem;
+    }
+
+    .theme-toggle-btn {
+        top: 0.5rem;
+        left: 0.5rem;
+        font-size: 1.2rem;
+    }
+
+    .close-home-btn-inside {
+        top: 10px;
+        right: 10px;
+        font-size: 1.3rem;
+    }
+}

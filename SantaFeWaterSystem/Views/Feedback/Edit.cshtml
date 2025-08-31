@@ -1,0 +1,19 @@
+﻿@model SantaFeWaterSystem.Models.Feedback
+@{
+    ViewData["Title"] = "Edit Feedback";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<h2>Edit Feedback</h2>
+<form asp-action="Edit">
+    <input type="hidden" asp-for="Id" />
+    <div class="form-group">
+        <label asp-for="Rating"></label>
+        <input asp-for="Rating" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label asp-for="Comment"></label>
+        <textarea asp-for="Comment" class="form-control"></textarea>
+    </div>
+    <button type="submit" class="btn btn-success">Save</button>
+</form>

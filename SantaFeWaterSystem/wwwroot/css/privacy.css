@@ -1,0 +1,122 @@
+﻿/* 🌄 Background */
+body {
+    background: linear-gradient(to bottom right, #e8f5e9, #ffffff);
+    min-height: 100vh;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+/* 📦 Privacy Box */
+.privacy-box {
+    background-color: #ffffff;
+    border-radius: 16px;
+    padding: 2.5rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    animation: fadeInBox 1.2s ease-out both;
+}
+
+@keyframes fadeInBox {
+    0% {
+        opacity: 0;
+        transform: translateY(40px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* 🖋️ Title Styling */
+.privacy-title {
+    font-size: 2.6rem;
+    font-weight: 700;
+    color: #2e7d32;
+    text-shadow: 1px 1px 1px #c8e6c9;
+}
+
+/* 📌 Section Title */
+.privacy-section-title {
+    display: flex;
+    align-items: center;
+    margin-top: 2.5rem;
+    font-weight: 600;
+    font-size: 1.25rem;
+    color: #28a745;
+    animation: slideInLeft 0.7s ease both;
+}
+
+    .privacy-section-title i {
+        margin-right: 0.6rem;
+        font-size: 1.4rem;
+        animation: pulseIcon 1.5s infinite alternate;
+    }
+
+@keyframes slideInLeft {
+    0% {
+        transform: translateX(-30px);
+        opacity: 0;
+    }
+
+    100% {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes pulseIcon {
+    0% {
+        transform: scale(1);
+        color: #28a745;
+    }
+
+    100% {
+        transform: scale(1.2);
+        color: #66bb6a;
+    }
+}
+
+/* 📃 Paragraph */
+.privacy-box p {
+    font-size: 1rem;
+    color: #555;
+    line-height: 1.6;
+    margin-top: 0.4rem;
+}
+
+/* 🌐 Language Switch */
+.lang-switch {
+    margin-top: 1rem;
+    text-align: right;
+}
+
+    .lang-switch a {
+        margin-left: 0.3rem;
+    }
+
+/* 🔙 Back Button */
+.back-home-btn {
+    margin-top: 2rem;
+}
+
+    .back-home-btn .btn {
+        transition: transform 0.2s ease;
+    }
+
+        .back-home-btn .btn:hover {
+            transform: scale(1.05);
+        }
+
+/* 📱 Responsive */
+@media (max-width: 768px) {
+    .privacy-title {
+        font-size: 2.1rem;
+    }
+
+    .privacy-section-title {
+        font-size: 1.1rem;
+    }
+
+    .privacy-box {
+        padding: 1.5rem;
+    }
+}

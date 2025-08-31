@@ -1,0 +1,259 @@
+﻿@using System.Security.Claims
+@inject IHttpContextAccessor HttpContextAccessor
+
+@{
+    ViewData["Title"] = "Admin Dashboard";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    var currentUser = HttpContextAccessor.HttpContext?.User;
+    var isAdmin = currentUser?.IsInRole("Admin") ?? false;
+    var isStaff = currentUser?.IsInRole("Staff") ?? false;
+
+    // Add permissions list
+    var userPermissions = currentUser?.Claims
+        .Where(c => c.Type == "Permission")
+        .Select(c => c.Value)
+        .ToList() ?? new List<string>();
+}
+
+<h2 class="page-header text-primary mb-4">
+    <i class="bi bi-speedometer2 me-2"></i>
+    @(isAdmin ? "Admin Dashboard" : isStaff ? "Staff Panel" : "Dashboard")
+</h2>
+
+
+<!-- Graph Section -->
+<div class="card shadow-sm mb-5">
+    <div class="card-header bg-light d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="bi bi-diagram-3 me-2"></i> System Flow Overview</h5>
+        <button id="downloadGraphBtn" class="btn btn-outline-dark btn-sm">
+            <i class="bi bi-download"></i> Download as Image
+        </button>
+    </div>
+    <div class="card-body position-relative overflow-auto">
+        <div class="graph-container-horizontal position-relative">
+            <div class="graph-node animate bg-primary text-white" data-bs-toggle="tooltip" title="Total number of registered consumers" data-node="consumers">
+                <i class="bi bi-people-fill"></i>
+                <div>Total Consumers</div>
+                <strong>@ViewBag.TotalConsumers</strong>
+            </div>
+            <div class="arrow-wrapper">
+                <svg width="60" height="40">
+                    <path id="arrow1" d="M 0 20 Q 30 -10 60 20" stroke="#999" stroke-width="2" fill="none" marker-end="url(#arrowhead)" />
+                </svg>
+            </div>
+            <div class="graph-node animate bg-info text-white" data-bs-toggle="tooltip" title="All water bills issued" data-node="billings">
+                <i class="bi bi-receipt"></i>
+                <div>Total Billings</div>
+                <strong>@ViewBag.TotalBillings</strong>
+            </div>
+            <div class="arrow-wrapper">
+                <svg width="60" height="40">
+                    <path id="arrow2" d="M 0 20 Q 30 -10 60 20" stroke="#999" stroke-width="2" fill="none" marker-end="url(#arrowhead)" />
+                </svg>
+            </div>
+            <div class="graph-node animate bg-success text-white" data-bs-toggle="tooltip" title="All successful payments" data-node="payments">
+                <i class="bi bi-cash-coin"></i>
+                <div>Total Payments</div>
+                <strong>@ViewBag.TotalPayments</strong>
+            </div>
+            <div class="arrow-wrapper">
+                <svg width="60" height="40">
+                    <path id="arrow3" d="M 0 20 Q 30 -10 60 20" stroke="#999" stroke-width="2" fill="none" marker-end="url(#arrowhead)" />
+                </svg>
+            </div>
+            <div class="graph-node animate bg-danger text-white" data-bs-toggle="tooltip" title="Consumers with 2 or more unpaid overdue bills" data-node="disconnections">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+                <div>Pending Disconnections</div>
+                <strong>@ViewBag.PendingDisconnections</strong>
+            </div>
+
+            <div class="arrow-wrapper">
+                <svg width="60" height="40">
+                    <path id="arrow4" d="M 0 20 Q 30 -10 60 20" stroke="#999" stroke-width="2" fill="none" marker-end="url(#arrowhead)" />
+                </svg>
+            </div>
+            <div class="graph-node animate bg-warning text-dark" data-bs-toggle="tooltip" title="Payments awaiting admin review" data-node="unverified">
+                <i class="bi bi-clock-history"></i>
+                <div>Unverified Payments</div>
+                <strong>@ViewBag.UnverifiedPayments</strong>
+            </div>
+        </div>
+    </div>
+    <svg height="0" width="0">
+        <defs>
+            <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto" markerUnits="strokeWidth">
+                <polygon points="0 0, 10 3.5, 0 7" fill="#999" />
+            </marker>
+        </defs>
+    </svg>
+    <div class="card-footer bg-white">
+        <h6 class="text-muted mb-2">Legend:</h6>
+        <ul class="list-inline small mb-0">
+            <li class="list-inline-item"><span class="badge bg-primary">&nbsp;</span> Total Consumers</li>
+            <li class="list-inline-item"><span class="badge bg-info">&nbsp;</span> Total Billings</li>
+            <li class="list-inline-item"><span class="badge bg-success">&nbsp;</span> Total Payments</li>
+            <li class="list-inline-item"><span class="badge bg-danger">&nbsp;</span> Pending Disconnections</li>
+            <li class="list-inline-item"><span class="badge bg-warning text-dark">&nbsp;</span> Unverified Payments</li>
+        </ul>
+    </div>
+</div>
+
+<!-- Quick Links -->
+<div class="mb-4">
+    <h5>Quick Actions</h5>
+    <div class="btn-group flex-wrap">
+        <a href="@Url.Action("CreateConsumer", "Admin")" class="btn btn-outline-primary">
+            <i class="bi bi-person-plus me-2"></i> Add Consumer
+        </a>
+
+        @if (userPermissions.Contains("ViewReports"))
+        {
+            <a href="@Url.Action("Index", "Reports")" class="btn btn-outline-secondary">
+                <i class="bi bi-bar-chart me-2"></i> View Reports
+            </a>
+        }
+
+        <a href="@Url.Action("ManageUsers", "Admin")" class="btn btn-outline-info">
+            <i class="bi bi-people me-2"></i> Manage Users
+        </a>
+    </div>
+</div>
+
+<!-- Summary Chart -->
+<div class="card mb-4 shadow-sm">
+    <div class="card-header bg-light">
+        <h6 class="mb-0"><i class="bi bi-bar-chart-fill me-2"></i> Data Summary</h6>
+    </div>
+    <div class="card-body">
+        <canvas id="summaryBarChart" style="height: 250px;"></canvas>
+    </div>
+</div>
+@section Styles {
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet" />
+    <link rel="stylesheet" href="~/css/admin-dashboard.css" />
+}
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Bootstrap Tooltips
+            [...document.querySelectorAll('[data-bs-toggle="tooltip"]')].forEach(el => new bootstrap.Tooltip(el));
+
+            // Animation delay and node click routing
+            const nodes = document.querySelectorAll('.graph-node');
+            nodes.forEach((node, index) => {
+                node.style.animationDelay = `${index * 0.2}s`;
+                node.addEventListener('click', () => {
+                    const pathMap = {
+                        consumers: '/Admin/ManageUsers',
+                        billings: '/Billing/Index',
+                        payments: '/Payments/ManagePayments',
+                        disconnections: '/Disconnection',
+                        unverified: '/Payments/ManagePayments'
+                    };
+                    const type = node.dataset.node;
+                    window.location.href = pathMap[type] || '#';
+
+                    const arrow = document.getElementById(`arrow${index + 1}`);
+                    if (arrow) {
+                        arrow.setAttribute('stroke', '#0d6efd');
+                        arrow.setAttribute('stroke-width', '3');
+                        setTimeout(() => {
+                            arrow.setAttribute('stroke', '#999');
+                            arrow.setAttribute('stroke-width', '2');
+                        }, 1000);
+                    }
+                });
+            });
+
+            // Download as image
+            document.getElementById('downloadGraphBtn').addEventListener('click', () => {
+                const graph = document.querySelector('.graph-container-horizontal');
+                nodes.forEach(node => {
+                    node.style.animation = 'none';
+                    node.style.opacity = '1';
+                    node.style.transform = 'none';
+                });
+
+                setTimeout(() => {
+                    html2canvas(graph, { useCORS: true, scale: 2 }).then(canvas => {
+                        const link = document.createElement('a');
+                        link.download = 'dashboard-graph.png';
+                        link.href = canvas.toDataURL();
+                        link.click();
+                    });
+                }, 300);
+            });
+
+            // Summary Chart
+            const ctx = document.getElementById('summaryBarChart').getContext('2d');
+            const data = [
+        @ViewBag.TotalConsumers ?? 0,
+        @ViewBag.TotalBillings ?? 0,
+        @ViewBag.TotalPayments ?? 0,
+        @ViewBag.PendingDisconnections ?? 0,
+        @ViewBag.UnverifiedPayments ?? 0
+            ];
+            const colors = ['#0d6efd', '#0dcaf0', '#198754', '#dc3545', '#ffc107'];
+
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Consumers', 'Billings', 'Payments', 'Disconnections', 'Unverified'],
+                    datasets: [{
+                        data: data,
+                        backgroundColor: colors,
+                        borderRadius: 10,
+                        borderSkipped: false
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: {
+                        duration: 1000,
+                        easing: 'easeOutQuart'
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: '#fff',
+                            titleColor: '#000',
+                            bodyColor: '#000',
+                            borderColor: '#ddd',
+                            borderWidth: 1,
+                            cornerRadius: 6,
+                            padding: 10,
+                            callbacks: {
+                                label: function (context) {
+                                    const total = context.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
+                                    const val = context.raw;
+                                    const percent = total > 0 ? ((val / total) * 100).toFixed(1) : 0;
+                                    return `${context.label}: ${val} (${percent}%)`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: { beginAtZero: true, grid: { display: false }, ticks: { display: false } },
+                        y: {
+                            grid: { display: false },
+                            ticks: {
+                                font: { size: 13, weight: '600' }
+                            }
+                        }
+                    },
+                    hover: {
+                        mode: 'nearest',
+                        onHover: (e, elements) => {
+                            e.native.target.style.cursor = elements.length ? 'pointer' : 'default';
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+}

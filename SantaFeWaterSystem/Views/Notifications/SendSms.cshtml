@@ -1,0 +1,183 @@
+﻿@model SantaFeWaterSystem.Models.ViewModels.SmsNotificationViewModel
+@{
+    ViewData["Title"] = "Send SMS Notification";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+@section Styles {
+    <style>
+        h2.page-header {
+            font-size: 2rem;
+            color: #0d6efd;
+            font-weight: bold;
+            border-left: 5px solid #0d6efd;
+            padding-left: 15px;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+        }
+
+            h2.page-header i {
+                margin-right: 10px;
+            }
+
+        .form-control:focus, .form-check-input:focus {
+            border-color: #0d6efd;
+            box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+        }
+
+        .border-box {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 10px;
+            background-color: #f8f9fa;
+        }
+
+        .btn-primary {
+            background-color: #0d6efd;
+            border-color: #0d6efd;
+        }
+
+            .btn-primary:hover {
+                background-color: #0b5ed7;
+            }
+
+        .form-group label {
+            font-weight: 600;
+        }
+
+        .border-box .form-check {
+            margin-bottom: 0.5rem;
+        }
+
+        textarea.form-control {
+            border-left: 5px solid #0d6efd;
+        }
+    </style>
+}
+
+<h2 class="page-header"><i class="bi bi-chat-dots-fill text-primary"></i> Send SMS to Consumers with Available Bills</h2>
+
+@if (TempData["Message"] != null)
+{
+    <div class="alert alert-success">@TempData["Message"]</div>
+}
+
+<!-- Search Form -->
+<form method="get" asp-action="SendSms" class="form-inline mb-3">
+    <div class="input-group">
+        <input type="text" name="searchTerm" value="@Model.SearchTerm" class="form-control" placeholder="Search by name..." />
+        <button type="submit" class="btn btn-outline-primary"><i class="bi bi-search"></i> Search</button>
+    </div>
+</form>
+
+<!-- Main Form -->
+<form method="post">
+    @Html.AntiForgeryToken()
+
+    <input type="hidden" name="SearchTerm" value="@Model.SearchTerm" />
+    <input type="hidden" name="PageNumber" value="@Model.PageNumber" />
+
+    <div class="form-check mb-3">
+        <input asp-for="SendToAll" class="form-check-input" id="sendToAll" />
+        <label class="form-check-label" for="sendToAll">
+            Send to all consumers with unpaid bills
+        </label>
+    </div>
+
+    <!-- Consumer Select All Checkbox -->
+    <div class="form-check mb-2">
+        <input type="checkbox" id="selectAllConsumers" class="form-check-input" />
+        <label for="selectAllConsumers" class="form-check-label">Select All Consumers</label>
+    </div>
+
+    <!-- Consumer List -->
+    <div class="form-group mb-3">
+        <label>Select Consumers</label>
+        <div class="border-box">
+            @foreach (var c in Model.ConsumersWithBills)
+            {
+                var bill = c.Billings?.FirstOrDefault(b => !b.IsPaid);
+                var dueDate = bill?.DueDate.ToString("MMMM dd") ?? "N/A";
+                var amountDue = bill?.AmountDue.ToString("N2") ?? "0.00";
+                var account = c.User?.AccountNumber ?? "N/A";
+                var inputId = $"consumer_{c.Id}";
+
+                <div class="form-check">
+                    <input type="checkbox"
+                           id="@inputId"
+                           name="SelectedConsumerIds[]"
+                           value="@c.Id"
+                           class="form-check-input consumer-checkbox"
+                           data-template="Hi @c.FirstName, your bill amount is ₱@amountDue due on @dueDate. Account: @account."
+                           onclick="fillMessageTemplate(this)" />
+                    <label class="form-check-label" for="@inputId">@c.FirstName - @c.ContactNumber</label>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Message Input -->
+    <div class="form-group mt-3">
+        <label>Message</label>
+        <textarea asp-for="Message" class="form-control" rows="4" maxlength="160" required></textarea>
+        <small class="text-muted">Max 160 characters. Tokens: <code>{Name}</code>, <code>{Amount}</code>, <code>{DueDate}</code>, <code>{AccountNumber}</code></small>
+    </div>
+
+    <!-- Buttons -->
+    <button type="submit" class="btn btn-primary mt-3"><i class="bi bi-send-fill"></i> Send SMS</button>
+    <a asp-action="Index" class="btn btn-secondary mt-3"><i class="bi bi-x-circle me-1"></i> Cancel</a>
+</form>
+
+<!-- Pagination -->
+@if (Model.TotalPages > 1)
+{
+    <nav class="mt-4">
+        <ul class="pagination justify-content-center">
+            @for (int i = 1; i <= Model.TotalPages; i++)
+            {
+                <li class="page-item @(i == Model.PageNumber ? "active" : "")">
+                    <a class="page-link"
+                       asp-action="SendSms"
+                       asp-route-page="@i"
+                       asp-route-searchTerm="@Model.SearchTerm">
+                        @i
+                    </a>
+                </li>
+            }
+        </ul>
+    </nav>
+}
+
+@section Scripts {
+    <script>
+        // Select All functionality
+        document.getElementById("selectAllConsumers").addEventListener("change", function () {
+            const checkboxes = document.querySelectorAll(".consumer-checkbox");
+            checkboxes.forEach(cb => cb.checked = this.checked);
+        });
+
+        // Disable consumer checkboxes if "SendToAll" is checked
+        document.getElementById("sendToAll").addEventListener("change", function () {
+            const isChecked = this.checked;
+            const checkboxes = document.querySelectorAll(".consumer-checkbox");
+            checkboxes.forEach(cb => cb.disabled = isChecked);
+        });
+
+        // Fill message from template
+        function fillMessageTemplate(checkbox) {
+            if (checkbox.checked) {
+                const messageBox = document.querySelector('[name="Message"]');
+                const currentMessage = messageBox.value.trim();
+                if (currentMessage === "" || confirm("Replace the current message with this template?")) {
+                    const template = checkbox.getAttribute("data-template");
+                    messageBox.value = template;
+                } else {
+                    checkbox.checked = false;
+                }
+            }
+        }
+    </script>
+}

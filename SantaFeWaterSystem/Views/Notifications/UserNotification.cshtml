@@ -1,0 +1,202 @@
+﻿@model List<SantaFeWaterSystem.Models.Notification>
+@{
+    ViewData["Title"] = "My Notifications";
+    Layout = "~/Views/Shared/_UserLayout.cshtml";
+}
+@Html.AntiForgeryToken()
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/usernotifications.css" asp-append-version="true" />
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <h2 class="mb-4 fs-1 fs-md-2 fs-lg-3 glow-text">📨 My Notifications</h2>
+    <div class="d-flex gap-2 flex-wrap">
+        <button class="btn btn-sm btn-outline-primary" onclick="filterNotifications('all')">All</button>
+        <button class="btn btn-sm btn-outline-success" onclick="filterNotifications('read')">Read</button>
+        <button class="btn btn-sm btn-outline-warning" onclick="filterNotifications('unread')">Unread</button>
+        <button class="btn btn-sm btn-outline-secondary" onclick="markAllAsRead()">Mark all as read</button>
+    </div>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-secondary text-center">
+        You have no notifications.
+    </div>
+}
+else
+{
+    <div class="row row-cols-1 g-3" id="notificationList">
+        @foreach (var notif in Model)
+        {
+            var isUnread = !notif.IsRead;
+            var unreadClass = isUnread ? "border-warning border-2 shadow-sm glow-unread" : "border-light";
+
+            <div class="col notification-item @unreadClass"
+                 data-id="@notif.Id"
+                 data-isread="@notif.IsRead"
+                 data-title="@notif.Title"
+                 data-message="@notif.Message"
+                 data-created="@notif.CreatedAt.ToString("MMMM dd, yyyy - hh:mm tt")">
+                <div class="card h-100 @(isUnread ? "glow-unread" : "")">
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title mb-2 @(isUnread ? "fw-bold" : "")">@notif.Title</h5>
+                        <p class="card-text text-truncate" style="max-height: 3.6em; overflow: hidden;">@notif.Message</p>
+
+                        <div class="d-flex justify-content-end gap-2 mt-auto">
+                            @if (isUnread)
+                            {
+                                <span class="badge bg-warning text-dark">Unread</span>
+                            }
+                            <button class="btn btn-sm btn-outline-dark" onclick="showFullNotification(this)">View</button>
+                            <button class="btn btn-sm btn-outline-danger" onclick="deleteNotification(@notif.Id)">Delete</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+<!-- 📬 Modal for Viewing Notification -->
+<div class="modal fade" id="notificationModal" tabindex="-1" aria-labelledby="notificationModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow" style="background-color: var(--bs-body-bg); color: var(--bs-body-color);">
+
+            <!-- Header -->
+            <div class="modal-header" style="background-color: var(--bs-primary); color: var(--bs-primary-text-emphasis);">
+                <h5 class="modal-title fw-bold" id="notificationModalLabel">
+                    <i class="bi bi-bell-fill me-2"></i>Notification Details
+                </h5>
+                <button type="button" class="btn-close" style="filter: invert(1);" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <!-- Body -->
+            <div class="modal-body p-4">
+                <div class="mb-3">
+                    <h5 class="fw-bold" id="modalTitle"></h5>
+                    <small class="text-muted" id="modalCreatedAt"></small>
+                </div>
+                <hr />
+                <div class="mb-2">
+                    <h6 class="fw-semibold mb-1" style="color: var(--bs-secondary-color);">Message</h6>
+                    <p id="modalMessage" class="fw-normal" style="color: var(--bs-body-color); white-space: pre-wrap;"></p>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="modal-footer border-0" style="background-color: var(--bs-tertiary-bg);">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle"></i> Close
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@section Scripts {
+    <script>
+        function showFullNotification(button) {
+            const card = button.closest(".notification-item");
+            const notifId = card.dataset.id;
+            const title = card.dataset.title;
+            const message = card.dataset.message;
+            const createdAt = card.dataset.created;
+
+            document.getElementById("modalTitle").textContent = title;
+            document.getElementById("modalMessage").textContent = message;
+            document.getElementById("modalCreatedAt").textContent = "Created on: " + createdAt;
+
+            const modal = new bootstrap.Modal(document.getElementById("notificationModal"));
+            modal.show();
+
+            if (card.dataset.isread === "False") {
+                fetch(`/Notifications/MarkNotificationAsRead?id=${notifId}`, {
+                    method: 'POST',
+                    headers: {
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                    }
+                }).then(() => {
+                    card.classList.remove("border-warning", "shadow-sm", "glow-unread");
+                    card.classList.add("border-light");
+                    card.querySelector(".badge")?.remove();
+                    card.dataset.isread = "True";
+                    updateNotificationBadge();
+                });
+            }
+        }
+
+        function deleteNotification(id) {
+            if (!confirm("Are you sure you want to delete this notification?")) return;
+
+            fetch(`/Notifications/DeleteNotification?id=${id}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                }
+            }).then(res => {
+                if (res.ok) {
+                    document.querySelector(`.notification-item[data-id="${id}"]`).remove();
+                    updateNotificationBadge();
+                } else {
+                    alert("Failed to delete notification.");
+                }
+            });
+        }
+
+        function markAllAsRead() {
+            fetch('/Notifications/MarkAllAsRead', {
+                method: 'POST',
+                headers: {
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                }
+            }).then(() => {
+                document.querySelectorAll(".notification-item").forEach(item => {
+                    item.classList.remove("border-warning", "shadow-sm", "glow-unread");
+                    item.classList.add("border-light");
+                    item.dataset.isread = "True";
+                    item.querySelector(".badge")?.remove();
+                });
+                updateNotificationBadge();
+            });
+        }
+
+        function filterNotifications(filter) {
+            document.querySelectorAll(".notification-item").forEach(item => {
+                const isRead = item.dataset.isread === "True";
+                item.style.display = (
+                    filter === "all" ||
+                    (filter === "read" && isRead) ||
+                    (filter === "unread" && !isRead)
+                ) ? "block" : "none";
+            });
+        }
+
+        async function updateNotificationBadge() {
+            try {
+                const response = await fetch('/Notifications/GetUnreadCount');
+                const count = await response.json();
+
+                const badge = document.getElementById('notificationBadge');
+                const notifCount = document.getElementById('notifCount');
+
+                if (count > 0) {
+                    notifCount.textContent = count;
+                    badge.classList.remove('d-none');
+                } else {
+                    badge.classList.add('d-none');
+                }
+            } catch (error) {
+                console.error('Failed to update notification badge:', error);
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", function () {
+            updateNotificationBadge();
+            setInterval(updateNotificationBadge, 30000);
+        });
+    </script>
+}

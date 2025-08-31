@@ -1,0 +1,259 @@
+﻿@model IPagedList<SantaFeWaterSystem.Models.AuditTrail>
+@using X.PagedList.Mvc.Core
+
+@{
+    ViewData["Title"] = "Audit Logs";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+
+    var selectedMonth = Context.Request.Query["month"].FirstOrDefault() ?? "";
+    var selectedActionType = Context.Request.Query["actionType"].FirstOrDefault() ?? "";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/auditlogs-page.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" />
+    <style>
+        .truncate-text {
+            max-width: 180px;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            display: inline-block;
+            vertical-align: middle;
+        }
+        /* 📄 TABLE HEADERS DARK FIX */
+        body.dark-mode .table-light {
+            --bs-table-bg: #2c2c3a !important;
+            --bs-table-striped-bg: #2e2e3e !important;
+            --bs-table-striped-color: #f1f1f1 !important;
+            --bs-table-hover-bg: #3a3a50 !important;
+            --bs-table-hover-color: #f1f1f1 !important;
+            --bs-table-active-bg: #3a3a50 !important;
+            --bs-table-active-color: #f1f1f1 !important;
+            background-color: var(--bs-table-bg) !important;
+            color: var(--bs-table-striped-color) !important;
+            border-color: #444 !important;
+        }
+
+            body.dark-mode .table-light thead,
+            body.dark-mode .table-light thead th {
+                background-color: var(--bs-table-bg) !important;
+                color: var(--bs-table-striped-color) !important;
+                border-color: #444 !important;
+            }
+
+        /* 🧹 CLEANUP: Prevent white thead in light mode if needed */
+        .table-light thead {
+            background-color: #f8f9fa;
+        }
+    </style>
+}
+
+<div class="audit-logs-container">
+
+    <form asp-action="Index" method="get" class="row g-3 align-items-center mb-3">
+        <div class="col-auto">
+            <label for="monthFilter" class="col-form-label">Month:</label>
+        </div>
+        <div class="col-auto">
+            <input type="month" name="month" id="monthFilter" class="form-control" value="@selectedMonth" />
+        </div>
+
+        <div class="col-auto">
+            <label for="actionType" class="col-form-label">Action Type:</label>
+        </div>
+        <div class="col-auto">
+            <select name="actionType" id="actionType" class="form-select">
+                <option value="" selected="@("" == selectedActionType)">-- All --</option>
+                <option value="Edit" selected="@(selectedActionType == "Edit")">Edit</option>
+                <option value="Delete" selected="@(selectedActionType == "Delete")">Delete</option>
+                <option value="Verified" selected="@(selectedActionType == "Verified")">Verified</option>
+                <option value="Unverified" selected="@(selectedActionType == "Unverified")">Unverified</option>
+                <option value="Walk-in Payment" selected="@(selectedActionType == "Walk-in Payment")">Walk-in Payment</option>
+                <option value="GCash Payment" selected="@(selectedActionType == "GCash Payment")">GCash Payment</option>
+                <option value="Maya Payment" selected="@(selectedActionType == "Maya Payment")">Maya Payment</option>
+                <option value="Online Payment" selected="@(selectedActionType == "Online Payment")">Online Payment</option>
+                <option value="Register User" selected="@(selectedActionType == "Register User")">Register User</option>
+                <option value="Register Admin" selected="@(selectedActionType == "Register Admin")">Register Admin</option>
+                <option value="Login" selected="@(selectedActionType == "Login")">Login</option>
+                <option value="Logout" selected="@(selectedActionType == "Logout")">Logout</option>
+                <option value="Change Password" selected="@(selectedActionType == "Change Password")">Change Password</option>
+                <option value="Update Profile" selected="@(selectedActionType == "Update Profile")">Update Profile</option>
+                <option value="Reset Password" selected="@(selectedActionType == "Reset Password")">Reset Password</option>
+                <option value="Deactivate Account" selected="@(selectedActionType == "Deactivate Account")">Deactivate Account</option>
+                <option value="Activate Account" selected="@(selectedActionType == "Activate Account")">Activate Account</option>
+                <option value="Generate Bill" selected="@(selectedActionType == "Generate Bill")">Generate Bill</option>
+                <option value="Update Billing" selected="@(selectedActionType == "Update Billing")">Update Billing</option>
+                <option value="Send Bill Notification" selected="@(selectedActionType == "Send Bill Notification")">Send Bill Notification</option>
+                <option value="Apply Penalty" selected="@(selectedActionType == "Apply Penalty")">Apply Penalty</option>
+                <option value="Download Receipt" selected="@(selectedActionType == "Download Receipt")">Download Receipt</option>
+                <option value="Schedule Disconnection" selected="@(selectedActionType == "Schedule Disconnection")">Schedule Disconnection</option>
+                <option value="Reconnect Consumer" selected="@(selectedActionType == "Reconnect Consumer")">Reconnect Consumer</option>
+                <option value="Auto Disconnect Flagged" selected="@(selectedActionType == "Auto Disconnect Flagged")">Auto Disconnect Flagged</option>
+                <option value="Admin Reply Support" selected="@(selectedActionType == "Admin Reply Support")">Admin Reply Support</option>
+                <option value="Send SMS Notification" selected="@(selectedActionType == "Send SMS Notification")">Send SMS Notification</option>
+                <option value="Archive Support Ticket" selected="@(selectedActionType == "Archive Support Ticket")">Archive Support Ticket</option>
+                <option value="Mark Notification as Read" selected="@(selectedActionType == "Mark Notification as Read")">Mark Notification as Read</option>
+            </select>
+        </div>
+
+        <div class="col-md-auto d-flex align-items-center gap-2">
+            <label for="search" class="col-form-label mb-0">Search:</label>
+            <input type="text" name="search" id="search" class="form-control"
+                   value="@Context.Request.Query["search"].FirstOrDefault()" placeholder="Search logs..." />
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-search"></i>
+            </button>
+        </div>
+
+        <div class="col ms-auto text-end">
+            <a asp-controller="Admin" asp-action="Dashboard" class="btn btn-outline-danger" title="Back to Dashboard">
+                <i class="bi bi-x-lg"></i>
+            </a>
+        </div>
+    </form>
+
+    <h2 class="fw-bold text-primary mb-3">Audit Logs</h2>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show mt-2" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i> @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    @if (TempData["Info"] != null)
+    {
+        <div class="alert alert-info alert-dismissible fade show mt-2" role="alert">
+            <i class="bi bi-info-circle-fill me-2"></i> @TempData["Info"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show mt-2" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+
+
+    <div class="mb-3">
+        <form asp-action="ArchiveOldAuditLogs" method="post" class="d-inline">
+            <button class="btn btn-warning" onclick="return confirm('Archive logs older than 24 hours?');">
+                <i class="bi bi-archive"></i> Archive Old Logs
+            </button>
+        </form>
+
+        <a asp-action="AuditArchive" class="btn btn-secondary">
+            <i class="bi bi-folder2-open"></i> View Archived Logs
+        </a>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-bordered table-striped">
+            <thead class="table-light">
+                <tr>
+                    <th>Date</th>
+                    <th>Action</th>
+                    <th>Performed By</th>
+                    <th>Details</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var log in Model)
+                {
+                    <tr>
+                        <td>@log.Timestamp.ToString("MMM dd, yyyy hh:mm tt")</td>
+                        <td>
+                            <span class="truncate-text" title="@log.Action">@log.Action</span>
+                            @if (log.Action?.Length > 25)
+                            {
+                                <a href="#" class="ms-2 text-decoration-none text-info" data-bs-toggle="modal"
+                                   data-bs-target="#textModal" data-title="Action" data-content="@log.Action">
+                                    <i class="bi bi-eye-fill"></i>
+                                </a>
+                            }
+                        </td>
+                        <td>
+                            <span class="truncate-text" title="@log.PerformedBy">@log.PerformedBy</span>
+                            @if (log.PerformedBy?.Length > 25)
+                            {
+                                <a href="#" class="ms-2 text-decoration-none text-info" data-bs-toggle="modal"
+                                   data-bs-target="#textModal" data-title="Performed By" data-content="@log.PerformedBy">
+                                    <i class="bi bi-eye-fill"></i>
+                                </a>
+                            }
+                        </td>
+                        <td>
+                            <a asp-action="Details" asp-route-id="@log.Id" class="btn btn-sm btn-outline-primary">View</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="d-flex justify-content-center mt-3">
+        @Html.PagedListPager(Model, page => Url.Action("Index", new
+        {
+            page,
+            month = selectedMonth,
+            actionType = selectedActionType
+        }), new PagedListRenderOptions
+        {
+            DisplayLinkToFirstPage = PagedListDisplayMode.Always,
+            DisplayLinkToLastPage = PagedListDisplayMode.Always,
+            DisplayLinkToPreviousPage = PagedListDisplayMode.Always,
+            DisplayLinkToNextPage = PagedListDisplayMode.Always,
+            MaximumPageNumbersToDisplay = 5,
+            UlElementClasses = new[] { "pagination" },
+            LiElementClasses = new[] { "page-item" },
+            PageClasses = new[] { "page-link" }
+        })
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="textModal" tabindex="-1" aria-labelledby="textModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="textModalLabel">Full Text</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="textModalBody">
+                <!-- Dynamic Content -->
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Modal preview logic
+        const textModal = document.getElementById('textModal');
+        textModal.addEventListener('show.bs.modal', function (event) {
+            const button = event.relatedTarget;
+            const content = button.getAttribute('data-content');
+            const title = button.getAttribute('data-title');
+
+            const modalTitle = textModal.querySelector('.modal-title');
+            const modalBody = textModal.querySelector('.modal-body');
+
+            modalTitle.textContent = title;
+            modalBody.textContent = content;
+        });
+
+        // Auto-submit the filter form on change
+        document.addEventListener('DOMContentLoaded', function () {
+            const monthInput = document.getElementById('monthFilter');
+            const actionSelect = document.getElementById('actionType');
+            const filterForm = monthInput.closest('form');
+
+            monthInput.addEventListener('change', () => filterForm.submit());
+            actionSelect.addEventListener('change', () => filterForm.submit());
+        });
+    </script>
+}

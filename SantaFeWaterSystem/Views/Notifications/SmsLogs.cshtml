@@ -1,0 +1,147 @@
+﻿@model IPagedList<SantaFeWaterSystem.Models.ViewModels.SmsLogViewModel>
+@using X.PagedList.Mvc.Core
+@using X.PagedList
+@using System.Text.Encodings.Web
+
+
+@{
+    ViewData["Title"] = "SMS Logs";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/glow.css" asp-append-version="true" />
+}
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        @TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<h2 class="page-header glow-text text-success fw-bold mb-3">
+    <i class="bi bi-chat-dots me-2"></i> SMS Logs
+</h2>
+
+@using (Html.BeginForm("ArchiveSelected", "Notifications", FormMethod.Post))
+{
+    @Html.AntiForgeryToken()
+
+    <div class="mb-3 d-flex justify-content-start gap-2 flex-wrap">
+        <button type="submit" class="btn btn-warning">
+            <i class="bi bi-archive"></i> Archive Selected
+        </button>
+
+        <a href="@Url.Action("ArchivedSmsLogs", "Notifications")" class="btn btn-secondary">
+            <i class="bi bi-folder2-open"></i> View Archived
+        </a>
+    </div>
+
+    <table class="table table-bordered table-hover">
+        <thead class="table-primary">
+            <tr>
+                <th><input type="checkbox" id="select-all" /></th>
+                <th>Recipient</th>
+                <th>Contact Number</th>
+                <th>Message</th>
+                <th>Status</th>
+                <th>Sent At</th>
+                <th>Response</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var log in Model)
+            {
+                <tr>
+                    <td>
+                        <input type="checkbox" name="selectedIds" value="@log.Id" class="row-checkbox" />
+                    </td>
+                    <td>@log.ConsumerName</td>
+                    <td>@log.ContactNumber</td>
+                    <td>
+                        <button type="button" class="btn btn-sm btn-info view-message-btn"
+                                data-bs-toggle="modal"
+                                data-bs-target="#globalMessageModal"
+                                data-message="@log.Message"
+                                data-title="Message from @log.ConsumerName">
+                            <i class="bi bi-eye"></i> View Message
+                        </button>
+                    </td>
+                    <td>
+                        @if (log.IsSuccess)
+                        {
+                            <span class="badge bg-success">Success</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-danger">Failed</span>
+                        }
+                    </td>
+                    <td>@log.SentAt.ToString("g")</td>
+                    <td>@log.ResponseMessage</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <div class="d-flex justify-content-center mt-4">
+        @Html.PagedListPager(Model, page => Url.Action("SmsLogs", new { page }),
+        new PagedListRenderOptions
+        {
+            DisplayLinkToFirstPage = PagedListDisplayMode.Always,
+            DisplayLinkToLastPage = PagedListDisplayMode.Always,
+            DisplayLinkToPreviousPage = PagedListDisplayMode.Always,
+            DisplayLinkToNextPage = PagedListDisplayMode.Always,
+            DisplayLinkToIndividualPages = true,
+            ContainerDivClasses = new[] { "pagination" },
+            UlElementClasses = new[] { "pagination" },
+            LiElementClasses = new[] { "page-item" },
+            PageClasses = new[] { "page-link" }
+        })
+</div>
+}
+
+<!-- Global Reusable Modal -->
+<div class="modal fade" id="globalMessageModal" tabindex="-1" aria-labelledby="globalMessageModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="globalMessageModalLabel">Message Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="globalMessageModalBody">
+                <!-- Message will be injected here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.getElementById("select-all").addEventListener("change", function () {
+            const checkboxes = document.querySelectorAll(".row-checkbox");
+            checkboxes.forEach(cb => cb.checked = this.checked);
+        });
+
+        document.querySelectorAll(".view-message-btn").forEach(button => {
+            button.addEventListener("click", function () {
+                const message = this.getAttribute("data-message");
+                const title = this.getAttribute("data-title");
+                document.getElementById("globalMessageModalLabel").innerText = title;
+                document.getElementById("globalMessageModalBody").innerText = message;
+            });
+        });
+    </script>
+}

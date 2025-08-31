@@ -1,0 +1,46 @@
+﻿@model SantaFeWaterSystem.Models.Support
+
+@{
+    ViewData["Title"] = "Reply to Ticket";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<h2><i class="bi bi-reply-fill me-1"></i> Reply to Support Ticket</h2>
+
+<form asp-action="Reply" method="post">
+    <input type="hidden" asp-for="Id" />
+
+    <div class="mb-3">
+        <label class="form-label fw-bold">Subject</label>
+        <input class="form-control" value="@Model.Subject" readonly />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label fw-bold">Message</label>
+        <textarea class="form-control" rows="4" readonly>@Model.Message</textarea>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="AdminReply" class="form-label fw-bold">Your Reply</label>
+        <textarea asp-for="AdminReply" class="form-control" rows="4" placeholder="Type your reply here..."></textarea>
+        <span asp-validation-for="AdminReply" class="text-danger"></span>
+    </div>
+
+    <div class="form-check mb-4">
+        <input asp-for="IsResolved" class="form-check-input" />
+        <label asp-for="IsResolved" class="form-check-label">Mark as Resolved</label>
+    </div>
+
+    <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-primary">
+            <i class="bi bi-send-fill me-1"></i> Send Reply
+        </button>
+        <a asp-action="Index" class="btn btn-secondary">
+            <i class="bi bi-x-circle me-1"></i> Cancel
+        </a>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

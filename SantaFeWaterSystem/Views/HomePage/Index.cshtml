@@ -1,0 +1,110 @@
+﻿@model SantaFeWaterSystem.Models.HomePageContent
+@{
+    ViewData["Title"] = "Manage Home Page";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        h2 {
+            color: #0d6efd;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+
+        h4 {
+            margin-top: 25px;
+            margin-bottom: 15px;
+            color: #198754;
+        }
+
+        .card-section {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 0 5px rgba(0,0,0,0.05);
+            transition: transform 0.2s;
+            box-sizing: border-box;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            width: 100%;
+        }
+
+        .card-section:hover {
+            transform: translateY(-2px);
+        }
+
+        .card i {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .btn i {
+            margin-right: 5px;
+        }
+
+        ul li i {
+            margin-right: 8px;
+        }
+
+        hr {
+            border-top: 1px dashed #ced4da;
+        }
+    </style>
+}
+
+<div class="container-fluid py-4">
+    <h2><i class="bi bi-house-fill"></i> Home Page Content</h2>
+
+    <div class="mb-3">
+        <a asp-action="Create" class="btn btn-primary"><i class="bi bi-plus-circle"></i> Create New Content</a>
+    </div>
+
+    @if (Model == null)
+    {
+        <div class="alert alert-warning">
+            <i class="bi bi-exclamation-triangle-fill"></i> No home page content found.
+        </div>
+    }
+    else
+    {
+        <div class="card-section">
+            <h4 class="fw-bold text-primary">@Model.Title</h4>
+            <p class="text-muted fst-italic">@Model.Subtitle</p>
+
+            <h4 class="mt-3"><i class="bi bi-layout-text-window-reverse"></i> Cards</h4>
+
+            <div class="row g-4">           
+                    @for (int i = 1; i <= 5; i++)
+                    {
+                        var title = Model?.GetType().GetProperty($"Card{i}Title")?.GetValue(Model)?.ToString();
+                        var text = Model?.GetType().GetProperty($"Card{i}Text")?.GetValue(Model)?.ToString();
+                        var icon = Model?.GetType().GetProperty($"Card{i}Icon")?.GetValue(Model)?.ToString();
+
+                        if (!string.IsNullOrEmpty(title))
+                        {
+                            <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+                                <div class="card shadow-sm border-0 text-center p-3 card-section">
+                                    <div class="icon-circle mb-2">
+                                        <i class="bi @icon display-6"></i>
+                                    </div>
+                                    <h5 class="card-title fw-bold">@title</h5>
+                                    <p class="card-text text-muted">@text</p>
+                                </div>
+                            </div>
+                        }
+                    }
+                </div>
+
+            <div class="mt-3 d-flex flex-wrap gap-2">
+                <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning"><i class="bi bi-pencil-fill"></i> Edit</a>
+                <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-danger"><i class="bi bi-trash-fill"></i> Delete</a>
+            </div>
+        </div>
+    }
+</div>

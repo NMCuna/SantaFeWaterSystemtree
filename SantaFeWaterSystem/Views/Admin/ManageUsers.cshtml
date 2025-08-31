@@ -1,0 +1,538 @@
+﻿@model SantaFeWaterSystem.ViewModels.ManageUsersViewModel
+@using System.Security.Claims
+@inject IHttpContextAccessor HttpContextAccessor
+
+@{
+    ViewData["Title"] = "Manage Users";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    var currentUser = HttpContextAccessor.HttpContext?.User;
+    var isAdmin = currentUser?.IsInRole("Admin") ?? false;
+    var isStaff = currentUser?.IsInRole("Staff") ?? false;
+
+    var userPermissions = currentUser?.Claims
+      .Where(c => c.Type == "Permission")
+      .Select(c => c.Value)
+      .ToList() ?? new List<string>();
+}
+
+@section Styles {
+    <style>
+        .summary-card {
+            background: #f8f9fa;
+            padding: 1rem 1.5rem;
+            border-left: 5px solid #0d6efd;
+            border-radius: 10px;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 0 10px rgba(0,0,0,0.05);
+        }
+
+        .summary-icon {
+            font-size: 1.5rem;
+            margin-right: 10px;
+        }
+
+        .table th, .table td {
+            vertical-align: middle;
+        }
+
+        .nav-tabs .nav-link.active {
+            font-weight: bold;
+        }
+
+        .card {
+            padding: 1.5rem;
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 0 8px rgba(0,0,0,0.04);
+        }
+
+        .form-inline .form-control {
+            max-width: 300px;
+        }
+
+        /* Role-based colors */
+        .nav-link.admin-tab {
+            color: #fff;
+            background-color: #0d6efd;
+            border: 1px solid #0a58ca;
+            box-shadow: 0 0 10px rgba(13, 110, 253, 0.6);
+        }
+
+        .nav-link.staff-tab {
+            color: #fff;
+            background-color: #20c997;
+            border: 1px solid #198754;
+            box-shadow: 0 0 10px rgba(32, 201, 151, 0.6);
+        }
+
+        .nav-link.user-tab {
+            color: #fff;
+            background-color: #ffc107;
+            border: 1px solid #e0a800;
+            box-shadow: 0 0 10px rgba(255, 193, 7, 0.6);
+        }
+
+        .nav-tabs .nav-link {
+            margin-right: 10px;
+            border-radius: 20px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+            .nav-tabs .nav-link:hover {
+                transform: scale(1.05);
+                box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
+            }
+
+            .nav-tabs .nav-link.active {
+                font-weight: bold;
+                outline: 2px solid white;
+                box-shadow: 0 0 15px rgba(255, 255, 255, 0.7);
+            }
+    </style>
+}
+
+<div class="container mt-4">
+    <h2 class="mb-4"><i class="bi bi-people-fill text-primary me-2"></i>Manage Users</h2>
+
+    @if (TempData["Message"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["Message"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="row">
+        @if (isAdmin)
+        {
+            <div class="col-md-4">
+                <div class="summary-card">
+                    <i class="bi bi-person-fill-gear summary-icon text-primary" data-bs-toggle="tooltip" title="Total Admins"></i>
+                    <strong>Admins:</strong> @Model.TotalAdmins
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="summary-card">
+                    <i class="bi bi-person-fill-gear summary-icon text-warning" data-bs-toggle="tooltip" title="Total Staff"></i>
+                    <strong>Staff:</strong> @Model.TotalStaffs
+                </div>
+            </div>
+        }
+        <div class="col-md-4">
+            <div class="summary-card">
+                <i class="bi bi-person-fill summary-icon text-success" data-bs-toggle="tooltip" title="Total Users"></i>
+                <strong>Users:</strong> @Model.TotalUsers
+            </div>
+        </div>
+    </div>
+</div>
+
+  
+<!-- ✨ Tab Navigation -->
+<ul class="nav nav-tabs mb-3" id="userTabs" role="tablist">
+    @if (isAdmin)
+    {
+        <li class="nav-item" role="presentation">
+            <a class="nav-link admin-tab @(Model.SelectedRole == "Admin" ? "active" : "")"
+               href="@Url.Action("ManageUsers", new { roleFilter = "Admin", searchTerm = ViewBag.AdminSearchTerm })"
+               role="tab">
+                <i class="bi bi-person-gear me-1"></i> Admins (@Model.AdminCount)
+            </a>
+        </li>
+        <li class="nav-item" role="presentation">
+            <a class="nav-link staff-tab @(Model.SelectedRole == "Staff" ? "active" : "")"
+               href="@Url.Action("ManageUsers", new { roleFilter = "Staff", searchTerm = ViewBag.StaffSearchTerm })"
+               role="tab">
+                <i class="bi bi-person-badge me-1"></i> Staff (@Model.StaffCount)
+            </a>
+        </li>
+    }
+    @if (isAdmin || isStaff)
+    {
+        <li class="nav-item" role="presentation">
+            <a class="nav-link user-tab @(Model.SelectedRole == "User" ? "active" : "")"
+               href="@Url.Action("ManageUsers", new { roleFilter = "User", searchTerm = ViewBag.UserSearchTerm })"
+               role="tab">
+                <i class="bi bi-person me-1"></i> Users (@Model.UserCount)
+            </a>
+        </li>
+    }
+</ul>
+
+
+<div class="tab-content">
+    @if (isAdmin)
+    {
+        <div class="tab-pane fade @(Model.SelectedRole == "Admin" ? "show active" : "")" id="admins" role="tabpanel">
+            <div class="card">
+                <form method="get" asp-action="ManageUsers" class="mb-3">
+                    <input type="hidden" name="roleFilter" value="Admin" />
+                    <div class="input-group">
+                        <span class="input-group-text bg-primary text-white">
+                            <i class="bi bi-search"></i>
+                        </span>
+                        <input type="text" name="searchTerm" id="adminSearch" class="form-control" placeholder="Search Admins by username" value="@ViewBag.AdminSearchTerm" />
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-search"></i> Search
+                        </button>
+                    </div>
+                </form>
+
+                <table class="table table-hover table-striped">
+                    <thead>
+                        <tr>
+                            <th>User ID</th>
+                            <th>Username</th>
+                            <th>Role</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var admin in Model.Admins)
+                        {
+                            <tr>
+                                <td>@admin.Id</td>
+                                <td>@admin.Username</td>
+                                <td>@admin.Role</td>
+                                <td>
+                                    <a asp-action="EditAdminUser" asp-route-id="@admin.Id" class="btn btn-sm btn-outline-primary" data-bs-toggle="tooltip" title="Edit User">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <a asp-action="EditPermissions" asp-route-staffId="@admin.Id" class="btn btn-sm btn-outline-warning" data-bs-toggle="tooltip" title="Manage Permissions">
+                                        <i class="bi bi-shield-lock"></i>
+                                    </a>
+                                    <a asp-controller="Account" asp-action="ResetPassword" asp-route-id="@admin.Id" class="btn btn-sm btn-outline-danger" data-bs-toggle="tooltip" title="Reset Password">
+                                        <i class="bi bi-key"></i>
+                                    </a>
+                                    <a asp-controller="Admin" asp-action="DeleteUser" asp-route-id="@admin.Id" class="btn btn-sm btn-outline-danger" data-bs-toggle="tooltip" title="Delete User">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                    <form asp-controller="Admin" asp-action="Reset2FAAdmin" asp-route-id="@admin.Id" method="post" class="d-inline" onsubmit="return confirm('Are you sure you want to disable 2FA for this admin?');">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" data-bs-toggle="tooltip" title="Disable 2FA">
+                                            <i class="bi bi-shield-x"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+                @if (Model.SelectedRole == "Admin" && Model.TotalPages > 1)
+                {
+                    <nav>
+                        <ul class="pagination justify-content-center">
+                            @for (int i = 1; i <= Model.TotalPages; i++)
+                            {
+                                <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
+                                    <a class="page-link"
+                                       asp-action="ManageUsers"
+                                       asp-route-roleFilter="Admin"
+                                       asp-route-searchTerm="@ViewBag.AdminSearchTerm"
+                                       asp-route-page="@i">@i</a>
+                                </li>
+                            }
+                        </ul>
+                    </nav>
+                }
+
+            </div>
+        </div>
+
+        <div class="tab-pane fade @(Model.SelectedRole == "Staff" ? "show active" : "")" id="staffs" role="tabpanel">
+            <div class="card">
+                <form method="get" asp-action="ManageUsers" class="mb-3">
+                    <input type="hidden" name="roleFilter" value="Staff" />
+                    <div class="input-group">
+                        <span class="input-group-text bg-primary text-white">
+                            <i class="bi bi-search"></i>
+                        </span>
+                        <input type="text" name="searchTerm" id="staffSearch" class="form-control" placeholder="Search Staff by username" value="@ViewBag.StaffSearchTerm" />
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-search"></i> Search
+                        </button>
+                    </div>
+                </form>
+
+                <table class="table table-hover table-striped">
+                    <thead>
+                        <tr>
+                            <th>User ID</th>
+                            <th>Username</th>
+                            <th>Role</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var staff in Model.Staffs)
+                        {
+                            <tr>
+                                <td>@staff.Id</td>
+                                <td>@staff.Username</td>
+                                <td>@staff.Role</td>
+                                <td>
+                                    <a asp-action="EditAdminUser" asp-route-id="@staff.Id" class="btn btn-sm btn-outline-primary" data-bs-toggle="tooltip" title="Edit User">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <a asp-action="EditPermissions" asp-route-staffId="@staff.Id" class="btn btn-sm btn-outline-warning" data-bs-toggle="tooltip" title="Manage Permissions">
+                                        <i class="bi bi-shield-lock"></i>
+                                    </a>
+                                    <a asp-controller="Account" asp-action="ResetPassword" asp-route-id="@staff.Id" class="btn btn-sm btn-outline-danger" data-bs-toggle="tooltip" title="Reset Password">
+                                        <i class="bi bi-key"></i>
+                                    </a>
+                                    <a asp-controller="Admin" asp-action="DeleteUser" asp-route-id="@staff.Id" class="btn btn-sm btn-outline-danger" data-bs-toggle="tooltip" title="Delete User">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                    <form asp-controller="Admin" asp-action="Reset2FAStaff" asp-route-id="@staff.Id" method="post" class="d-inline" onsubmit="return confirm('Are you sure you want to disable 2FA for this staff?');">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" data-bs-toggle="tooltip" title="Disable 2FA">
+                                            <i class="bi bi-shield-x"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+
+                @if (Model.SelectedRole == "Staff" && Model.TotalPages > 1)
+                {
+                    <nav>
+                        <ul class="pagination justify-content-center">
+                            @for (int i = 1; i <= Model.TotalPages; i++)
+                            {
+                                <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
+                                    <a class="page-link"
+                                       asp-action="ManageUsers"
+                                       asp-route-roleFilter="Staff"
+                                       asp-route-searchTerm="@ViewBag.StaffSearchTerm"
+                                       asp-route-page="@i">@i</a>
+                                </li>
+                            }
+                        </ul>
+                    </nav>
+                }
+
+
+            </div>
+        </div>
+    }
+
+
+
+    <div class="tab-pane fade @((!isAdmin || Model.SelectedRole == "User") ? "show active" : "")" id="users" role="tabpanel">
+        <div class="card">
+            <form method="get" asp-action="ManageUsers" class="mb-3">
+                <input type="hidden" name="roleFilter" value="User" />
+                <div class="input-group">
+                    <span class="input-group-text bg-primary text-white">
+                        <i class="bi bi-search"></i>
+                    </span>
+                    <input type="text" name="searchTerm" id="userSearch" class="form-control" placeholder="Search Users by account number or username" value="@ViewBag.UserSearchTerm" />
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-search"></i> Search
+                    </button>
+                </div>
+            </form>
+
+            <table class="table table-hover table-striped" id="userTable">
+                <thead>
+                    <tr>
+                        <th>User ID</th>
+                        <th>Username</th>
+                        <th>Account Number</th>
+                        <th>Role</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var user in Model.Users)
+                    {
+                        <tr>
+                            <td>@user.Id</td>
+                            <td>@user.Username</td>
+                            <td>@user.AccountNumber</td>
+                            <td>@user.Role</td>
+                            <td>
+                                @* ✏️ Edit User *@
+                                @if (userPermissions.Contains("EditUser"))
+                                {
+                                    <a asp-action="EditConsumerUser" asp-route-id="@user.Id" class="btn btn-sm btn-outline-primary" data-bs-toggle="tooltip" title="Edit User">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                }
+
+                                @* 🔑 Reset Password *@
+                                @if (userPermissions.Contains("ResetPassword"))
+                                {
+                                    <a asp-controller="Account" asp-action="ResetPassword" asp-route-id="@user.Id" class="btn btn-sm btn-outline-danger" data-bs-toggle="tooltip" title="Reset Password">
+                                        <i class="bi bi-key"></i>
+                                    </a>
+                                }
+
+                                @* 🗑️ Delete User *@
+                                @if (userPermissions.Contains("DeleteUser"))
+                                {
+                                    <a asp-controller="Admin" asp-action="DeleteUser" asp-route-id="@user.Id" class="btn btn-sm btn-outline-danger" data-bs-toggle="tooltip" title="Delete User">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                }
+
+                                @* ❌ Reset 2FA *@
+                                @if (userPermissions.Contains("Reset2FA"))
+                                {
+                                    <form asp-controller="Admin" asp-action="Reset2FAUser" asp-route-id="@user.Id" method="post" class="d-inline" onsubmit="return confirm('Are you sure you want to disable 2FA for this user?');">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" data-bs-toggle="tooltip" title="Disable 2FA">
+                                            <i class="bi bi-shield-x"></i>
+                                        </button>
+                                    </form>
+                                }
+
+                                @* 🔒 Lock/Unlock (only for users) *@
+                                @if (user.Role == "User")
+                                {
+                                    if (user.IsLocked)
+                                    {
+                                        @if (userPermissions.Contains("UnlockUser"))
+                                        {
+                                            <a asp-action="UnlockUser" asp-route-id="@user.Id" class="btn btn-sm btn-success" data-bs-toggle="tooltip" title="Unlock User">
+                                                <i class="bi bi-unlock-fill"></i>
+                                            </a>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        @if (userPermissions.Contains("LockUser"))
+                                        {
+                                            <a asp-action="LockUser" asp-route-id="@user.Id" class="btn btn-sm btn-warning" data-bs-toggle="tooltip" title="Lock User">
+                                                <i class="bi bi-lock-fill"></i>
+                                            </a>
+                                        }
+                                    }
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+
+            @if (Model.SelectedRole == "User" && Model.TotalPages > 1)
+            {
+                <nav>
+                    <ul class="pagination justify-content-center">
+
+                        <!-- Previous button -->
+                        @if (Model.CurrentPage > 1)
+                        {
+                            <li class="page-item">
+                                <a class="page-link"
+                                   asp-action="ManageUsers"
+                                   asp-route-roleFilter="User"
+                                   asp-route-searchTerm="@ViewBag.UserSearchTerm"
+                                   asp-route-page="@(Model.CurrentPage - 1)">
+                                    &laquo; Previous
+                                </a>
+                            </li>
+                        }
+
+                        @{
+                            // Show only 3 page numbers: current - 1, current, current + 1
+                            int startPage = Math.Max(1, Model.CurrentPage - 1);
+                            int endPage = Math.Min(Model.TotalPages, Model.CurrentPage + 1);
+                        }
+
+                        @for (int i = startPage; i <= endPage; i++)
+                        {
+                            <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
+                                <a class="page-link"
+                                   asp-action="ManageUsers"
+                                   asp-route-roleFilter="User"
+                                   asp-route-searchTerm="@ViewBag.UserSearchTerm"
+                                   asp-route-page="@i">@i</a>
+                            </li>
+                        }
+
+                        <!-- Next button -->
+                        @if (Model.CurrentPage < Model.TotalPages)
+                        {
+                            <li class="page-item">
+                                <a class="page-link"
+                                   asp-action="ManageUsers"
+                                   asp-route-roleFilter="User"
+                                   asp-route-searchTerm="@ViewBag.UserSearchTerm"
+                                   asp-route-page="@(Model.CurrentPage + 1)">
+                                    Next &raquo;
+                                </a>
+                            </li>
+                        }
+
+                    </ul>
+                </nav>
+            }
+
+
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // Show instruction modal only once per session
+            const modalEl = document.getElementById('userInstructionModal');
+            if (modalEl && !sessionStorage.getItem("userInstructionShown")) {
+                const modal = new bootstrap.Modal(modalEl);
+                modal.show();
+                sessionStorage.setItem("userInstructionShown", "true");
+            }
+
+            // Initialize Bootstrap tooltips
+            document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => {
+                new bootstrap.Tooltip(el);
+            });
+
+            // Admin Tab: Server-side search with debounce and auto-reset
+            const adminSearchBox = document.getElementById("adminSearch");
+            let adminSearchTimeout;
+            adminSearchBox?.addEventListener("input", function () {
+                clearTimeout(adminSearchTimeout);
+                if (this.value.trim() === "") {
+                    this.form.submit();
+                } else {
+                    adminSearchTimeout = setTimeout(() => {
+                        this.form.submit();
+                    }, 1000);
+                }
+            });
+
+            // Staff Tab: Server-side search with debounce and auto-reset
+            const staffSearchBox = document.getElementById("staffSearch");
+            let staffSearchTimeout;
+            staffSearchBox?.addEventListener("input", function () {
+                clearTimeout(staffSearchTimeout);
+                if (this.value.trim() === "") {
+                    this.form.submit();
+                } else {
+                    staffSearchTimeout = setTimeout(() => {
+                        this.form.submit();
+                    }, 1000);
+                }
+            });
+
+            // User Tab: Server-side search with debounce and auto-reset
+            const userSearchBox = document.getElementById("userSearch");
+            let userSearchTimeout;
+            userSearchBox?.addEventListener("input", function () {
+                clearTimeout(userSearchTimeout);
+                if (this.value.trim() === "") {
+                    this.form.submit();
+                } else {
+                    userSearchTimeout = setTimeout(() => {
+                        this.form.submit();
+                    }, 1000);
+                }
+            });
+        });
+    </script>
+}

@@ -1,0 +1,33 @@
+﻿@model SantaFeWaterSystem.Models.FeedbackComment
+@{
+    int? currentUserId = ViewBag.CurrentUserId as int?;
+    bool canDelete = currentUserId.HasValue &&
+                     (Model.UserId == currentUserId.Value || User.IsInRole("Admin") || User.IsInRole("Staff"));
+}
+
+<div class="ms-3 mb-1 p-1 border rounded bg-white d-flex justify-content-between align-items-center"
+     data-comment-id="@Model.Id">
+    <small>
+        <strong>@Model.User?.Username</strong>
+        @if (Model.User?.Id == Model.Feedback.Announcement?.Admin?.Id)
+        {
+            <span class="badge bg-danger ms-1">Admin</span>
+        }
+        else
+        {
+            <span class="badge bg-secondary ms-1">User</span>
+        }
+        : @Model.Content
+        <span class="text-muted ms-1" style="font-size:0.8em;">
+            @(Model.CommentedAt.HasValue? Model.CommentedAt.Value.ToLocalTime().ToString("g") : "")
+        </span>
+    </small>
+
+    @if (canDelete)
+    {
+        <button type="button" class="btn btn-sm btn-outline-danger delete-comment"
+                data-comment-id="@Model.Id" title="Delete comment">
+            <i class="bi bi-trash"></i>
+        </button>
+    }
+</div>

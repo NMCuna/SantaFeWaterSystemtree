@@ -1,0 +1,196 @@
+﻿
+
+/* 🔷 Glowing Page Header */
+h2.page-header {
+    font-size: 2.2rem;
+    font-weight: bold;
+    color: #0d6efd;
+    padding-left: 20px;
+    border-left: 6px solid #0d6efd;
+    margin-bottom: 30px;
+    display: flex;
+    align-items: center;
+    animation: pulseText 1.5s ease-in-out infinite;
+}
+
+    h2.page-header i {
+        margin-right: 12px;
+        color: #0d6efd;
+    }
+
+/* 📋 Table Styles */
+.table {
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+}
+
+    .table thead {
+        background: linear-gradient(135deg, #0d6efd, #6f42c1);
+        color: #fff;
+        font-size: 1rem;
+    }
+
+    .table th,
+    .table td {
+        vertical-align: middle;
+        padding: 12px 16px;
+    }
+
+/* 🔘 Action Buttons */
+.action-buttons a {
+    margin-right: 8px;
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s;
+}
+
+    .action-buttons a:hover {
+        transform: scale(1.1);
+        box-shadow: 0 0 10px rgba(0, 123, 255, 0.4);
+    }
+
+/* 🔎 Filter/Search */
+.filter-form {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.5rem;
+}
+
+    .filter-form .input-group {
+        flex: 1;
+        min-width: 250px;
+        max-width: 400px;
+    }
+
+.input-group-text {
+    border-radius: 8px 0 0 8px;
+}
+
+.form-control,
+.form-select {
+    border-radius: 0 8px 8px 0;
+}
+
+/* 🔵 Glowing Add Consumer Button */
+/* 🔵 Glowing Add Consumer Button */
+.btn-glow {
+    display: inline-block;
+    background: linear-gradient(135deg, #00c9ff, #0d150e);
+    color: #fff;
+    font-weight: bold;
+    border: none;
+    padding: 12px 24px;
+    font-size: 1.1rem;
+    border-radius: 50px;
+    box-shadow: 0 0 15px rgba(0, 201, 255, 0.7);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: all 0.3s ease-in-out;
+    animation: glowPulse 1.8s infinite ease-in-out;
+    position: relative;
+    overflow: hidden;
+    text-align: center;
+    text-decoration: none; /* ✅ Remove underline by default */
+}
+
+    .btn-glow i {
+        margin-right: 8px;
+    }
+
+    .btn-glow:hover {
+        background: linear-gradient(135deg, #92fe9d, #00c9ff);
+        transform: scale(1.05);
+        box-shadow: 0 0 25px rgba(0, 201, 255, 0.9);
+        text-decoration: none; /* Optional redundancy for extra safety */
+    }
+
+
+/* 🌐 Responsive Design */
+@media (max-width: 576px) {
+    .filter-form {
+        flex-direction: column;
+    }
+
+        .filter-form .input-group {
+            max-width: 100%;
+        }
+
+    .btn-glow {
+        width: 100%;
+    }
+}
+
+/* 💫 Animations */
+@keyframes glowPulse {
+    0% {
+        box-shadow: 0 0 10px rgba(0, 201, 255, 0.5), 0 0 20px rgba(0, 201, 255, 0.4);
+    }
+
+    50% {
+        box-shadow: 0 0 20px rgba(0, 201, 255, 0.9), 0 0 30px rgba(146, 254, 157, 0.8);
+    }
+
+    100% {
+        box-shadow: 0 0 10px rgba(0, 201, 255, 0.5), 0 0 20px rgba(0, 201, 255, 0.4);
+    }
+}
+
+@keyframes pulseText {
+    0%, 100% {
+        text-shadow: 0 0 4px #0d6efd;
+    }
+
+    50% {
+        text-shadow: 0 0 12px #0d6efd;
+    }
+}
+/* 🌙 Dark Mode Compatibility Fixes */
+body.dark-mode {
+    background-color: #1a1a2e;
+    color: #f1f1f1;
+}
+
+    body.dark-mode .table {
+        background-color: #252538;
+        color: #f1f1f1;
+        box-shadow: 0 0 10px rgba(255, 255, 255, 0.05);
+    }
+
+        body.dark-mode .table thead {
+            background: linear-gradient(135deg, #6a75ff, #b076ff);
+            color: #fff;
+        }
+
+    body.dark-mode .table-bordered th,
+    body.dark-mode .table-bordered td {
+        border-color: #444;
+    }
+
+    body.dark-mode .action-buttons a {
+        color: #fff;
+    }
+
+    body.dark-mode .btn-glow {
+        background: linear-gradient(135deg, #00c9ff, #92fe9d);
+        color: #fff;
+        box-shadow: 0 0 15px rgba(0, 201, 255, 0.5);
+    }
+
+        body.dark-mode .btn-glow:hover {
+            background: linear-gradient(135deg, #92fe9d, #00c9ff);
+            box-shadow: 0 0 25px rgba(0, 201, 255, 0.8);
+            color: #fff;
+        }
+
+    body.dark-mode .form-control,
+    body.dark-mode .form-select {
+        background-color: #2e2e42;
+        color: #fff;
+        border-color: #555;
+    }
+
+    body.dark-mode .input-group-text {
+        background-color: #34344a;
+        color: #fff;
+        border-color: #555;
+    }

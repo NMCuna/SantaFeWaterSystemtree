@@ -1,0 +1,342 @@
+﻿@model SantaFeWaterSystem.ViewModels.UserDashboardViewModel
+
+@{
+    ViewData["Title"] = "Dashboard";
+    Layout = "~/Views/Shared/_UserLayout.cshtml";
+
+    var hour = DateTime.Now.Hour;
+    string greeting;
+    string iconClass;
+
+    if (hour < 12)
+    {
+        greeting = "Good Morning";
+        iconClass = "bi-sun-fill";
+    }
+    else if (hour < 18)
+    {
+        greeting = "Good Afternoon";
+        iconClass = "bi-cloud-sun-fill";
+    }
+    else
+    {
+        greeting = "Good Evening";
+        iconClass = "bi-moon-stars-fill";
+    }
+}
+
+@section Styles {
+    <link href="~/css/userdashboard.css" rel="stylesheet" asp-append-version="true" />
+}
+
+
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="dashboard-title m-0">
+        <i class="bi @iconClass me-2 text-warning"></i>
+        <span class="greeting-text">@greeting, @($"{Model.Consumer.FirstName} {Model.Consumer.LastName}".Trim())!</span>
+    </h2>
+</div>
+
+
+<!-- Quick Access -->
+<div class="row mb-4" id="quick-access">
+    <div class="col">
+        <div class="card shadow-sm">
+            <div class="card-header fw-bold">
+                <i class="bi bi-box-arrow-up-right me-2"></i>Quick Access
+            </div>
+            <div class="card-body">
+                <div class="row row-cols-2 row-cols-sm-2 row-cols-md-2 row-cols-lg-2 g-2">
+                    <div class="col">
+                        <a href="@Url.Action("Payment", "User")" class="btn btn-outline-primary w-100">
+                            <i class="bi bi-wallet2 me-1"></i>Payment
+                        </a>
+                    </div>
+                    <div class="col">
+                        <a href="@Url.Action("BillingHistory", "User", new { showArchived = true })" class="btn btn-outline-success w-100">
+                            <i class="bi bi-clock-history me-1"></i>Billing History
+                        </a>
+                    </div>
+                    <div class="col">
+                        <a href="@Url.Action("Index", "Announcement")" class="btn btn-outline-info w-100">
+                            <i class="bi bi-chat-left-text me-1"></i>Community Feed
+                        </a>
+                    </div>
+                    <div class="col">
+                        <a href="@Url.Action("Profile", "User")" class="btn btn-outline-warning w-100">
+                            <i class="bi bi-life-preserver me-1"></i>Profile
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@* Account Info *@
+@* 
+<!-- Account Info -->
+<div class="row mb-4">
+    <div class="col-12 col-md-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-header fw-bold">
+                <i class="bi bi-person-circle me-2"></i>Account Info
+            </div>
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-2 text-nowrap overflow-auto" style="font-size: clamp(0.9rem, 2.5vw, 1rem);">
+                    <i class="bi bi-credit-card-2-front me-1 flex-shrink-0"></i>
+                    <strong class="me-1 flex-shrink-0">Account #:</strong>
+                    <span class="text-truncate d-inline-block" style="max-width: 100%;">
+                        @(Model.Consumer.User?.AccountNumber ?? "N/A")
+                    </span>
+                </div>
+                <div class="d-flex align-items-center mb-2 text-nowrap overflow-auto" style="font-size: clamp(0.9rem, 2.5vw, 1rem);">
+                    <i class="bi bi-geo-alt me-1 flex-shrink-0"></i>
+                    <strong class="me-1 flex-shrink-0">Address:</strong>
+                    <span class="text-truncate d-inline-block" style="max-width: 100%;">
+                        @Model.Consumer.HomeAddress
+                    </span>
+                </div>
+                <div class="d-flex align-items-center mb-0 text-nowrap overflow-auto" style="font-size: clamp(0.9rem, 2.5vw, 1rem);">
+                    <i class="bi bi-telephone me-1 flex-shrink-0"></i>
+                    <strong class="me-1 flex-shrink-0">Phone:</strong>
+                    <span class="text-truncate d-inline-block" style="max-width: 100%;">
+                        @Model.Consumer.ContactNumber
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+*@
+
+
+<div class="row row-cols-1 row-cols-md-2 g-4 mb-4">
+
+    <!-- Recent Bills -->
+    <div class="col">
+        <div class="card shadow-sm h-100">
+            <div class="card-header fw-bold d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-receipt-cutoff me-2"></i>Recent Bills</span>
+                @if (Model.RecentBills?.Count > 1)
+                {
+                    <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#billsModal">View All</button>
+                }
+            </div>
+            <div class="card-body">
+                @if (Model.RecentBills?.Any() == true)
+                {
+                    @foreach (var bill in Model.RecentBills.Take(1))
+                    {
+                        var statusClass = bill.Status switch
+                        {
+                            "Paid" => "bg-success text-white",
+                            "Unpaid" => "bg-danger text-white",
+                            "Pending" => "bg-warning text-dark",
+                            _ => "bg-secondary text-white"
+                        };
+
+                        <div class="clickable-card mb-3 p-2">
+                            <!-- Top row: Bill No + Status Badge -->
+                            <div class="d-flex justify-content-between align-items-center flex-wrap mb-1">
+                                <div class="d-flex flex-wrap align-items-center gap-1 text-break">
+                                    <i class="bi bi-receipt me-1"></i>
+                                    <strong>Bill No:</strong>
+                                    <span>@bill.BillNo</span>
+                                </div>
+                                <div class="badge @statusClass">@bill.Status</div>
+                            </div>
+
+                            <!-- Other bill details -->
+                            <div class="d-flex flex-wrap align-items-center gap-1 text-break mb-1">
+                                <i class="bi bi-calendar-event me-1"></i>
+                                <strong>Billing Date:</strong>
+                                <span>@bill.BillingDate.ToString("MMM dd, yyyy")</span>
+                            </div>
+                            <div class="d-flex flex-wrap align-items-center gap-1 text-break mb-1">
+                                <i class="bi bi-calendar-check me-1"></i>
+                                <strong>Due Date:</strong>
+                                <span>@bill.DueDate.ToString("MMM dd, yyyy")</span>
+                            </div>
+                            <div class="d-flex flex-wrap align-items-center gap-1 text-break amount-due mb-1">
+                                <i class="bi bi-currency-exchange me-1"></i>
+                                <strong>Amount Due:</strong>
+                                <span>₱@bill.AmountDue.ToString("N2")</span>
+                            </div>
+
+                            @if (bill.Penalty > 0)
+                            {
+                                <div class="d-flex flex-wrap align-items-center gap-1 text-danger text-break mb-1">
+                                    <i class="bi bi-exclamation-circle me-1"></i>
+                                    <strong>Overdue Penalty:</strong>
+                                    <span>₱@bill.Penalty.ToString("N2")</span>
+                                </div>
+                            }
+                            @if ((bill.AdditionalFees ?? 0) > 0)
+                            {
+                                <div class="d-flex flex-wrap align-items-center gap-1 text-info text-break mb-1">
+                                    <i class="bi bi-plus-circle me-1"></i>
+                                    <strong>Additional Fees:</strong>
+                                    <span>₱@bill.AdditionalFees?.ToString("N2")</span>
+                                </div>
+                            }
+                            @if (bill.Penalty > 0 || (bill.AdditionalFees ?? 0) > 0)
+                            {
+                                <div class="d-flex flex-wrap align-items-center gap-1 fw-bold text-primary text-break mb-1">
+                                    <i class="bi bi-cash-coin me-1"></i>
+                                    <strong>Total Amount:</strong>
+                                    <span>₱@bill.TotalAmount.ToString("N2")</span>
+                                </div>
+                            }
+
+                            <!-- Pay Now Button -->
+                            @if (bill.Status == "Unpaid")
+                            {
+                                <div class="mt-2 d-flex justify-content-end">
+                                    <a href="@Url.Action("Pay", "User", new { billId = bill.Id })"
+                                       class="btn btn-sm btn-primary pay-now-btn">
+                                        Pay Now
+                                    </a>
+                                </div>
+                            }
+                        </div>
+                    }
+                }
+                else
+                {
+                    <p class="text-muted">No bills found.</p>
+                }
+            </div>
+        </div>
+    </div>
+
+
+
+
+
+
+    <!-- Recent Payments -->
+    <div class="col">
+        <div class="card shadow-sm h-100">
+            <div class="card-header fw-bold d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-wallet2 me-2"></i>Recent Payments</span>
+                @if (Model.RecentPayments?.Count > 1)
+                {
+                    <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#paymentsModal">View All</button>
+                }
+            </div>
+            <div class="card-body">
+                @if (Model.RecentPayments?.Any() == true)
+                {
+                    @foreach (var p in Model.RecentPayments.Take(1))
+                    {
+                        var methodClass = p.Method switch
+                        {
+                            "Cash" => "bg-success text-white",
+                            "Gcash" => "bg-info text-dark",
+                            "Online" => "bg-primary text-white",
+                            "Bank" => "bg-warning text-dark",
+                            _ => "bg-secondary text-white"
+                        };
+
+                        var statusClass = p.Billing.Status switch
+                        {
+                            "Paid" => "badge bg-success",
+                            "Pending" => "badge bg-warning text-dark",
+                            "Unpaid" => "badge bg-danger",
+                            _ => "badge bg-secondary"
+                        };
+
+                        <div class="clickable-card d-flex justify-content-between align-items-center mb-3 flex-wrap">
+                            <div>
+                                <div class="d-flex flex-wrap align-items-center gap-1 text-break">
+                                    <i class="bi bi-receipt me-1"></i>
+                                    <strong>Bill No:</strong>
+                                    <span>@p.Billing.BillNo</span>
+                                </div>
+                                <div class="d-flex flex-wrap align-items-center gap-1 text-break">
+                                    <i class="bi bi-calendar-check me-1"></i>
+                                    <strong>Payment Date:</strong>
+                                    <span>@p.PaymentDate.ToString("MMM dd, yyyy")</span>
+                                </div>
+                                <div class="d-flex flex-wrap align-items-center gap-1 text-break text-muted amount-line">
+                                    <i class="bi bi-currency-dollar me-1"></i>
+                                    <strong>Amount Paid:</strong>
+                                    <span>₱@p.AmountPaid.ToString("N2")</span>
+                                </div>
+                                <div class="d-flex flex-wrap align-items-center gap-1 text-break">
+                                    <i class="bi bi-credit-card me-1"></i>
+                                    <strong>Method:</strong>
+                                    <span class="badge @methodClass">@p.Method</span>
+                                </div>
+                                <div class="mt-1">
+                                    <span class="@statusClass">Status: @p.Billing.Status</span>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <p class="text-muted">No payments recorded.</p>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+
+  
+    <!-- Include dashboard-related modals -->
+@await Html.PartialAsync("~/Views/Shared/_DashboardModals.cshtml", Model)
+
+@section Scripts {
+        <script>
+            // ✅ Mark Support Ticket reply as seen
+            function markReplySeen(ticketId) {
+                fetch('/Supports/MarkReplyAsSeen', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(ticketId)
+                })
+                .then(response => {
+                    if (response.ok) {
+                        const badge = document.getElementById('ticket-badge-' + ticketId);
+                        if (badge) badge.remove();
+                    }
+                })
+                .catch(error => console.error('Error marking reply as seen:', error));
+            }
+
+            // ✅ Mark Notification as read
+            function markNotificationAsRead(id) {
+                fetch('/Notifications/MarkAsRead', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(id)
+                })
+                .then(response => {
+                    if (response.ok) {
+                        const badge = document.getElementById('notif-badge-' + id);
+                        if (badge) badge.remove();
+                    }
+                })
+                .catch(error => console.error('Error marking notification as read:', error));
+            }
+
+            // ✅ Clean up focus after any modal closes
+            document.addEventListener('DOMContentLoaded', () => {
+                document.querySelectorAll('.modal').forEach(modal => {
+                    modal.addEventListener('hidden.bs.modal', () => {
+                        if (document.activeElement && modal.contains(document.activeElement)) {
+                            document.activeElement.blur();
+                        }
+                    });
+                });
+            });
+
+           
+        </script>
+}

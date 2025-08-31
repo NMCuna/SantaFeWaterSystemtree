@@ -1,0 +1,164 @@
+﻿/* ⚙️ PROFILE CONTAINER */
+.profile-container {
+    max-width: 700px;
+    overflow-y: auto;
+    background-color: white;
+    -webkit-overflow-scrolling: touch; /* ✅ smoother scroll on iOS */
+    scroll-behavior: smooth; /* ✅ smoother scroll overall */
+}
+
+.scroll-x {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch; /* Smooth scroll on iOS */
+    scroll-behavior: smooth;
+    max-width: 100%;
+    width: 100%;
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 0.5rem;
+    padding-bottom: 0.5rem; /* optional for scroll spacing */
+}
+
+
+
+/* 🟩 UPLOAD AREA */
+.upload-area {
+    border: 2px dashed #6c757d;
+    padding: 1.2rem;
+    width: 60%;
+    border-radius: 10px;
+    background-color: #f8f9fa;
+    transition: background-color 0.3s, border-color 0.3s;
+}
+
+    .upload-area:hover {
+        background-color: #e9ecef;
+        border-color: #495057;
+        cursor: pointer;
+    }
+
+.upload-label {
+    display: inline-block;
+    color: #0d6efd;
+    font-weight: 500;
+    font-size: 1rem;
+    cursor: pointer;
+}
+
+/* 📷 CAMERA UPLOAD BUTTON */
+.camera-upload {
+    display: inline-block;
+    cursor: pointer;
+    padding: 10px 20px;
+    font-size: 16px;
+    font-weight: 500;
+    color: #fff;
+    background-color: #0d6efd;
+    border-radius: 30px;
+    border: none;
+    transition: background-color 0.3s;
+}
+
+    .camera-upload:hover {
+        background-color: #0b5ed7;
+    }
+
+#imageUpload {
+    display: none;
+}
+
+/* 🖼️ PROFILE IMAGE */
+.profile-preview {
+    width: 120px;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 4px solid #fff;
+    box-shadow: 0 0 8px rgba(0, 123, 255, 0.5); /* ✅ reduced shadow for mobile perf */
+    transition: transform 0.3s ease;
+    will-change: transform; /* ✅ hint browser for GPU layer */
+}
+
+    .profile-preview:hover {
+        transform: scale(1.05);
+    }
+
+/* ✨ GLOW BUTTONS */
+.glow-button {
+    min-width: 150px;
+    border: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15); /* ✅ less intensive */
+}
+
+    .glow-button:focus {
+        outline: none;
+    }
+
+.btn-camera {
+    background: linear-gradient(to right, #28a745, #218838);
+    color: white;
+    box-shadow: 0 0 6px rgba(40, 167, 69, 0.5); /* ✅ lighter shadow */
+}
+
+.btn-gallery {
+    background: linear-gradient(to right, #007bff, #0056b3);
+    color: white;
+    box-shadow: 0 0 6px rgba(0, 123, 255, 0.5);
+}
+
+.upload-area label {
+    font-size: 0.95rem;
+}
+
+/* 🔽 FORM FIELD TWEAKS */
+.form-control-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+    border-radius: 0.25rem;
+}
+
+.form-label {
+    font-size: 0.9rem;
+}
+
+    .form-label i {
+        font-size: 1.1rem;
+    }
+
+.mb-3, .mb-4 {
+    margin-bottom: 0.75rem !important;
+}
+
+/* 📱 MOBILE OPTIMIZATION */
+@media (max-width: 576px) {
+    .profile-container {
+        max-width: 100%;
+        max-height: 100vh;
+        padding: 1rem;
+    }
+
+    h2 {
+        font-size: 1.3rem;
+    }
+
+    .btn-sm {
+        font-size: 0.85rem;
+        padding: 0.3rem 0.75rem;
+    }
+
+    .readonly-dark {
+        background-color: #343a40 !important;
+        color: #fff !important;
+    }
+
+    .glow-button {
+        min-width: unset;
+        width: 100%;
+    }
+
+    .profile-preview {
+        box-shadow: none !important; /* ✅ remove shadow completely on small devices */
+    }
+}

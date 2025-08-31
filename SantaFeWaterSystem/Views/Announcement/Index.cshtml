@@ -1,0 +1,237 @@
+﻿@model IEnumerable<SantaFeWaterSystem.Models.Announcement>
+@{
+    ViewData["Title"] = "Community Feed";
+    Layout = "~/Views/Shared/_HomeLayout.cshtml";
+
+    string dashboardUrl = User.IsInRole("Admin") || User.IsInRole("Staff")
+        ? Url.Action("Dashboard", "Admin") ?? "/Admin/Dashboard"
+        : Url.Action("Dashboard", "User") ?? "/User/Dashboard";
+
+    int? currentUserId = null;
+    var claim = User.FindFirst("UserId")?.Value;
+    if (int.TryParse(claim, out int uid))
+    {
+        currentUserId = uid;
+    }
+
+    var vd = new ViewDataDictionary(ViewData);
+    vd["CurrentUserId"] = currentUserId;
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/community-feed.css" />
+    <style>
+        /* ✅ Make images always scale nicely */
+        .card img {
+            width: 100%;
+            height: auto;
+            object-fit: cover;
+        }
+    </style>
+}
+
+<h2 class="text-center mb-4">
+    <i class="bi bi-chat-left-text me-2"></i> Community Feed
+</h2>
+
+<div class="d-flex flex-wrap justify-content-center gap-2 mb-4">
+    <a href="@dashboardUrl" class="btn btn-secondary flex-grow-1 flex-sm-grow-0">
+        <i class="bi bi-arrow-left-circle me-1"></i> Back to Dashboard
+    </a>
+
+    @if (User.IsInRole("Admin") || User.IsInRole("Staff"))
+    {
+        <a asp-action="Create" class="btn btn-success flex-grow-1 flex-sm-grow-0">
+            <i class="bi bi-plus-circle me-1"></i> Create Announcement
+        </a>
+    }
+</div>
+
+<!-- ✅ Full-width responsive wrapper -->
+<div class="container-fluid px-3 px-md-5">
+    <div class="row justify-content-center">
+        <div class="col-12 col-lg-10 col-xl-8">
+            <!-- ✅ Wide on desktop, full on mobile -->
+            @foreach (var post in Model ?? Enumerable.Empty<SantaFeWaterSystem.Models.Announcement>())
+            {
+                <div class="card shadow-sm mb-3" data-announcement-id="@post.Id">
+                    <div class="card-body">
+                        <!-- Header -->
+                        <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap">
+                            <h5>
+                                <i class="bi bi-megaphone-fill text-primary"></i> @post.Title
+                                @if (!string.IsNullOrEmpty(post.Admin?.Username))
+                                {
+                                    <span class="badge bg-danger ms-2">Admin</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary ms-2">User</span>
+                                }
+                            </h5>
+                            <small class="text-muted">
+                                Posted by @(post.Admin?.Username ?? "Unknown") at
+                                @(post.PostedAt?.ToLocalTime().ToString("g") ?? "Unknown")
+                            </small>
+                        </div>
+
+                        <!-- Content -->
+                        <p>@post.Content</p>
+                        @if (!string.IsNullOrEmpty(post.ImagePath))
+                        {
+                            <img src="@post.ImagePath" class="img-fluid rounded mb-2" />
+                        }
+
+                        <!-- Admin Actions -->
+                        @if (User.IsInRole("Admin") || User.IsInRole("Staff"))
+                        {
+                            <div class="mb-2">
+                                <a asp-action="EditAnnouncement" asp-route-id="@post.Id" class="btn btn-sm btn-warning me-1 mb-1">
+                                    <i class="bi bi-pencil-square"></i> Edit
+                                </a>
+                                <form asp-action="DeleteAnnouncement" method="post" class="d-inline">
+                                    <input type="hidden" name="id" value="@post.Id" />
+                                    <button type="submit" class="btn btn-sm btn-danger mb-1"
+                                            onclick="return confirm('Are you sure you want to delete this announcement?');">
+                                        <i class="bi bi-trash-fill"></i> Delete
+                                    </button>
+                                </form>
+                            </div>
+                        }
+
+                        <hr />
+
+                        <!-- Add Feedback -->
+                        <div class="add-feedback-box mb-3 p-2 border rounded bg-light">
+                            <form asp-action="AddFeedback" method="post" enctype="multipart/form-data"
+                                  class="d-flex flex-column gap-2 add-feedback-form">
+                                <input type="hidden" name="announcementId" value="@post.Id" />
+                                <textarea name="comment" class="form-control rounded-pill px-3"
+                                      rows="1" placeholder="Write a feedback..."></textarea>
+                                <div class="d-flex flex-wrap gap-2">
+                                    <input type="file" name="image" class="form-control form-control-sm" accept="image/*" />
+                                    <button type="submit" class="btn btn-sm btn-success">
+                                        <i class="bi bi-send-fill"></i> Post
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- Feedback List -->
+                        <strong><i class="bi bi-chat-dots-fill"></i> Feedback:</strong>
+                        <div class="feedback-list" data-announcement-id="@post.Id">
+                            @foreach (var f in post.Feedbacks ?? Enumerable.Empty<SantaFeWaterSystem.Models.Feedback>())
+                            {
+                                @await Html.PartialAsync("_FeedbackItem", f, vd)
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script>
+        $(document).ready(function () {
+
+            // LIKE / UNLIKE
+            $(document).on('click', '.feedback-like', function () {
+                var btn = $(this);
+                var feedbackId = btn.data('feedback-id');
+
+                $.post('@Url.Action("ToggleFeedbackLike", "Announcement")', { feedbackId: feedbackId })
+                    .done(function (data) {
+                        if (data.success) {
+                            btn.find('.like-count').text(data.likeCount);
+                            if (data.liked) {
+                                btn.removeClass('btn-outline-primary').addClass('btn-primary');
+                            } else {
+                                btn.removeClass('btn-primary').addClass('btn-outline-primary');
+                            }
+                        } else {
+                            alert(data.message || "Unable to update like status.");
+                        }
+                    })
+                    .fail(function () {
+                        alert("Error: Could not update like status.");
+                    });
+            });
+
+            // ADD COMMENT
+            $(document).on('submit', '.add-comment-form', function (e) {
+                e.preventDefault();
+                var form = $(this);
+                var feedbackId = form.find('input[name="feedbackId"]').val();
+                var content = form.find('input[name="content"]').val();
+                if (!content) return;
+
+                $.post('@Url.Action("AddFeedbackComment", "Announcement")',
+                       { feedbackId: feedbackId, content: content })
+                    .done(function (commentHtml) {
+                        form.closest('.feedback-comments').prepend(commentHtml);
+                        form[0].reset();
+                    })
+                    .fail(function () {
+                        alert("Error: Could not add comment.");
+                    });
+            });
+
+            // ADD FEEDBACK
+            $(document).on('submit', '.add-feedback-form', function (e) {
+                e.preventDefault();
+                var form = $(this);
+                var formData = new FormData(this);
+                var feedbackList = form.closest('.card').find('.feedback-list');
+
+                $.ajax({
+                    url: '@Url.Action("AddFeedback", "Announcement")',
+                    type: 'POST',
+                    data: formData,
+                    contentType: false,
+                    processData: false,
+                    success: function (feedbackHtml) {
+                        feedbackList.prepend(feedbackHtml);
+                        form[0].reset();
+                    },
+                    error: function () {
+                        alert("Error: Could not submit feedback.");
+                    }
+                });
+            });
+
+            // DELETE FEEDBACK / COMMENT
+            $(document).on("click", ".delete-feedback, .delete-comment", function () {
+                var btn = $(this);
+                var isFeedback = btn.hasClass("delete-feedback");
+                var id = btn.data(isFeedback ? "feedback-id" : "comment-id");
+                var url = isFeedback ? "/Announcement/DeleteFeedback" : "/Announcement/DeleteComment";
+                var selector = isFeedback ? `[data-feedback-id='${id}']` : `[data-comment-id='${id}']`;
+
+                if (!confirm(`Are you sure you want to delete this ${isFeedback ? "feedback" : "comment"}?`)) return;
+
+                fetch(url, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "RequestVerificationToken": $("input[name='__RequestVerificationToken']").val()
+                    },
+                    body: JSON.stringify(id)
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        var elem = document.querySelector(selector);
+                        if (elem) elem.remove();
+                    } else {
+                        alert(data.message || `Failed to delete ${isFeedback ? "feedback" : "comment"}.`);
+                    }
+                })
+                .catch(() => alert(`Error deleting ${isFeedback ? "feedback" : "comment"}.`));
+            });
+        });
+    </script>
+}

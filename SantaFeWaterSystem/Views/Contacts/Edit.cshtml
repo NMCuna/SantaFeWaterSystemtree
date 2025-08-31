@@ -1,0 +1,96 @@
+﻿@model SantaFeWaterSystem.Models.ContactInfo
+@{
+    ViewData["Title"] = "Edit Contact";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        h2 {
+            color: #0d6efd; /* Primary blue */
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        form {
+            background-color: #f8f9fa;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+        }
+
+        .form-label {
+            font-weight: 500;
+        }
+
+        .btn-success i, .btn-secondary i {
+            margin-right: 5px;
+        }
+
+        .btn-success {
+            background-color: #198754;
+            border-color: #198754;
+        }
+
+        .btn-secondary {
+            background-color: #6c757d;
+            border-color: #6c757d;
+        }
+    </style>
+}
+
+<h2><i class="bi bi-pencil-square"></i> Edit Contact</h2>
+
+<form asp-action="Edit" method="post">
+    <input type="hidden" asp-for="Id" />
+
+    <div class="mb-3">
+        <label asp-for="Phone" class="form-label"><i class="bi bi-telephone-fill"></i> Phone</label>
+        <input asp-for="Phone" class="form-control" placeholder="Enter phone number" />
+        <span asp-validation-for="Phone" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Email" class="form-label"><i class="bi bi-envelope-fill"></i> Email</label>
+        <input asp-for="Email" class="form-control" placeholder="Enter email address" />
+        <span asp-validation-for="Email" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="FacebookUrl" class="form-label"><i class="bi bi-facebook"></i> Facebook URL</label>
+        <input asp-for="FacebookUrl" class="form-control" placeholder="Enter Facebook profile link" />
+        <span asp-validation-for="FacebookUrl" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="FacebookName" class="form-label"><i class="bi bi-person-circle"></i> Facebook Name</label>
+        <input asp-for="FacebookName" class="form-control" placeholder="Enter Facebook display name" />
+        <span asp-validation-for="FacebookName" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="IntroText" class="form-label"><i class="bi bi-info-circle-fill"></i> Intro Text</label>
+        <textarea asp-for="IntroText" class="form-control" rows="3" placeholder="Enter introduction text"></textarea>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="WaterMeterHeading" class="form-label"><i class="bi bi-droplet-fill"></i> Water Meter Heading</label>
+        <input asp-for="WaterMeterHeading" class="form-control" placeholder="Enter heading for water meter" />
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="WaterMeterInstructions" class="form-label"><i class="bi bi-journal-text"></i> Water Meter Instructions</label>
+        <textarea asp-for="WaterMeterInstructions" class="form-control" rows="3" placeholder="Enter instructions"></textarea>
+    </div>
+
+    <button type="submit" class="btn btn-success"><i class="bi bi-check-circle-fill"></i> Save Changes</button>
+    <a asp-action="Index" class="btn btn-secondary ms-2"><i class="bi bi-x-circle-fill"></i> Cancel</a>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

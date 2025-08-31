@@ -1,0 +1,129 @@
+﻿/* Full container with flexible layout */
+.privacy-container {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    padding: 1rem;
+}
+
+
+
+/* Header */
+.privacy-header {
+    flex-shrink: 0;
+}
+
+/* Title */
+.privacy-title {
+    background: linear-gradient(90deg, #198754, #28a745);
+    color: white;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.5rem;
+    display: inline-block;
+    text-align: center;
+    font-weight: bold;
+    line-height: 1.2;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    margin-bottom: 0.5rem;
+}
+
+/* Scrollable policy box */
+.privacy-box {
+    background-color: #f8f9fa;
+    flex-grow: 1;
+    overflow-y: auto;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    line-height: 1.6;
+}
+
+/* Intro / Overview */
+.privacy-intro {
+    font-weight: bold;
+    color: #856404;
+    margin-bottom: 1rem;
+    white-space: pre-wrap;
+    text-align: center;
+}
+
+/* Sections */
+.privacy-section-title {
+    font-size: 1.05rem;
+    color: #198754;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+
+.privacy-section-content {
+    font-size: 0.95rem;
+    color: #212529;
+    margin-bottom: 1rem;
+    white-space: pre-wrap;
+}
+
+/* Form at bottom */
+.privacy-form {
+    flex-shrink: 0;
+    margin-bottom: 1rem;
+}
+
+/* Mobile adjustments */
+@media (max-width: 576px) {
+    .privacy-title {
+        font-size: 1.1rem;
+        padding: 0.4rem 0.6rem;
+    }
+
+    .privacy-section-title {
+        font-size: 0.95rem;
+    }
+
+    .privacy-section-content {
+        font-size: 0.9rem;
+    }
+
+    .privacy-box {
+        max-height: calc(100vh - 140px); /* title + form + padding */
+    }
+}
+
+/* Extra small screens ≤360px */
+@media (max-width: 360px) {
+    .privacy-title {
+        font-size: 1rem;
+        padding: 0.35rem 0.5rem;
+    }
+
+    .privacy-box {
+        max-height: calc(100vh - 130px); /* smaller devices */
+    }
+
+    .privacy-section-title {
+        font-size: 0.9rem;
+    }
+
+    .privacy-section-content {
+        font-size: 0.85rem;
+    }
+}
+
+/* Extra extra small ≤320px */
+@media (max-width: 320px) {
+    .privacy-title {
+        font-size: 0.95rem;
+        padding: 0.3rem 0.45rem;
+    }
+
+    .privacy-box {
+        max-height: calc(100vh - 120px);
+    }
+
+    .privacy-section-title {
+        font-size: 0.85rem;
+    }
+
+    .privacy-section-content {
+        font-size: 0.8rem;
+    }
+}

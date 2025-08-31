@@ -1,0 +1,21 @@
+﻿/* support.css */
+
+.support-form {
+    max-width: 700px;
+    margin: 0 auto 3rem auto;
+}
+
+    .support-form input.form-control,
+    .support-form textarea.form-control {
+        border: 1.5px solid #ced4da;
+        transition: border-color 0.3s ease;
+    }
+
+        .support-form input.form-control:focus,
+        .support-form textarea.form-control:focus {
+            border-color: #0d6efd; /* Bootstrap primary blue */
+            box-shadow: 0 0 5px rgba(13, 110, 253, 0.5);
+            outline: none;
+        }
+
+

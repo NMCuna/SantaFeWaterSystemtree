@@ -1,0 +1,354 @@
+﻿@model SantaFeWaterSystem.Models.ViewModels.UserPaymentViewModel
+
+@{
+    ViewData["Title"] = "Payments";
+    Layout = "~/Views/Shared/_UserLayout.cshtml";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/payments.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" />
+}
+
+<div class="container py-4">
+    <h2 class="fw-bold text-primary mb-4 fs-4 fs-md-3 fs-lg-2">
+        <i class="bi bi-wallet2 me-2"></i>Pay Your Bill
+    </h2>
+
+
+    <!-- Billing Summary Card -->
+    <div class="card mb-4 shadow-sm">
+        <div class="card-body">
+            <h5 class="card-title text-secondary">
+                <i class="bi bi-receipt me-2"></i>Billing Summary
+            </h5>
+            <div class="row">
+                <!-- Unpaid Bills -->
+                <div class="col-12 col-sm-6 mb-3">
+                    <div class="card border-danger">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <div class="text-danger d-flex align-items-center">
+                                    <i class="bi bi-exclamation-circle me-1"></i>
+                                    <strong>Total Unpaid Bills</strong>
+                                </div>
+                                <span class="badge bg-danger fs-6">
+                                    @(Model.PendingBills?.Count() ?? 0)
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Paid Bills -->
+                <div class="col-12 col-sm-6 mb-3">
+                    <div class="card border-success">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <div class="text-success d-flex align-items-center">
+                                    <i class="bi bi-check-circle me-1"></i>
+                                    <strong>Total Paid Bills</strong>
+                                </div>
+                                <span class="badge bg-success fs-6">
+                                    @Model.PaidBillsCount
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+
+
+
+    <div class="row g-4 align-items-stretch">
+        <!-- ✅ Unpaid Bills -->
+        <div class="col-lg-6">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title text-success mb-3">
+                        <i class="bi bi-exclamation-circle me-2"></i>Unpaid Bills
+                    </h5>
+
+                    <!-- 📱 Mobile Card View -->
+                    <div class="card-view">
+                        @if (Model.PendingBills?.Any() == true)
+                        {
+                            var count = 0;
+                            foreach (var bill in Model.PendingBills)
+                            {
+                                var extraClass = count >= 1 ? "extra-unpaid d-none" : "";
+                                <div class="info-card @extraClass">
+
+                                    <!-- Bill Details -->
+                                    <div class="mb-2">
+                                        <p>
+                                            <i class="bi bi-hash mobile-icon"></i>
+                                            <strong class="me-1">Bill No:</strong>@bill.BillNo
+                                        </p>
+                                        <p>
+                                            <i class="bi bi-calendar-event mobile-icon"></i>
+                                            <strong class="me-1">Billing Date:</strong>@bill.BillingDate.ToString("MMM dd, yyyy")
+                                        </p>
+                                        <p>
+                                            <i class="bi bi-calendar-x mobile-icon"></i>
+                                            <strong class="me-1">Due Date:</strong>@bill.DueDate.ToString("MMM dd, yyyy")
+                                        </p>
+
+                                        @if (bill.Penalty > 0)
+                                        {
+                                            <div class="d-flex flex-wrap align-items-center gap-1 text-danger text-break mb-1">
+                                                <i class="bi bi-exclamation-circle me-1"></i>
+                                                <strong>Overdue Penalty:</strong>
+                                                <span>₱@bill.Penalty.ToString("N2")</span>
+                                            </div>
+                                        }
+                                        @if ((bill.AdditionalFees ?? 0) > 0)
+                                        {
+                                            <div class="d-flex flex-wrap align-items-center gap-1 text-info text-break mb-1">
+                                                <i class="bi bi-plus-circle me-1"></i>
+                                                <strong>Additional Fees:</strong>
+                                                <span>₱@bill.AdditionalFees?.ToString("N2")</span>
+                                            </div>
+                                        }
+                                    </div>
+
+                                    <!-- Total Amount + Pay Now -->
+                                    <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top">
+                                        <div class="fw-bold text-primary">
+                                            <i class="bi bi-cash-coin me-1"></i>
+                                            <strong>Total Amount:</strong>
+                                            ₱@bill.TotalAmount.ToString("N2")
+                                        </div>
+                                        <div>
+                                            @if (!bill.HasPendingPayment)
+                                            {
+                                                <a asp-controller="User" asp-action="Pay" asp-route-billId="@bill.Id"
+                                                   class="btn btn-sm btn-success">
+                                                    Pay Now
+                                                </a>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-warning text-dark">
+                                                    <i class="bi bi-hourglass-split me-1"></i>Payment pending
+                                                </span>
+                                            }
+                                        </div>
+                                    </div>
+
+                                </div>
+                                count++;
+                            }
+
+                            if (Model.PendingBills.Count > 1)
+                            {
+                                <button class="btn btn-outline-success btn-sm view-more-btn mt-2"
+                                        id="toggleBtn-unpaid" onclick="toggleList('unpaid')">
+                                    View More
+                                </button>
+                            }
+                        }
+                        else
+                        {
+                            <p class="text-muted fst-italic">No unpaid bills.</p>
+                        }
+                    </div>
+
+
+                    <!-- 🖥 Desktop Table View -->
+                    <div class="table-responsive table-view">
+                        @if (Model.PendingBills?.Any() == true)
+                        {
+                            <table class="table table-bordered table-sm align-middle">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Bill No</th>
+                                        <th>Billing Date</th>
+                                        <th>Due Date</th>
+                                        <th class="text-end">Amount</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var bill in Model.PendingBills)
+                                    {
+                                        <tr>
+                                            <td>@bill.BillNo</td>
+                                            <td>@bill.BillingDate.ToString("MMM dd, yyyy")</td>
+                                            <td>@bill.DueDate.ToString("MMM dd, yyyy")</td>
+                                            <td class="text-end">₱@bill.TotalAmount.ToString("N2")</td>
+                                            <td>
+                                                @if (!bill.HasPendingPayment)
+                                                {
+                                                    <a asp-controller="User" asp-action="Pay" asp-route-billId="@bill.Id" class="btn btn-sm btn-success">Pay Now</a>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-warning text-dark">
+                                                        <i class="bi bi-hourglass-split me-1"></i>Payment pending
+                                                    </span>
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        }
+                        else
+                        {
+                            <p class="text-muted fst-italic">No unpaid bills.</p>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- ✅ Payment History (side-by-side on desktop, spaced on mobile) -->
+        <div class="col-lg-6 mt-3 mt-lg-0">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title text-primary mb-3">
+                        <i class="bi bi-clock-history me-2"></i>Payment History
+                    </h5>
+
+                    <!-- 📱 Mobile Card View -->
+                    <div class="card-view">
+                        @if (Model.PreviousPayments?.Any() == true)
+                        {
+                            var count = 0;
+                            foreach (var payment in Model.PreviousPayments)
+                            {
+                                var extraClass = count >= 1 ? "extra-history d-none" : "";
+                                <div class="info-card history-card @extraClass">
+                                    <p>
+                                        <i class="bi bi-hash mobile-icon"></i>
+                                        <strong class="me-1">Bill No:</strong>@payment.Billing?.BillNo
+                                    </p>
+                                    <p>
+                                        <i class="bi bi-calendar-check mobile-icon"></i>
+                                        <strong class="me-1">Payment Date:</strong>@payment.PaymentDate.ToShortDateString()
+                                    </p>
+                                    <p>
+                                        <i class="bi bi-currency-exchange mobile-icon"></i>
+                                        <strong class="me-1">Amount Paid:</strong>@payment.AmountPaid.ToString("C")
+                                    </p>
+                                    <p class="text-success">
+                                        <i class="bi bi-credit-card mobile-icon"></i>
+                                        <strong class="me-1">Payment Method:</strong>@payment.Method
+                                    </p>
+                                    <p>
+                                        <strong class="me-1">Status:</strong>
+                                        @if (payment.IsVerified)
+                                        {
+                                            <span class="badge bg-success">Verified</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-warning text-dark">Pending</span>
+                                        }
+                                    </p>
+                                    <div class="text-end mt-2">
+                                        <a asp-controller="User" asp-action="PaymentReceipt" asp-route-paymentId="@payment.Id" class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-receipt-cutoff me-1"></i> View Receipt
+                                        </a>
+                                    </div>
+                                </div>
+                                count++;
+                            }
+
+                            if (Model.PreviousPayments.Count > 1)
+                            {
+                                <button class="btn btn-outline-primary btn-sm view-more-btn mt-2" id="toggleBtn-history" onclick="toggleList('history')">View More</button>
+                            }
+                        }
+                        else
+                        {
+                            <p class="text-muted fst-italic">No previous payments found.</p>
+                        }
+                    </div>
+
+                    <!-- 🖥 Desktop Table View -->
+                    <div class="table-responsive table-view">
+                        @if (Model.PreviousPayments?.Any() == true)
+                        {
+                            <table class="table table-bordered table-sm align-middle">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Bill No</th>
+                                        <th>Date</th>
+                                        <th class="text-end">Amount</th>
+                                        <th>Method</th>
+                                        <th>Txn ID</th>
+                                        <th>Status</th>
+                                        <th class="text-center">Receipt</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var payment in Model.PreviousPayments)
+                                    {
+                                        <tr>
+                                            <td>@payment.Billing?.BillNo</td>
+                                            <td>@payment.PaymentDate.ToShortDateString()</td>
+                                            <td class="text-end">@payment.AmountPaid.ToString("C")</td>
+                                            <td>@payment.Method</td>
+                                          
+                                            <td>
+                                                @if (payment.IsVerified)
+                                                {
+                                                    <span class="badge bg-success">Verified</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-warning text-dark">Pending</span>
+                                                }
+                                            </td>
+                                            <td class="text-center">
+                                                <a asp-controller="User" asp-action="PaymentReceipt" asp-route-paymentId="@payment.Id" class="btn btn-sm btn-outline-primary">
+                                                    <i class="bi bi-receipt-cutoff"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        }
+                        else
+                        {
+                            <p class="text-muted fst-italic">No previous payments found.</p>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+    <!-- 🪟 Optional: Modals for full list -->
+    @* You can add Bootstrap modals here if you want popups instead of navigating to another page *@
+</div>
+@section Scripts {
+    <script>
+        function toggleList(section) {
+            const extraCards = document.querySelectorAll(`.extra-${section}`);
+            const btn = document.getElementById(`toggleBtn-${section}`);
+            const isHidden = extraCards[0]?.classList.contains("d-none");
+
+            extraCards.forEach(card => {
+                card.classList.toggle("d-none");
+            });
+
+            if (isHidden) {
+                btn.innerText = "See Less";
+            } else {
+                btn.innerText = "View More";
+            }
+        }
+    </script>
+}

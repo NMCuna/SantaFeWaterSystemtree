@@ -1,0 +1,84 @@
+﻿/* CONSUMER THEME - LIGHTER COLOR SCHEME */
+.user-theme {
+    background-color: #eaf4ff; /* Light blue background */
+    color: #212529;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* LOGIN CARD STYLING */
+.login-card {
+    border-radius: 10px;
+    padding: 2rem;
+    background-color: #ffffff;
+    color: #212529;
+    box-shadow: 0 4px 20px rgba(0, 123, 255, 0.2);
+    position: relative;
+    z-index: 0;
+    width: 100%;
+    max-width: 420px;
+}
+
+/* PASSWORD TOGGLE */
+.toggle-password {
+    position: absolute;
+    top: 70%;
+    right: 15px;
+    transform: translateY(-50%);
+    color: #6c757d;
+    cursor: pointer;
+    font-size: 1.2rem;
+    line-height: 1;
+}
+
+/* FORM ELEMENTS */
+.form-label,
+.form-check-label {
+    color: #212529;
+}
+
+.form-control {
+    background-color: #fff;
+    color: #212529;
+    border: 1px solid #ced4da;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+    .form-control:focus {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+    }
+
+/* CHECKBOX */
+.form-check-input:checked {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+/* BUTTON */
+.btn-theme {
+    background-color: #0d6efd;
+    border: none;
+    color: #fff;
+    transition: background-color 0.3s;
+}
+
+    .btn-theme:hover {
+        background-color: #0b5ed7;
+    }
+
+/* ALERT */
+.alert-danger {
+    background-color: #dc3545;
+    color: #fff;
+    border: none;
+}
+
+/* RESPONSIVE */
+@media (max-width: 576px) {
+    .login-card {
+        padding: 1.5rem;
+    }
+}

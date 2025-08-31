@@ -1,0 +1,61 @@
+﻿/* Title Glow */
+.glow-title {
+    text-shadow: 0 0 10px rgba(0, 123, 255, 0.8);
+}
+
+/* Red glow for "New Reply" badge */
+.glow-badge {
+    animation: glowPulseRed 1.5s infinite;
+}
+
+@keyframes glowPulseRed {
+    0% {
+        box-shadow: 0 0 5px rgba(255, 0, 0, 0.6);
+    }
+
+    50% {
+        box-shadow: 0 0 15px rgba(255, 0, 0, 1);
+    }
+
+    100% {
+        box-shadow: 0 0 5px rgba(255, 0, 0, 0.6);
+    }
+}
+
+/* Yellow glow for Unseen card */
+.glow-unseen {
+    animation: glowPulseYellow 1.5s infinite;
+}
+
+@keyframes glowPulseYellow {
+    0% {
+        box-shadow: 0 0 5px rgba(255, 193, 7, 0.6);
+    }
+
+    50% {
+        box-shadow: 0 0 15px rgba(255, 193, 7, 1);
+    }
+
+    100% {
+        box-shadow: 0 0 5px rgba(255, 193, 7, 0.6);
+    }
+}
+
+/* Green glow for Seen card */
+.glow-seen {
+    animation: glowPulseGreen 1.5s infinite;
+}
+
+@keyframes glowPulseGreen {
+    0% {
+        box-shadow: 0 0 5px rgba(25, 135, 84, 0.6);
+    }
+
+    50% {
+        box-shadow: 0 0 15px rgba(25, 135, 84, 1);
+    }
+
+    100% {
+        box-shadow: 0 0 5px rgba(25, 135, 84, 0.6);
+    }
+}

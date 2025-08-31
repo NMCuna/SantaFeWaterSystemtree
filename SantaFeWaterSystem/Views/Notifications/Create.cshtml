@@ -1,0 +1,115 @@
+﻿@model SantaFeWaterSystem.Models.Notification
+
+@{
+    ViewData["Title"] = "Send Notification";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container mt-4">
+    <h2><i class="bi bi-megaphone-fill text-primary me-2"></i>Send Notification</h2>
+    <hr />
+
+    <form asp-action="Create" method="post" onsubmit="disableSubmit(this)">
+        <div class="mb-3 form-check">
+            <input asp-for="SendToAll" class="form-check-input" />
+            <label asp-for="SendToAll" class="form-check-label">Send to All Consumers</label>
+        </div>
+
+        <div class="row">
+            <!-- Dropdown -->
+            <div class="col-md-6 mb-3">
+                <label for="TitleDropdown" class="form-label">Select Notification Type</label>
+                <select id="TitleDropdown" class="form-select">
+                    <option value="">-- Select Notification Type --</option>
+                    <option value="🛠 Water Maintenance">🛠 Water Maintenance</option>
+                    <option value="🚱 Water Interruption">🚱 Water Interruption</option>
+                    <option value="💰 Billing Rate Update">💰 Billing Rate Update</option>
+                    <option value="📢 General Announcement">📢 General Announcement</option>
+                </select>
+            </div>
+
+            <!-- Manual Input Title -->
+            <div class="col-md-6 mb-3">
+                <label asp-for="Title" class="form-label">Or Enter Custom Title</label>
+                <input asp-for="Title" class="form-control" id="CustomTitle" placeholder="Enter custom title..." />
+                <span asp-validation-for="Title" class="text-danger"></span>
+            </div>
+        </div>
+
+        <!-- Message Box -->
+        <div class="mb-3">
+            <label asp-for="Message" class="form-label">Message</label>
+            <textarea asp-for="Message" class="form-control" id="MessageBox" rows="6" placeholder="Select a title to auto-fill or write your own message..."></textarea>
+            <span asp-validation-for="Message" class="text-danger"></span>
+        </div>
+
+        <button type="submit" class="btn btn-primary" id="submitBtn">
+            <i class="bi bi-send-fill"></i> Send Notification
+        </button>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        function disableSubmit(form) {
+            const button = form.querySelector("#submitBtn");
+            button.disabled = true;
+            button.innerHTML = '<i class="bi bi-send-fill"></i> Sending...';
+        }
+
+        const dropdown = document.getElementById("TitleDropdown");
+        const titleInput = document.getElementById("CustomTitle");
+        const messageBox = document.getElementById("MessageBox");
+
+        dropdown.addEventListener("change", function () {
+            const selected = this.value;
+            titleInput.value = selected;
+
+            const today = new Date().toLocaleDateString("en-PH", {
+                year: "numeric", month: "long", day: "numeric"
+            });
+
+            switch (selected) {
+                case "🛠 Water Maintenance":
+                    messageBox.value =
+                        `🛠 Scheduled Water Maintenance Alert:\n` +
+                        `Maintenance will take place on ${today}, from 8:00 AM to 5:00 PM.\n` +
+                        `Affected areas may experience low pressure or no water. Please store enough water in advance.`;
+                    break;
+
+                case "🚱 Water Interruption":
+                    messageBox.value =
+                        `🚱 Emergency Water Interruption:\n` +
+                        `Residents of Brgy. Pooc will experience a water service interruption today, ${today}, due to a major pipe leak.\n` +
+                        `Our technical team is already working on urgent repairs. We apologize for the inconvenience.`;
+                    break;
+
+                case "💰 Billing Rate Update":
+                    messageBox.value =
+                        `💰 Billing Rate Adjustment Effective August 1, 2025:\n` +
+                        `Please be informed that due to increased operational and infrastructure costs, the new billing rates are as follows:\n` +
+                        `- Residential: ₱13 ➡ ₱15 per cubic meter\n` +
+                        `- Commercial: ₱18 ➡ ₱20 per cubic meter\n` +
+                        `- Industrial: ₱20 ➡ ₱23 per cubic meter\n` +
+                        `- Institutional: ₱17 ➡ ₱19 per cubic meter\n` +
+                        `This adjustment ensures continued service improvement and system upgrades.`;
+                    break;
+
+                case "📢 General Announcement":
+                    messageBox.value =
+                        `📢 General Advisory:\n` +
+                        `Stay updated with the latest news and advisories from Santa Fe Water System. Visit our official website or follow our Facebook page.`;
+                    break;
+
+                default:
+                    messageBox.value = "";
+                    break;
+            }
+        });
+
+        titleInput.addEventListener("input", function () {
+            dropdown.value = "";
+        });
+    </script>
+}

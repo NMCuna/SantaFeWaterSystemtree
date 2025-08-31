@@ -1,0 +1,60 @@
+﻿@model SantaFeWaterSystem.Models.Feedback
+@{
+    int? currentUserId = ViewBag.CurrentUserId as int?;
+    var announcementAdminId = Model.Announcement?.Admin?.Id;
+    bool liked = currentUserId.HasValue && Model.FeedbackLikes?.Any(l => l.UserId == currentUserId.Value) == true;
+    int likeCount = Model.FeedbackLikes?.Count ?? 0;
+
+    bool canDelete = currentUserId.HasValue &&
+                     (Model.UserId == currentUserId.Value || User.IsInRole("Admin") || User.IsInRole("Staff"));
+}
+
+<div class="feedback-comment mb-3" data-feedback-id="@Model.Id">
+    <small>
+        <strong>@Model.User?.Username</strong>
+        @if (Model.User?.Id == announcementAdminId)
+        {
+            <span class="badge bg-danger ms-1">Admin</span>
+        }
+        else
+        {
+            <span class="badge bg-secondary ms-1">User</span>
+        }
+        : @Model.Comment
+    </small>
+
+    @if (!string.IsNullOrEmpty(Model.ImagePath))
+    {
+        <div class="mt-2">
+            <img src="@Model.ImagePath" class="img-fluid rounded" />
+        </div>
+    }
+
+    <div class="mt-2 d-flex gap-2">
+        <button type="button" class="btn btn-sm @(liked ? "btn-primary" : "btn-outline-primary") feedback-like"
+                data-feedback-id="@Model.Id" data-liked="@liked.ToString().ToLower()">
+            <i class="bi bi-hand-thumbs-up"></i> Like (<span class="like-count">@likeCount</span>)
+        </button>
+
+        @if (canDelete)
+        {
+            <button type="button" class="btn btn-sm btn-danger delete-feedback"
+                    data-feedback-id="@Model.Id">
+                <i class="bi bi-trash"></i> Delete
+            </button>
+        }
+    </div>
+
+    <div class="mt-2 feedback-comments">
+        @foreach (var c in Model.Comments ?? Enumerable.Empty<SantaFeWaterSystem.Models.FeedbackComment>())
+        {
+            @await Html.PartialAsync("_FeedbackCommentItem", c)
+        }
+
+        <form class="mt-2 d-flex flex-column flex-sm-row gap-2 add-comment-form">
+            <input type="hidden" name="feedbackId" value="@Model.Id" />
+            <input type="text" name="content" class="form-control" placeholder="Add a comment..." required />
+            <button type="submit" class="btn btn-sm btn-primary"><i class="bi bi-reply-fill"></i> Comment</button>
+        </form>
+    </div>
+</div>

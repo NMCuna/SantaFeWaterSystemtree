@@ -1,0 +1,171 @@
+﻿@model SantaFeWaterSystem.Models.Payment
+@{
+    ViewData["Title"] = "Create Walk-in Payment";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" />
+    <style>
+        .form-icon-label i {
+            margin-right: 6px;
+        }
+    </style>
+}
+
+<div class="container py-4">
+    <div class="card shadow-lg rounded-4 border-0">
+        <div class="card-body p-4">
+            <h2 class="fw-bold text-primary mb-4">
+                <i class="bi bi-cash-coin me-2"></i> Create Walk-in Payment
+            </h2>
+
+            <form asp-action="CreatePayment" method="post" class="needs-validation" novalidate id="walkInForm">
+                <div class="mb-3">
+                    <label asp-for="ConsumerId" class="form-label form-icon-label">
+                        <i class="bi bi-person-circle"></i> Consumer
+                    </label>
+                    <select asp-for="ConsumerId" class="form-select" asp-items="ViewBag.Consumers" id="consumerSelect" required>
+                        <option value="">-- Select Consumer --</option>
+                    </select>
+                    <span asp-validation-for="ConsumerId" class="text-danger"></span>
+                </div>
+
+                <div id="billingInfo" style="display:none;">
+                    <div class="mb-3">
+                        <label class="form-label form-icon-label">
+                            <i class="bi bi-receipt-cutoff"></i> Bill No
+                        </label>
+                        <input type="text" class="form-control" id="billNo" readonly />
+                    </div>
+                   
+                    <input type="hidden" asp-for="BillingId" id="billingId" />
+                    <div class="mb-3">
+                        <label class="form-label form-icon-label">
+                            <i class="bi bi-calendar-date"></i> Billing Date
+                        </label>
+                        <input type="text" class="form-control" id="billingDate" readonly />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label form-icon-label">
+                            <i class="bi bi-receipt"></i> Amount Due
+                        </label>
+                        <input type="text" class="form-control" id="amountDue" readonly />
+                    </div>
+                </div>
+                <!-- Add this hidden field inside #billingInfo to store raw amount due -->
+                <input type="hidden" id="amountDueRaw" />
+                <div class="mb-3">
+                    <label asp-for="AmountPaid" class="form-label form-icon-label">
+                        <i class="bi bi-currency-dollar"></i> Amount Paid
+                    </label>
+                    <input asp-for="AmountPaid" class="form-control" id="AmountPaid" />
+                    <span asp-validation-for="AmountPaid" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Method" class="form-label form-icon-label">
+                        <i class="bi bi-credit-card"></i> Payment Method
+                    </label>
+                    <select asp-for="Method" class="form-select" required>
+                        <option value="">-- Select Method --</option>
+                        <option>Cash</option>
+                        <option>Bank Transfer</option>
+                        <option>GCash</option>
+                    </select>
+                    <span asp-validation-for="Method" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="TransactionId" class="form-label form-icon-label">
+                        <i class="bi bi-hash"></i> Transaction ID
+                    </label>
+                    <input asp-for="TransactionId" class="form-control" id="transactionId" readonly />
+                    <span asp-validation-for="TransactionId" class="text-danger"></span>
+                </div>
+
+                <div class="form-check mb-4">
+                    <input asp-for="IsVerified" class="form-check-input" />
+                    <label asp-for="IsVerified" class="form-check-label">
+                        <i class="bi bi-shield-check"></i> Mark as Verified
+                    </label>
+                </div>
+
+                <div class="d-flex justify-content-between">
+                    <a asp-action="ManagePayments" class="btn btn-outline-secondary">
+                        <i class="bi bi-x-circle"></i> Cancel
+                    </a>
+                   
+                    <!-- Submit button updated with ID -->
+                    <button type="submit" class="btn btn-success" id="submitBtn">
+                        <i class="bi bi-check-circle"></i> Submit Payment
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        function generateTransactionId() {
+            const now = new Date();
+            const timestamp = now.getFullYear().toString().slice(2) +
+                String(now.getMonth() + 1).padStart(2, '0') +
+                String(now.getDate()).padStart(2, '0') +
+                String(now.getHours()).padStart(2, '0') +
+                String(now.getMinutes()).padStart(2, '0') +
+                String(now.getSeconds()).padStart(2, '0');
+            const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+            return `TXN${timestamp}${random}`;
+        }
+
+        $(document).ready(function () {
+            $('#transactionId').val(generateTransactionId());
+
+            $('#consumerSelect').change(function () {
+                $('#transactionId').val(generateTransactionId());
+
+                const consumerId = $(this).val();
+                if (!consumerId) {
+                    $('#billingInfo').hide();
+                    return;
+                }
+
+                $.get('/Payments/GetLatestBilling', { consumerId }, function (data) {
+                    $('#billingId').val(data.id);
+                    $('#billNo').val(data.billNo);
+                    $('#billingDate').val(new Date(data.billingDate).toLocaleDateString());
+                    $('#amountDue').val(`₱${parseFloat(data.totalAmount).toFixed(2)}`);
+                    $('#amountDueRaw').val(parseFloat(data.totalAmount)); // ✅ store raw value
+                    $('#billingInfo').slideDown();
+                }).fail(function () {
+                    $('#billingInfo').hide();
+                    alert("No unpaid billing found for the selected consumer.");
+                });
+            });
+
+            // ✅ Form submission protection and validation
+            $('#walkInForm').submit(function (e) {
+                const amountPaid = parseFloat($('#AmountPaid').val());
+                const amountDue = parseFloat($('#amountDueRaw').val());
+                const submitBtn = $('#submitBtn');
+
+                // Validate exact match
+                if (isNaN(amountPaid) || isNaN(amountDue) || amountPaid !== amountDue) {
+                    e.preventDefault();
+                    alert(`❌ Amount Paid must exactly match the Amount Due of ₱${amountDue.toFixed(2)}.`);
+                    $('#AmountPaid').focus();
+                    return false;
+                }
+
+                // ✅ Prevent double submission
+                submitBtn.prop('disabled', true);
+                submitBtn.html('<i class="bi bi-clock-history"></i> Submitting...'); // optional feedback
+            });
+        });
+    </script>
+}

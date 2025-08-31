@@ -1,0 +1,101 @@
+﻿.container {
+    max-width: 100%;
+    padding: 0 1rem;
+}
+
+.privacy-title {
+    background: linear-gradient(90deg, #198754, #28a745);
+    color: white;
+    padding: 0.75rem 1rem;
+    border-radius: 0.5rem;
+    display: inline-block;
+    text-align: center;
+    font-weight: 700;
+    font-size: clamp(1.3rem, 4vw, 2rem);
+    line-height: 1.3;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    box-shadow: 0 3px 8px rgba(25, 135, 84, 0.3);
+}
+
+.privacy-section-title {
+    font-size: clamp(1rem, 3.5vw, 1.25rem);
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+    color: #198754;
+}
+
+.privacy-box {
+    background: #ffffff;
+    max-width: 100%;
+    padding: 2rem;
+    margin: 0 auto;
+    border-radius: 1rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+    .privacy-box p {
+        line-height: 1.6;
+        margin-bottom: 0.75rem;
+        text-align: left;
+        white-space: pre-wrap;
+        color: #212529;
+        font-size: clamp(0.9rem, 3vw, 1rem);
+    }
+
+.privacy-intro {
+    font-weight: bold;
+    color: #856404;
+    margin-bottom: 1rem;
+    white-space: pre-wrap;
+    text-align: center;
+    font-size: clamp(0.95rem, 3vw, 1.1rem);
+}
+
+.privacy-box p.fw-bold {
+    color: #856404;
+}
+
+.privacy-section {
+    padding: 1rem 0;
+}
+
+.privacy-section-content {
+    font-size: clamp(0.9rem, 3vw, 1rem);
+    color: #495057;
+    line-height: 1.6;
+}
+
+.back-home-btn {
+    font-weight: 500;
+    font-size: clamp(0.9rem, 3vw, 1rem);
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    background: linear-gradient(90deg, #198754, #28a745);
+    color: white;
+    border: none;
+    transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+    .back-home-btn:hover {
+        background: linear-gradient(90deg, #157347, #1e8e3e);
+        transform: translateY(-2px);
+    }
+
+@media (max-width: 576px) {
+    .privacy-box {
+        padding: 1.25rem 1rem;
+    }
+}
+
+@media (max-width: 360px) {
+    .privacy-box {
+        padding: 0.75rem;
+    }
+
+    .privacy-title {
+        padding: 0.5rem 0.75rem;
+    }
+}

@@ -1,0 +1,89 @@
+﻿@model SantaFeWaterSystem.Models.Feedback
+@{
+    ViewData["Title"] = "Submit Feedback";
+    Layout = "~/Views/Shared/_UserLayout.cshtml";
+}
+
+<style>
+    h2.page-title {
+        font-size: 2rem;
+        font-weight: bold;
+        color: #0d6efd;
+        margin-bottom: 20px;
+        border-left: 5px solid #0d6efd;
+        padding-left: 10px;
+    }
+
+    .feedback-card {
+        max-width: 600px;
+        margin: auto;
+        padding: 25px;
+        border-radius: 10px;
+        background-color: #fff;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+    }
+
+    .form-group label {
+        font-weight: 600;
+    }
+
+    .star-rating {
+        font-size: 1.5rem;
+        color: #ddd;
+        cursor: pointer;
+    }
+
+        .star-rating .bi-star-fill {
+            color: gold;
+        }
+</style>
+
+<h2 class="page-title"><i class="bi bi-chat-left-text-fill"></i> Submit Feedback</h2>
+
+<div class="feedback-card">
+    <form asp-action="Create" method="post">
+        <div class="form-group mb-4">
+            <label><i class="bi bi-star-fill"></i> Rating</label>
+            <div id="starContainer" class="star-rating">
+                @for (int i = 1; i <= 5; i++)
+                {
+                    <i class="bi bi-star" data-value="@i"></i>
+                }
+            </div>
+            <input asp-for="Rating" type="hidden" id="Rating" />
+        </div>
+
+        <div class="form-group mb-4">
+            <label asp-for="Comment"><i class="bi bi-pencil-square"></i> Comment</label>
+            <textarea asp-for="Comment" class="form-control" rows="4" placeholder="Write your feedback here..."></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-primary">
+            <i class="bi bi-send-fill"></i> Submit Feedback
+        </button>
+    </form>
+</div>
+
+@section Scripts {
+    <script>
+        const stars = document.querySelectorAll('#starContainer i');
+        const ratingInput = document.getElementById('Rating');
+
+        stars.forEach(star => {
+            star.addEventListener('click', () => {
+                const value = star.getAttribute('data-value');
+                ratingInput.value = value;
+
+                stars.forEach(s => {
+                    s.classList.remove('bi-star-fill');
+                    s.classList.add('bi-star');
+                });
+
+                for (let i = 0; i < value; i++) {
+                    stars[i].classList.remove('bi-star');
+                    stars[i].classList.add('bi-star-fill');
+                }
+            });
+        });
+    </script>
+}

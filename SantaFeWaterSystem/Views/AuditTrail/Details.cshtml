@@ -1,0 +1,66 @@
+﻿@model SantaFeWaterSystem.Models.AuditTrail
+
+@{
+    ViewData["Title"] = "Audit Log Details";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+
+    string badgeClass = Model.Action.ToLower() switch
+    {
+        var a when a.Contains("delete") => "bg-danger",
+        var a when a.Contains("edit") => "bg-warning text-dark",
+        var a when a.Contains("verify") && !a.Contains("un") => "bg-success",
+        var a when a.Contains("unverify") => "bg-secondary",
+        var a when a.Contains("walk-in") => "bg-info text-dark",
+        var a when a.Contains("online") => "bg-primary",
+        _ => "bg-secondary"
+    };
+
+    string iconClass = Model.Action.ToLower() switch
+    {
+        var a when a.Contains("delete") => "bi-trash",
+        var a when a.Contains("edit") => "bi-pencil",
+        var a when a.Contains("verify") && !a.Contains("un") => "bi-shield-check",
+        var a when a.Contains("unverify") => "bi-shield-x",
+        var a when a.Contains("walk-in") => "bi-person-walking",
+        var a when a.Contains("online") => "bi-globe",
+        _ => "bi-info-circle"
+    };
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/auditlogs-details.css" />
+}
+
+<div class="audit-log-details-container container my-4">
+    <h2 class="mb-4 fw-bold text-primary">
+        <i class="bi @iconClass me-2"></i> Audit Log Details
+    </h2>
+
+    <div class="card shadow-sm p-4 audit-log-details-card">
+        <dl class="row mb-0">
+            <dt class="col-sm-4 fw-semibold text-muted">Date & Time</dt>
+            <dd class="col-sm-8">@Model.Timestamp.ToString("f")</dd>
+
+            <dt class="col-sm-4 fw-semibold text-muted">Action</dt>
+            <dd class="col-sm-8">
+                <span class="badge @badgeClass text-capitalize fs-6">
+                    <i class="bi @iconClass me-1"></i> @Model.Action
+                </span>
+            </dd>
+
+            <dt class="col-sm-4 fw-semibold text-muted">Performed By</dt>
+            <dd class="col-sm-8">@Model.PerformedBy</dd>
+
+            @* Optional: Additional notes or details if available *@
+            @if (!string.IsNullOrWhiteSpace(Model.Details))
+            {
+                <dt class="col-sm-4 fw-semibold text-muted">Details</dt>
+                <dd class="col-sm-8">@Model.Details</dd>
+            }
+        </dl>
+
+        <a asp-action="Index" class="btn btn-outline-primary mt-4">
+            <i class="bi bi-arrow-left-circle me-1"></i> Back to Audit Logs
+        </a>
+    </div>
+</div>

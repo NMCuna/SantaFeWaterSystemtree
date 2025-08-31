@@ -1,0 +1,106 @@
+﻿/* notifications.css */
+
+.modal-content {
+    border-radius: 0.75rem;
+}
+
+.modal-header,
+.modal-footer {
+    border: none;
+}
+
+.modal-title {
+    font-size: 1.25rem;
+}
+
+#modalMessage {
+    font-size: 1rem;
+    line-height: 1.5;
+}
+.spacing-below {
+    margin-bottom: 1.5rem;
+    font-size: 2rem; /* default desktop size */
+}
+
+@media (max-width: 768px) { /* tablet and smaller */
+    .spacing-below {
+        font-size: 1.5rem;
+    }
+}
+
+@media (max-width: 480px) { /* phones */
+    .spacing-below {
+        font-size: 1.25rem;
+    }
+}
+
+/* Dark mode support */
+body.dark-mode .card {
+    background-color: #1e1e2f;
+    color: #f1f1f1;
+    border-color: #333;
+}
+
+body.dark-mode .card-body {
+    background-color: transparent;
+    color: #f1f1f1;
+}
+
+body.dark-mode .modal-content {
+    background-color: #2b2b3c;
+    color: #f1f1f1;
+}
+
+body.dark-mode .modal-header,
+body.dark-mode .modal-footer {
+    background-color: #1f1f2d;
+    border-color: #444;
+}
+
+body.dark-mode .btn-outline-dark {
+    border-color: #aaa;
+    color: #ddd;
+}
+
+    body.dark-mode .btn-outline-dark:hover {
+        background-color: #444;
+        color: #fff;
+    }
+
+
+
+
+
+.glow-text {
+    text-shadow: 0 0 5px rgba(0, 123, 255, 0.6), 0 0 10px rgba(0, 123, 255, 0.5), 0 0 20px rgba(0, 123, 255, 0.4);
+    color: #0d6efd;
+    animation: glowPulse 2s ease-in-out infinite alternate;
+}
+
+@keyframes glowPulse {
+    0% {
+        text-shadow: 0 0 5px rgba(0, 123, 255, 0.6), 0 0 10px rgba(0, 123, 255, 0.5);
+    }
+
+    100% {
+        text-shadow: 0 0 10px rgba(0, 123, 255, 1), 0 0 20px rgba(0, 123, 255, 0.9);
+    }
+}
+
+
+.glow-unread {
+    animation: pulse-glow 1.5s infinite alternate;
+    box-shadow: 0 0 10px rgba(255, 193, 7, 0.7), 0 0 20px rgba(255, 193, 7, 0.6), 0 0 30px rgba(255, 193, 7, 0.5);
+    transition: box-shadow 0.3s ease-in-out;
+}
+
+@keyframes pulse-glow {
+    0% {
+        box-shadow: 0 0 8px rgba(255, 193, 7, 0.4);
+    }
+
+    100% {
+        box-shadow: 0 0 20px rgba(255, 193, 7, 1);
+    }
+}
+

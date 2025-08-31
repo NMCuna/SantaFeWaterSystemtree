@@ -1,0 +1,323 @@
+﻿@model X.PagedList.IPagedList<SantaFeWaterSystem.Models.Billing>
+@using X.PagedList.Mvc.Core
+@using System.Security.Claims
+@inject IHttpContextAccessor HttpContextAccessor
+
+@{
+    ViewData["Title"] = "Manage Billing";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    var searchTerm = Context.Request.Query["searchTerm"].ToString();
+    var statusFilter = Context.Request.Query["statusFilter"].ToString();
+
+    var user = HttpContextAccessor.HttpContext?.User;
+    var isAdmin = user?.IsInRole("Admin") ?? false;
+    var isStaff = user?.IsInRole("Staff") ?? false;
+
+    var userPermissions = user?.Claims
+       .Where(c => c.Type == "Permission")
+       .Select(c => c.Value)
+       .ToList() ?? new List<string>();
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/manage-billing.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" />
+}
+
+@* Success Alert *@
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="bi bi-check-circle-fill me-2"></i>
+        @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@* Error Alert *@
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+        @TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@if (TempData["SmsStatus"] != null)
+{
+    <div class="alert alert-info alert-dismissible fade show" role="alert">
+        <i class="bi bi-chat-left-text me-2"></i>
+        @TempData["SmsStatus"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+
+
+
+<h2 class="page-header"><i class="bi bi-receipt-cutoff"></i> Manage Billing</h2>
+
+<div class="action-buttons-bar d-flex flex-wrap gap-3 mb-4">
+    <a class="btn btn-success d-flex align-items-center gap-2" asp-action="Create">
+        <i class="bi bi-plus-circle-fill fs-5"></i> <span>Add New Billing</span>
+    </a>
+
+    <button id="sendSmsSelected" class="btn btn-outline-primary d-flex align-items-center gap-2">
+        <i class="bi bi-send-check fs-5"></i> <span>Send SMS to Selected</span>
+    </button>
+
+
+    <form id="exportPdfForm" asp-action="ExportSelectedToPdf" method="post" class="d-inline-block">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="selectedBillingIds" id="selectedBillingIds" />
+        <button type="submit" class="btn btn-outline-danger d-flex align-items-center gap-2">
+            <i class="bi bi-file-earmark-pdf"></i> <span>Export PDF (Selected)</span>
+        </button>
+    </form>
+</div>
+
+<form method="get" asp-action="Index" class="filter-form" id="filterForm">
+    <div class="input-group">
+        <span class="input-group-text bg-primary text-white"><i class="bi bi-search"></i></span>
+        <input type="text" name="searchTerm" value="@searchTerm" class="form-control" placeholder="Search by consumer name..." />
+    </div>
+    <div class="input-group">
+        <span class="input-group-text bg-warning text-dark"><i class="bi bi-filter-circle"></i></span>
+        <select name="statusFilter" class="form-select">
+            <option value="">All Statuses</option>
+            <option value="Paid" selected="@(statusFilter == "Paid" ? "selected" : null)">Paid</option>
+            <option value="Unpaid" selected="@(statusFilter == "Unpaid" ? "selected" : null)">Unpaid</option>
+            <option value="Pending" selected="@(statusFilter == "Pending" ? "selected" : null)">Pending</option>
+        </select>
+    </div>
+
+    <!-- Month Filter -->
+    <div class="input-group mb-1">
+        <span class="input-group-text bg-info text-white">
+            <i class="bi bi-calendar-month"></i>
+        </span>
+        <select name="selectedMonth" class="form-select">
+            <option value="">All Months</option>
+            @for (int m = 1; m <= 12; m++)
+            {
+                var monthName = System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(m);
+                <option value="@m" selected="@(ViewBag.SelectedMonth == m ? "selected" : null)">
+                    @monthName
+                </option>
+            }
+        </select>
+    </div>
+
+    <!-- Year Filter -->
+    <div class="input-group mb-1">
+        <span class="input-group-text bg-secondary text-white">
+            <i class="bi bi-calendar3"></i>
+        </span>
+        <select name="selectedYear" class="form-select">
+            <option value="">All Years</option>
+            @for (int y = DateTime.Now.Year; y >= DateTime.Now.Year - 5; y--)
+            {
+               <option value="@y" selected="@(ViewBag.SelectedYear == y ? "selected" : null)">
+    @y
+</option>
+            }
+        </select>
+    </div>
+
+    <!-- Submit Button -->
+    <div class="text-end">
+        <button type="submit" class="btn btn-primary">
+            <i class="bi bi-funnel-fill"></i> Filter
+        </button>
+    </div>
+</form>
+
+@if (Model == null || !Model.Any())
+{
+    <div class="alert alert-info text-center">
+        <i class="bi bi-info-circle"></i> No billing records available for the selected filters.
+    </div>
+}
+
+<table class="table table-bordered table-striped shadow-sm">
+    <thead>
+        <tr>
+            <th><input type="checkbox" id="selectAll" /></th>
+            <th>Consumer</th>
+            <th>Billing Date</th>
+            <th>Cubic Meter Used</th>
+            <th>Due Date</th>
+            <th>Total Amount</th>
+            <th>Audit</th>
+            <th>Status</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var bill in Model)
+        {
+            var rowClass = bill.Status == "Unpaid" ? "table-danger"
+            : bill.Status == "Pending" ? "table-warning"
+            : "";
+
+            <tr class="@rowClass">
+                <td><input type="checkbox" class="billCheckbox" value="@bill.Id" /></td>
+                <td>@($"{bill.Consumer?.FirstName} {bill.Consumer?.LastName}")</td>
+                <td>@bill.BillingDate.ToShortDateString()</td>
+                <td>@bill.CubicMeterUsed</td>
+                <td>@bill.DueDate.ToShortDateString()</td>
+                <td>@bill.TotalAmount.ToString("C")</td>
+                <td>
+                    @if (bill.Penalty > 0)
+                    {
+                        @if (userPermissions.Contains("ViewPenaltyLog"))
+                        {
+                            <a asp-controller="AuditTrail"
+                               asp-action="Index"
+                               asp-route-actionType="PenaltyApplied"
+                               asp-route-search="@bill.BillNo"
+                               class="btn btn-sm btn-outline-secondary"
+                               title="View penalty log">
+                                <i class="bi bi-clock-history"></i> Logs
+                            </a>
+                        }
+                    }
+                </td>
+                <td>
+                    @if (bill.Status == "Paid")
+                    {
+                        <span class="status-badge status-paid">Paid</span>
+                    }
+                    else if (bill.Status == "Unpaid")
+                    {
+                        <span class="status-badge status-unpaid">Unpaid</span>
+                    }
+                    else if (bill.Status == "Pending")
+                    {
+                        <span class="status-badge status-pending">Pending</span>
+                    }
+                </td>
+                <td class="action-buttons">
+                    @if (userPermissions.Contains("ViewBilling"))
+                    {
+                        <a class="btn btn-sm btn-info" asp-action="Details" asp-route-id="@bill.Id"><i class="bi bi-eye"></i> View</a>
+                    }
+
+                    @if (userPermissions.Contains("EditBilling"))
+                    {
+                        <a class="btn btn-sm btn-primary" asp-action="Edit" asp-route-id="@bill.Id"><i class="bi bi-pencil-square"></i> Edit</a>
+                    }
+
+                    @if (userPermissions.Contains("DeleteBilling"))
+                    {
+                        <a class="btn btn-sm btn-danger" asp-action="Delete" asp-route-id="@bill.Id"><i class="bi bi-trash"></i> Delete</a>
+                    }
+
+                    @if (bill.Status == "Unpaid" && userPermissions.Contains("NotifyBilling"))
+                    {
+                        <form asp-action="Notify" asp-route-id="@bill.Id" method="post" class="d-inline">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-sm btn-outline-secondary" title="Send Notification">
+                                <i class="bi bi-bell"></i> Notify
+                            </button>
+                        </form>
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@if (Model.PageCount > 1)
+{
+    <div class="d-flex justify-content-center mt-4">
+        @Html.PagedListPager(Model, page => Url.Action("Index", new
+        {
+            page,
+        searchTerm = ViewBag.CurrentSearchTerm,
+        statusFilter = ViewBag.CurrentStatusFilter,
+        selectedMonth = ViewBag.SelectedMonth,
+        selectedYear = ViewBag.SelectedYear
+        }), new PagedListRenderOptions
+        {
+            DisplayLinkToPreviousPage = PagedListDisplayMode.Always,
+            DisplayLinkToNextPage = PagedListDisplayMode.Always,
+            DisplayLinkToFirstPage = PagedListDisplayMode.Always,
+            DisplayLinkToLastPage = PagedListDisplayMode.Always,
+            MaximumPageNumbersToDisplay = 5,
+            LiElementClasses = new[] { "page-item" },
+            PageClasses = new[] { "page-link" }
+        })
+</div>
+}
+
+
+<!-- Anti-forgery token form -->
+<form id="smsTokenForm" method="post">
+    @Html.AntiForgeryToken()
+</form>
+
+@section Scripts {
+    <script>
+        const form = document.getElementById("filterForm");
+        const searchInput = form.querySelector("input[name='searchTerm']");
+        const statusSelect = form.querySelector("select[name='statusFilter']");
+
+        searchInput.addEventListener("input", debounce(() => form.submit(), 500));
+        statusSelect.addEventListener("change", () => form.submit());
+
+        function debounce(callback, delay) {
+            let timeout;
+            return function () {
+                clearTimeout(timeout);
+                timeout = setTimeout(callback, delay);
+            };
+        }
+
+        document.getElementById("selectAll").addEventListener("change", function () {
+            const isChecked = this.checked;
+            document.querySelectorAll(".billCheckbox").forEach(cb => cb.checked = isChecked);
+        });
+
+        document.getElementById("sendSmsSelected").addEventListener("click", function () {
+            const selectedIds = Array.from(document.querySelectorAll(".billCheckbox:checked")).map(cb => parseInt(cb.value));
+            if (selectedIds.length === 0) {
+                alert("Please select at least one bill to send SMS.");
+                return;
+            }
+
+            if (confirm("Send SMS to selected consumers?")) {
+                const token = document.querySelector('#smsTokenForm input[name="__RequestVerificationToken"]').value;
+
+                fetch("/Billing/SendSms", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "RequestVerificationToken": token
+                    },
+                    body: JSON.stringify(selectedIds)
+                })
+                .then(response => {
+                    if (response.ok) {
+                        alert("SMS sent successfully.");
+                        location.reload();
+                    } else {
+                        alert("Failed to send SMS.");
+                    }
+                });
+            }
+        });
+
+        document.getElementById("exportPdfForm").addEventListener("submit", function (e) {
+            const selectedIds = Array.from(document.querySelectorAll(".billCheckbox:checked")).map(cb => cb.value);
+            if (selectedIds.length === 0) {
+                e.preventDefault();
+                alert("Please select at least one bill to export.");
+                return;
+            }
+            document.getElementById("selectedBillingIds").value = selectedIds.join(",");
+        });
+
+    </script>
+}

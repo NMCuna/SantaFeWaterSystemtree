@@ -1,0 +1,51 @@
+﻿@model List<SantaFeWaterSystem.Models.AuditTrail>
+
+<!-- External CSS -->
+<link rel="stylesheet" href="~/css/audit-log.css" asp-append-version="true" />
+
+<!-- Trigger Button -->
+<button type="button" class="btn btn-outline-light position-relative" data-bs-toggle="modal" data-bs-target="#auditModal" title="Audit Logs">
+    <i class="bi bi-clock-history fs-5"></i>
+    @if (Model.Count > 0)
+    {
+        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+            @Model.Count
+            <span class="visually-hidden">unread logs</span>
+        </span>
+    }
+</button>
+
+<!-- Modal -->
+<div class="modal fade" id="auditModal" tabindex="-1" aria-labelledby="auditModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title text-primary" id="auditModalLabel"><i class="bi bi-clipboard-data me-2"></i>Recent Audit Logs</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                @if (!Model.Any())
+                {
+                    <div class="text-center text-muted">No recent logs</div>
+                }
+                else
+                {
+                    <ul class="list-group">
+                        @foreach (var log in Model.Take(10))
+                        {
+                            <li class="list-group-item">
+                                <small class="text-muted">@log.Timestamp.ToString("MMM dd, yyyy • hh:mm tt")</small><br />
+                                <span>@log.Action</span><br />
+                                <em>By: @log.PerformedBy</em>
+                            </li>
+                        }
+                    </ul>
+                }
+            </div>
+            <div class="modal-footer">
+                <a class="btn btn-primary" href="/AuditTrail/Index">View All Logs</a>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>

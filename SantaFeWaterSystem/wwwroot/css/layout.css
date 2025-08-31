@@ -1,0 +1,138 @@
+﻿/* RESET */
+body, html {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden; /* Prevent horizontal scroll */
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+/* WAVE BACKGROUND */
+.bg-wave {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -2;
+    background: linear-gradient(135deg, #e0f7fa, #e1bee7);
+    overflow: hidden; /* ✅ Hides .wave-svg overflow */
+}
+
+.wave-svg {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 200%;
+    height: 20vh;
+    z-index: -1;
+    animation: waveAnim 10s infinite linear;
+    will-change: transform; /* Performance boost */
+}
+
+@keyframes waveAnim {
+    0% {
+        transform: translateX(0);
+    }
+
+    100% {
+        transform: translateX(-50%);
+    }
+}
+
+/* CARD ANIMATION */
+.card-animated {
+    opacity: 0;
+    transform: translateY(30px);
+    animation: fadeInUp 0.8s ease-out forwards;
+}
+
+@keyframes fadeInUp {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* CARD STYLING */
+.card-custom {
+    backdrop-filter: blur(10px);
+    background-color: rgba(255,255,255,0.8);
+    border-radius: 1rem;
+    padding: 2rem;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+    transition: background-color 0.3s, color 0.3s;
+}
+
+/* THEME SUPPORT */
+.theme-dark .card-custom {
+    background-color: rgba(30,30,30,0.9);
+    color: #f1f1f1;
+}
+
+/* TOP/BOTTOM LAYOUT SUPPORT */
+.container-responsive {
+    min-height: calc(100vh - 56px - 60px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+}
+
+body {
+    padding-top: 70px; /* Adjust based on navbar height */
+}
+
+/* MEDIA QUERY: RESPONSIVE SPACING */
+@media (max-width: 768px) {
+    .container-responsive {
+        padding: 1rem;
+    }
+
+    .card-custom {
+        padding: 1.2rem;
+    }
+}
+
+/* NAVBAR LINK STYLING */
+.navbar-dark .navbar-nav .nav-link {
+    color: white !important;
+    font-weight: bold;
+}
+
+    .navbar-dark .navbar-nav .nav-link:hover {
+        color: #f8f9fa !important;
+    }
+.navbar-toggler-icon {
+    background-image: url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3E%3Cpath stroke='white' stroke-width='2' stroke-linecap='round' stroke-miterlimit='10' d='M4 7h22M4 15h22M4 23h22'/%3E%3C/svg%3E");
+}
+
+.animated-logo-wrapper {
+    position: relative;
+    width: 36px;
+    height: 36px;
+}
+
+.glow-ring {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    transform-origin: center;
+    animation: rotate-ring 6s linear infinite;
+}
+
+@keyframes rotate-ring {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.animated-logo-wrapper img,
+.animated-logo-wrapper i {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}

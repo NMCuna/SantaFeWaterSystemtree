@@ -1,0 +1,140 @@
+﻿@model AdminLoginViewModel
+
+@{
+    ViewData["Title"] = "Admin/Staff Login";
+    Layout = "_AccountLayout";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/login.css" asp-append-version="true" />
+    <style>
+        .close-home-btn-inside {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 1.3rem;
+            color: #bbb;
+            text-decoration: none;
+            z-index: 10;
+        }
+
+            .close-home-btn-inside:hover {
+                color: #fff;
+            }
+
+        body {
+            background-color: #f2f2f2;
+        }
+    </style>
+}
+
+<!-- Theme Toggle Button -->
+<button class="theme-toggle-btn" id="themeToggleBtn" title="Toggle Theme">
+    <i class="bi bi-moon-stars-fill" id="themeIcon"></i>
+</button>
+
+<div class="container d-flex justify-content-center align-items-center" style="min-height: 100vh; position: relative;">
+    <div class="col-11 col-sm-8 col-md-6 col-lg-4">
+        <div class="card login-card shadow border-0 p-4 position-relative theme-box" id="themeBox">
+            <!-- X Button INSIDE the card -->
+            <a href="~/Home/Index" class="close-home-btn-inside" title="Go to Home">
+                <i class="bi bi-x-circle-fill"></i>
+            </a>
+
+            <h3 class="text-center mb-4 rainbow-text">
+                <i class="bi bi-person-circle me-2"></i>Login
+            </h3>
+
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                    {
+                        <div><i class="bi bi-exclamation-triangle-fill me-1"></i>@error.ErrorMessage</div>
+                    }
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+
+
+            <form asp-action="AdminLogin" method="post" novalidate>
+                <div class="mb-3">
+                    <label asp-for="Username" class="form-label">Username</label>
+                    <input asp-for="Username" class="form-control" />
+                    <span asp-validation-for="Username" class="text-danger small"></span>
+                </div>
+
+                <div class="mb-3 position-relative">
+                    <label asp-for="Password" class="form-label">Password</label>
+                    <input asp-for="Password" class="form-control" type="password" id="passwordInput" />
+                    <i class="bi bi-eye-slash toggle-password" id="togglePassword" role="button" tabindex="0" aria-label="Toggle password visibility"></i>
+                    <span asp-validation-for="Password" class="text-danger small"></span>
+                </div>
+
+
+                <div class="form-check mb-3">
+                    <input asp-for="RememberMe" class="form-check-input" type="checkbox" />
+                    <label asp-for="RememberMe" class="form-check-label">Remember me</label>
+                </div>
+
+                <div class="d-grid">
+                    <button type="submit" class="btn btn-theme btn-glow">
+                        <i class="bi bi-box-arrow-in-right me-1"></i> Login
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Theme toggle
+        const themeBtn = document.getElementById('themeToggleBtn');
+        const themeBox = document.getElementById('themeBox');
+        const themeIcon = document.getElementById('themeIcon');
+
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        applyTheme(savedTheme);
+
+        themeBtn.addEventListener('click', () => {
+            const current = themeBox.classList.contains('admin-theme-dark') ? 'dark' : 'light';
+            const newTheme = current === 'dark' ? 'light' : 'dark';
+            applyTheme(newTheme);
+            localStorage.setItem('theme', newTheme);
+        });
+
+        function applyTheme(mode) {
+            themeBox.classList.toggle('admin-theme-dark', mode === 'dark');
+            themeBox.classList.toggle('admin-theme-light', mode === 'light');
+            themeIcon.className = mode === 'dark' ? 'bi bi-moon-stars-fill' : 'bi bi-brightness-high-fill';
+        }
+
+        // Password toggle
+        const toggle = document.getElementById("togglePassword");
+        if (toggle) {
+            toggle.addEventListener("click", function () {
+                const passwordInput = document.getElementById("passwordInput");
+                passwordInput.type = passwordInput.type === "text" ? "password" : "text";
+                toggle.classList.toggle("bi-eye");
+                toggle.classList.toggle("bi-eye-slash");
+            });
+
+            toggle.addEventListener("keydown", function (e) {
+                if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    toggle.click();
+                }
+            });
+        }
+
+        // Auto-hide alert
+        setTimeout(() => {
+            const alert = document.querySelector(".alert-dismissible");
+            if (alert) {
+                const bsAlert = bootstrap.Alert.getOrCreateInstance(alert);
+                bsAlert.close();
+            }
+        }, 5000);
+    </script>
+}

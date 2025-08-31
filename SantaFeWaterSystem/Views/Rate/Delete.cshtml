@@ -1,0 +1,76 @@
+﻿@model SantaFeWaterSystem.Models.Rate
+
+@{
+    ViewData["Title"] = "Delete Rate";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+@section Styles {
+    <style>
+        .delete-warning {
+            background-color: rgba(255, 0, 0, 0.05);
+            border: 2px solid #dc3545;
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-top: 2rem;
+        }
+
+            .delete-warning h3 {
+                color: #dc3545;
+                font-weight: bold;
+            }
+
+        .form-check-label {
+            font-weight: 500;
+        }
+    </style>
+}
+
+<div class="container">
+    <div class="delete-warning">
+        <h1 class="mb-3"><i class="bi bi-trash-fill me-1"></i> Delete Rate</h1>
+
+        <h3>Are you absolutely sure?</h3>
+        <p class="text-danger">This action cannot be undone.</p>
+
+        <div class="mb-3">
+            <h5>Rate Details</h5>
+            <dl class="row">
+                <dt class="col-sm-4">Account Type:</dt>
+                <dd class="col-sm-8">@Model.AccountType</dd>
+
+                <dt class="col-sm-4">Rate per Cubic Meter:</dt>
+                <dd class="col-sm-8">@Model.RatePerCubicMeter.ToString("C")</dd>
+
+                <dt class="col-sm-4">Penalty Amount:</dt>
+                <dd class="col-sm-8">@Model.PenaltyAmount.ToString("C")</dd>
+            </dl>
+        </div>
+
+        <form asp-action="DeleteConfirmed" method="post">
+            <input type="hidden" asp-for="Id" />
+
+            <div class="form-check mb-3">
+                <input type="checkbox" class="form-check-input" id="confirmDeleteCheckbox" />
+                <label class="form-check-label text-danger" for="confirmDeleteCheckbox">
+                    I understand that this will permanently delete the rate.
+                </label>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" id="deleteBtn" class="btn btn-danger" disabled>
+                    <i class="bi bi-exclamation-triangle me-1"></i> Confirm Delete
+                </button>
+                <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.getElementById("confirmDeleteCheckbox").addEventListener("change", function () {
+            document.getElementById("deleteBtn").disabled = !this.checked;
+        });
+    </script>
+}

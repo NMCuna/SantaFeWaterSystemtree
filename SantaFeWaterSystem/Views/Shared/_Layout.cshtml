@@ -1,0 +1,226 @@
+﻿@{
+    Layout = null;
+    var title = ViewData["Title"] ?? "Santa Fe Water System";
+
+    // Safely get the ApplicationDbContext
+    var dbContext = Context.RequestServices
+        .GetService<SantaFeWaterSystem.Data.ApplicationDbContext>();
+
+    // Use null-conditional operators to prevent dereference if dbContext or SystemBrandings is null
+    var branding = dbContext?.SystemBrandings?.FirstOrDefault();
+
+    string brandName = branding?.SystemName ?? "Santa Fe Water System";
+    string iconClass = branding?.IconClass ?? "bi bi-droplet-half";
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@title</title>
+
+    <!-- Bootstrap & Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" />
+
+    <!-- Custom External Styles -->
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/layout.css" asp-append-version="true" />
+    
+    @RenderSection("Styles", required: false)
+
+</head>
+<body>
+    <header>
+        <nav class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary shadow-sm">
+            <div class="container">
+                <a class="navbar-brand fw-bold d-flex align-items-center" asp-controller="Home" asp-action="Index">
+                    <div class="animated-logo-wrapper me-2" style="width:36px; height:36px; position:relative;">
+
+                        <!-- Outer Halo (subtle background glow for contrast) -->
+                        <div style="position:absolute; top:0; left:0; width:100%; height:100%; border-radius:50%; background: rgba(255,255,255,0.1);"></div>
+
+                        <!-- Glow Ring 1 -->
+                        <svg class="glow-ring ring1" viewBox="0 0 120 120" style="width:100%; height:100%;">
+                            <defs>
+                                <linearGradient id="glowGradient1" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stop-color="#ffffff" />
+                                    <stop offset="50%" stop-color="#ffea00" />
+                                    <stop offset="100%" stop-color="#ffffff" />
+                                </linearGradient>
+                                <filter id="blur1">
+                                    <feGaussianBlur in="SourceGraphic" stdDeviation="3" /> <!-- stronger blur -->
+                                </filter>
+                            </defs>
+                            <!-- slightly bigger radius -->
+                            <circle cx="60" cy="60" r="55"
+                                    stroke="url(#glowGradient1)"
+                                    stroke-width="5"
+                                    fill="none"
+                                    filter="url(#blur1)" />
+
+                        </svg>
+
+                        <!-- Glow Ring 2 -->
+                        <svg class="glow-ring ring2" viewBox="0 0 120 120" style="width:100%; height:100%; position:absolute; top:0; left:0;">
+                            <circle cx="60" cy="60" r="50"
+                                    stroke="#ffffff"
+                                    stroke-width="2"
+                                    fill="none"
+                                    opacity="0.8" /> <!-- stronger opacity -->
+                        </svg>
+
+                        <!-- Logo / Icon -->
+                        @if (!string.IsNullOrEmpty(branding?.LogoPath))
+                        {
+                            <img src="@branding.LogoPath" alt="Logo"
+                                 style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%);
+                            height:28px;
+                            filter: drop-shadow(0 0 3px #fff) drop-shadow(0 0 5px #ffea00);" />
+                        }
+                        else
+                        {
+                            <i class="@iconClass fs-5" style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%);
+                                                 text-shadow: 0 0 3px #fff, 0 0 5px #ffea00;"></i>
+                        }
+                    </div>
+
+                    <span>@brandName</span>
+                </a>
+
+
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar"
+                        aria-controls="mainNavbar" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <div class="collapse navbar-collapse" id="mainNavbar">
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="Home" asp-action="Index"><i class="bi bi-house-door me-1"></i>Home</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="Home" asp-action="Privacy"><i class="bi bi-shield-lock me-1"></i>Privacy</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="Home" asp-action="Contact"><i class="bi bi-telephone me-1"></i>Contact</a>
+                        </li>
+
+                        @if (User?.Identity?.IsAuthenticated == true)
+                        {
+                            if (User.IsInRole("Admin"))
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link" href="/Admin/Dashboard"><i class="bi bi-speedometer2 me-1"></i>Admin Panel</a>
+                                </li>
+                            }
+
+                            if (User.IsInRole("Staff"))
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link" href="/Admin/Dashboard"><i class="bi bi-speedometer2 me-1"></i>Staff Panel</a>
+                                </li>
+                            }
+
+                            if (User.IsInRole("User"))
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link" href="/User/Dashboard"><i class="bi bi-person-square me-1"></i>User Dashboard</a>
+                                </li>
+                            }
+                        }
+                    </ul>
+
+                    <ul class="navbar-nav ms-auto">
+                        @if (User?.Identity?.IsAuthenticated == true)
+                        {
+                            <li class="nav-item">
+                                <span class="nav-link"><i class="bi bi-person-circle me-1"></i>Hello, @(User?.Identity?.Name ?? "User")</span>
+                            </li>
+                            <li class="nav-item">
+                                <!-- Trigger Logout Modal -->
+                                <button type="button" class="btn btn-link nav-link text-danger" data-bs-toggle="modal" data-bs-target="#logoutModal">
+                                    <i class="bi bi-box-arrow-right me-1"></i>Logout
+                                </button>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Account" asp-action="UserLogin">
+                                    <i class="bi bi-box-arrow-in-right me-1"></i>Login
+                                </a>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Logout Confirmation Modal -->
+    <div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg">
+
+                <!-- Header -->
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title d-flex align-items-center" id="logoutModalLabel">
+                        <i class="bi bi-box-arrow-right me-2"></i> Confirm Logout
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <!-- Body -->
+                <div class="modal-body text-center">
+                    <i class="bi bi-exclamation-triangle-fill text-warning fs-1 mb-3"></i>
+                    <p class="fs-5">Are you sure you want to <strong>log out</strong> of your account?</p>
+                </div>
+
+                <!-- Footer -->
+                <div class="modal-footer justify-content-center">
+                    <form method="post" asp-controller="Account" asp-action="Logout">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-danger px-4">
+                            <i class="bi bi-box-arrow-right me-1"></i> Yes, Logout
+                        </button>
+                    </form>
+                    <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle me-1"></i> Cancel
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+
+    <div class="container mt-4">
+        <main role="main" class="pb-3">
+            @RenderBody()
+        </main>
+    </div>
+
+    <footer class="footer border-top mt-5 py-3 bg-light">
+        <div class="container d-flex justify-content-center flex-wrap">
+            <span class="text-nowrap">&copy; @DateTime.Now.Year - Santa Fe Water Billing System -</span>
+            <a class="mx-1 text-nowrap" asp-controller="Home" asp-action="Index">Home</a>
+            <span class="text-nowrap">|</span>
+            <a class="mx-1 text-nowrap" asp-controller="Home" asp-action="Privacy">Privacy</a>
+            <span class="text-nowrap">|</span>
+            <a class="mx-1 text-nowrap" asp-controller="Home" asp-action="Contact">Contact</a>
+        </div>
+    </footer>
+
+
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+
+    @RenderSection("Scripts", required: false)
+
+</body>
+</html>

@@ -1,0 +1,967 @@
+Folder PATH listing
+Volume serial number is 6088-3051
+C:.
+³   appsettings.Development.json
+³   appsettings.json
+³   folder_structure.txt
+³   Program.cs
+³   SantaFeWaterSystem.csproj
+³   SantaFeWaterSystem.csproj.user
+³   
+ÃÄÄÄ.github
+³   ÀÄÄÄworkflows
+ÃÄÄÄbin
+³   ÃÄÄÄDebug
+³   ³   ÀÄÄÄnet8.0
+³   ³       ³   appsettings.Development.json
+³   ³       ³   appsettings.json
+³   ³       ³   Azure.Core.dll
+³   ³       ³   Azure.Identity.dll
+³   ³       ³   BCrypt.Net-Next.dll
+³   ³       ³   Castle.Core.dll
+³   ³       ³   Humanizer.dll
+³   ³       ³   Lib.Net.Http.EncryptedContentEncoding.dll
+³   ³       ³   Lib.Net.Http.WebPush.dll
+³   ³       ³   Microsoft.Bcl.AsyncInterfaces.dll
+³   ³       ³   Microsoft.Build.Locator.dll
+³   ³       ³   Microsoft.CodeAnalysis.CSharp.dll
+³   ³       ³   Microsoft.CodeAnalysis.CSharp.Workspaces.dll
+³   ³       ³   Microsoft.CodeAnalysis.dll
+³   ³       ³   Microsoft.CodeAnalysis.Workspaces.dll
+³   ³       ³   Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.dll
+³   ³       ³   Microsoft.CodeAnalysis.Workspaces.MSBuild.dll
+³   ³       ³   Microsoft.Data.SqlClient.dll
+³   ³       ³   Microsoft.EntityFrameworkCore.Abstractions.dll
+³   ³       ³   Microsoft.EntityFrameworkCore.Design.dll
+³   ³       ³   Microsoft.EntityFrameworkCore.dll
+³   ³       ³   Microsoft.EntityFrameworkCore.Relational.dll
+³   ³       ³   Microsoft.EntityFrameworkCore.SqlServer.dll
+³   ³       ³   Microsoft.Extensions.Caching.Abstractions.dll
+³   ³       ³   Microsoft.Extensions.Caching.Memory.dll
+³   ³       ³   Microsoft.Extensions.Caching.SqlServer.dll
+³   ³       ³   Microsoft.Extensions.Configuration.Abstractions.dll
+³   ³       ³   Microsoft.Extensions.DependencyInjection.Abstractions.dll
+³   ³       ³   Microsoft.Extensions.DependencyInjection.dll
+³   ³       ³   Microsoft.Extensions.DependencyModel.dll
+³   ³       ³   Microsoft.Extensions.Logging.Abstractions.dll
+³   ³       ³   Microsoft.Extensions.Logging.dll
+³   ³       ³   Microsoft.Extensions.Options.dll
+³   ³       ³   Microsoft.Extensions.Primitives.dll
+³   ³       ³   Microsoft.Identity.Client.dll
+³   ³       ³   Microsoft.Identity.Client.Extensions.Msal.dll
+³   ³       ³   Microsoft.IdentityModel.Abstractions.dll
+³   ³       ³   Microsoft.IdentityModel.JsonWebTokens.dll
+³   ³       ³   Microsoft.IdentityModel.Logging.dll
+³   ³       ³   Microsoft.IdentityModel.Protocols.dll
+³   ³       ³   Microsoft.IdentityModel.Protocols.OpenIdConnect.dll
+³   ³       ³   Microsoft.IdentityModel.Tokens.dll
+³   ³       ³   Microsoft.SqlServer.Server.dll
+³   ³       ³   Microsoft.Win32.SystemEvents.dll
+³   ³       ³   Mono.TextTemplating.dll
+³   ³       ³   Moq.dll
+³   ³       ³   Otp.NET.dll
+³   ³       ³   QRCoder.dll
+³   ³       ³   QuestPDF.dll
+³   ³       ³   SantaFeWaterSystem.deps.json
+³   ³       ³   SantaFeWaterSystem.dll
+³   ³       ³   SantaFeWaterSystem.exe
+³   ³       ³   SantaFeWaterSystem.pdb
+³   ³       ³   SantaFeWaterSystem.runtimeconfig.json
+³   ³       ³   SantaFeWaterSystem.staticwebassets.endpoints.json
+³   ³       ³   SantaFeWaterSystem.staticwebassets.runtime.json
+³   ³       ³   System.ClientModel.dll
+³   ³       ³   System.CodeDom.dll
+³   ³       ³   System.Composition.AttributedModel.dll
+³   ³       ³   System.Composition.Convention.dll
+³   ³       ³   System.Composition.Hosting.dll
+³   ³       ³   System.Composition.Runtime.dll
+³   ³       ³   System.Composition.TypedParts.dll
+³   ³       ³   System.Configuration.ConfigurationManager.dll
+³   ³       ³   System.Diagnostics.DiagnosticSource.dll
+³   ³       ³   System.Drawing.Common.dll
+³   ³       ³   System.Formats.Asn1.dll
+³   ³       ³   System.IdentityModel.Tokens.Jwt.dll
+³   ³       ³   System.IO.Pipelines.dll
+³   ³       ³   System.Memory.Data.dll
+³   ³       ³   System.Runtime.Caching.dll
+³   ³       ³   System.Security.Cryptography.ProtectedData.dll
+³   ³       ³   System.Security.Permissions.dll
+³   ³       ³   System.Text.Encodings.Web.dll
+³   ³       ³   System.Text.Json.dll
+³   ³       ³   System.Windows.Extensions.dll
+³   ³       ³   X.PagedList.dll
+³   ³       ³   X.PagedList.Mvc.Core.dll
+³   ³       ³   xunit.abstractions.dll
+³   ³       ³   xunit.assert.dll
+³   ³       ³   xunit.core.dll
+³   ³       ³   xunit.execution.dotnet.dll
+³   ³       ³   
+³   ³       ÃÄÄÄcs
+³   ³       ³       Microsoft.CodeAnalysis.CSharp.resources.dll
+³   ³       ³       Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+³   ³       ³       Microsoft.CodeAnalysis.resources.dll
+³   ³       ³       Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.resources.dll
+³   ³       ³       Microsoft.CodeAnalysis.Workspaces.resources.dll
+³   ³       ³       
+³   ³       ÃÄÄÄde
+³   ³       ³       Microsoft.CodeAnalysis.CSharp.resources.dll
+³   ³       ³       Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+³   ³       ³       Microsoft.CodeAnalysis.resources.dll
+³   ³       ³       Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.resources.dll
+³   ³       ³       Microsoft.CodeAnalysis.Workspaces.resources.dll
+³   ³       ³       
+³   ³       ÃÄÄÄes
+³   ³       ³       Microsoft.CodeAnalysis.CSharp.resources.dll
+³   ³       ³       Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+³   ³       ³       Microsoft.CodeAnalysis.resources.dll
+³   ³       ³       Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.resources.dll
+³   ³       ³       Microsoft.CodeAnalysis.Workspaces.resources.dll
+³   ³       ³       
+³   ³       ÃÄÄÄfr
+³   ³       ³       Microsoft.CodeAnalysis.CSharp.resources.dll
+³   ³       ³       Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+³   ³       ³       Microsoft.CodeAnalysis.resources.dll
+³   ³       ³       Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.resources.dll
+³   ³       ³       Microsoft.CodeAnalysis.Workspaces.resources.dll
+³   ³       ³       
+³   ³       ÃÄÄÄit
+³   ³       ³       Microsoft.CodeAnalysis.CSharp.resources.dll
+³   ³       ³       Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+³   ³       ³       Microsoft.CodeAnalysis.resources.dll
+³   ³       ³       Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.resources.dll
+³   ³       ³       Microsoft.CodeAnalysis.Workspaces.resources.dll
+³   ³       ³       
+³   ³       ÃÄÄÄja
+³   ³       ³       Microsoft.CodeAnalysis.CSharp.resources.dll
+³   ³       ³       Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+³   ³       ³       Microsoft.CodeAnalysis.resources.dll
+³   ³       ³       Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.resources.dll
+³   ³       ³       Microsoft.CodeAnalysis.Workspaces.resources.dll
+³   ³       ³       
+³   ³       ÃÄÄÄko
+³   ³       ³       Microsoft.CodeAnalysis.CSharp.resources.dll
+³   ³       ³       Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+³   ³       ³       Microsoft.CodeAnalysis.resources.dll
+³   ³       ³       Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.resources.dll
+³   ³       ³       Microsoft.CodeAnalysis.Workspaces.resources.dll
+³   ³       ³       
+³   ³       ÃÄÄÄLatoFont
+³   ³       ³       Lato-Black.ttf
+³   ³       ³       Lato-BlackItalic.ttf
+³   ³       ³       Lato-Bold.ttf
+³   ³       ³       Lato-BoldItalic.ttf
+³   ³       ³       Lato-ExtraBold.ttf
+³   ³       ³       Lato-ExtraBoldItalic.ttf
+³   ³       ³       Lato-ExtraLight.ttf
+³   ³       ³       Lato-ExtraLightItalic.ttf
+³   ³       ³       Lato-Italic.ttf
+³   ³       ³       Lato-Light.ttf
+³   ³       ³       Lato-LightItalic.ttf
+³   ³       ³       Lato-Medium.ttf
+³   ³       ³       Lato-MediumItalic.ttf
+³   ³       ³       Lato-Regular.ttf
+³   ³       ³       Lato-SemiBold.ttf
+³   ³       ³       Lato-SemiBoldItalic.ttf
+³   ³       ³       Lato-Thin.ttf
+³   ³       ³       Lato-ThinItalic.ttf
+³   ³       ³       OFL.txt
+³   ³       ³       
+³   ³       ÃÄÄÄpl
+³   ³       ³       Microsoft.CodeAnalysis.CSharp.resources.dll
+³   ³       ³       Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+³   ³       ³       Microsoft.CodeAnalysis.resources.dll
+³   ³       ³       Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.resources.dll
+³   ³       ³       Microsoft.CodeAnalysis.Workspaces.resources.dll
+³   ³       ³       
+³   ³       ÃÄÄÄpt-BR
+³   ³       ³       Microsoft.CodeAnalysis.CSharp.resources.dll
+³   ³       ³       Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+³   ³       ³       Microsoft.CodeAnalysis.resources.dll
+³   ³       ³       Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.resources.dll
+³   ³       ³       Microsoft.CodeAnalysis.Workspaces.resources.dll
+³   ³       ³       
+³   ³       ÃÄÄÄru
+³   ³       ³       Microsoft.CodeAnalysis.CSharp.resources.dll
+³   ³       ³       Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+³   ³       ³       Microsoft.CodeAnalysis.resources.dll
+³   ³       ³       Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.resources.dll
+³   ³       ³       Microsoft.CodeAnalysis.Workspaces.resources.dll
+³   ³       ³       
+³   ³       ÃÄÄÄruntimes
+³   ³       ³   ÃÄÄÄbrowser
+³   ³       ³   ³   ÀÄÄÄlib
+³   ³       ³   ³       ÀÄÄÄnet8.0
+³   ³       ³   ³               System.Text.Encodings.Web.dll
+³   ³       ³   ³               
+³   ³       ³   ÃÄÄÄlinux-arm64
+³   ³       ³   ³   ÀÄÄÄnative
+³   ³       ³   ³           libcrypto.so
+³   ³       ³   ³           libjpeg.so.8
+³   ³       ³   ³           libqpdf.so
+³   ³       ³   ³           libQuestPdfSkia.so
+³   ³       ³   ³           
+³   ³       ³   ÃÄÄÄlinux-musl-x64
+³   ³       ³   ³   ÀÄÄÄnative
+³   ³       ³   ³           libcrypto.so
+³   ³       ³   ³           libjpeg.so.8
+³   ³       ³   ³           libqpdf.so
+³   ³       ³   ³           libQuestPdfSkia.so
+³   ³       ³   ³           
+³   ³       ³   ÃÄÄÄlinux-x64
+³   ³       ³   ³   ÀÄÄÄnative
+³   ³       ³   ³           libcrypto.so
+³   ³       ³   ³           libjpeg.so.8
+³   ³       ³   ³           libqpdf.so
+³   ³       ³   ³           libQuestPdfSkia.so
+³   ³       ³   ³           
+³   ³       ³   ÃÄÄÄosx-arm64
+³   ³       ³   ³   ÀÄÄÄnative
+³   ³       ³   ³           libcrypto.dylib
+³   ³       ³   ³           libjpeg.dylib
+³   ³       ³   ³           libqpdf.dylib
+³   ³       ³   ³           libQuestPdfSkia.dylib
+³   ³       ³   ³           
+³   ³       ³   ÃÄÄÄosx-x64
+³   ³       ³   ³   ÀÄÄÄnative
+³   ³       ³   ³           libcrypto.dylib
+³   ³       ³   ³           libjpeg.dylib
+³   ³       ³   ³           libqpdf.dylib
+³   ³       ³   ³           libQuestPdfSkia.dylib
+³   ³       ³   ³           
+³   ³       ³   ÃÄÄÄunix
+³   ³       ³   ³   ÀÄÄÄlib
+³   ³       ³   ³       ÀÄÄÄnet6.0
+³   ³       ³   ³               Microsoft.Data.SqlClient.dll
+³   ³       ³   ³               System.Drawing.Common.dll
+³   ³       ³   ³               
+³   ³       ³   ÃÄÄÄwin
+³   ³       ³   ³   ÀÄÄÄlib
+³   ³       ³   ³       ÀÄÄÄnet6.0
+³   ³       ³   ³               Microsoft.Data.SqlClient.dll
+³   ³       ³   ³               Microsoft.Win32.SystemEvents.dll
+³   ³       ³   ³               System.Drawing.Common.dll
+³   ³       ³   ³               System.Runtime.Caching.dll
+³   ³       ³   ³               System.Security.Cryptography.ProtectedData.dll
+³   ³       ³   ³               System.Windows.Extensions.dll
+³   ³       ³   ³               
+³   ³       ³   ÃÄÄÄwin-arm
+³   ³       ³   ³   ÀÄÄÄnative
+³   ³       ³   ³           Microsoft.Data.SqlClient.SNI.dll
+³   ³       ³   ³           
+³   ³       ³   ÃÄÄÄwin-arm64
+³   ³       ³   ³   ÀÄÄÄnative
+³   ³       ³   ³           Microsoft.Data.SqlClient.SNI.dll
+³   ³       ³   ³           
+³   ³       ³   ÃÄÄÄwin-x64
+³   ³       ³   ³   ÀÄÄÄnative
+³   ³       ³   ³           libgcc_s_seh-1.dll
+³   ³       ³   ³           libstdc++-6.dll
+³   ³       ³   ³           libwinpthread-1.dll
+³   ³       ³   ³           Microsoft.Data.SqlClient.SNI.dll
+³   ³       ³   ³           qpdf.dll
+³   ³       ³   ³           QuestPdfSkia.dll
+³   ³       ³   ³           
+³   ³       ³   ÀÄÄÄwin-x86
+³   ³       ³       ÀÄÄÄnative
+³   ³       ³               libgcc_s_dw2-1.dll
+³   ³       ³               libstdc++-6.dll
+³   ³       ³               libwinpthread-1.dll
+³   ³       ³               Microsoft.Data.SqlClient.SNI.dll
+³   ³       ³               qpdf.dll
+³   ³       ³               QuestPdfSkia.dll
+³   ³       ³               
+³   ³       ÃÄÄÄtr
+³   ³       ³       Microsoft.CodeAnalysis.CSharp.resources.dll
+³   ³       ³       Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+³   ³       ³       Microsoft.CodeAnalysis.resources.dll
+³   ³       ³       Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.resources.dll
+³   ³       ³       Microsoft.CodeAnalysis.Workspaces.resources.dll
+³   ³       ³       
+³   ³       ÃÄÄÄzh-Hans
+³   ³       ³       Microsoft.CodeAnalysis.CSharp.resources.dll
+³   ³       ³       Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+³   ³       ³       Microsoft.CodeAnalysis.resources.dll
+³   ³       ³       Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.resources.dll
+³   ³       ³       Microsoft.CodeAnalysis.Workspaces.resources.dll
+³   ³       ³       
+³   ³       ÀÄÄÄzh-Hant
+³   ³               Microsoft.CodeAnalysis.CSharp.resources.dll
+³   ³               Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll
+³   ³               Microsoft.CodeAnalysis.resources.dll
+³   ³               Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.resources.dll
+³   ³               Microsoft.CodeAnalysis.Workspaces.resources.dll
+³   ³               
+³   ÀÄÄÄRelease
+³       ÀÄÄÄnet8.0
+ÃÄÄÄControllers
+³       AccountController.cs
+³       AdminController.cs
+³       AuditTrailController.cs
+³       BaseController.cs
+³       BillingController.cs
+³       BillNotificationController.cs
+³       DisconnectionController.cs
+³       FeedbackController.cs
+³       HomeController.cs
+³       NotificationsController.cs
+³       PaymentsController.cs
+³       RateController.cs
+³       ReportsController.cs
+³       SettingsController.cs
+³       StaffController.cs
+³       SupportsController.cs
+³       UserActivityController.cs
+³       UserController.cs
+³       UserProfileController.cs
+³       
+ÃÄÄÄData
+³       ApplicationDbContext.cs
+³       
+ÃÄÄÄExtensions
+³       ClaimsPrincipalExtensions.cs
+³       
+ÃÄÄÄHelpers
+³       PagedList.cs
+³       PagedListExtensions.cs
+³       TwoFactorHelper.cs
+³       
+ÃÄÄÄMigrations
+³       20250520002627_InitialCreateAll.cs
+³       20250520002627_InitialCreateAll.Designer.cs
+³       20250520013008_AddSupportTickets.cs
+³       20250520013008_AddSupportTickets.Designer.cs
+³       20250520015215_AddDueDateToBilling.cs
+³       20250520015215_AddDueDateToBilling.Designer.cs
+³       20250520041325_AddDisconnection.cs
+³       20250520041325_AddDisconnection.Designer.cs
+³       20250520042812_AddNotificationTable.cs
+³       20250520042812_AddNotificationTable.Designer.cs
+³       20250520055858_AddReceiptPathToPayment.cs
+³       20250520055858_AddReceiptPathToPayment.Designer.cs
+³       20250520080203_AddSettingsTable.cs
+³       20250520080203_AddSettingsTable.Designer.cs
+³       20250521164548_AddIsArchivedToNotifications.cs
+³       20250521164548_AddIsArchivedToNotifications.Designer.cs
+³       20250522151806_AddAdminReplyFieldsToSupport.cs
+³       20250522151806_AddAdminReplyFieldsToSupport.Designer.cs
+³       20250522151919_AddIsArchivedToSupport.cs
+³       20250522151919_AddIsArchivedToSupport.Designer.cs
+³       20250522154128_MakeAdminReplyNullable.cs
+³       20250522154128_MakeAdminReplyNullable.Designer.cs
+³       20250522162607_UpdateSupportModel.cs
+³       20250522162607_UpdateSupportModel.Designer.cs
+³       20250523134502_AddSendToAllToNotification.cs
+³       20250523134502_AddSendToAllToNotification.Designer.cs
+³       20250526135841_AddAuditTrailTable.cs
+³       20250526135841_AddAuditTrailTable.Designer.cs
+³       20250526140949_AddAccountTypeAndMeterNoToConsumer.cs
+³       20250526140949_AddAccountTypeAndMeterNoToConsumer.Designer.cs
+³       20250526141030_AddAccountFieldsToConsumer.cs
+³       20250526141030_AddAccountFieldsToConsumer.Designer.cs
+³       20250527171650_AddAuditTrailDetails.cs
+³       20250527171650_AddAuditTrailDetails.Designer.cs
+³       20250602093923_AddLoginSecurityFields.cs
+³       20250602093923_AddLoginSecurityFields.Designer.cs
+³       20250602101651_UpdateConsumerSplitNameAndAddress.cs
+³       20250602101651_UpdateConsumerSplitNameAndAddress.Designer.cs
+³       20250603015458_AddRateModelAndBillingDetails.cs
+³       20250603015458_AddRateModelAndBillingDetails.Designer.cs
+³       20250603015923_AddRateTable.cs
+³       20250603015923_AddRateTable.Designer.cs
+³       20250603042814_AddConsumerTypeToRateAndConsumer.cs
+³       20250603042814_AddConsumerTypeToRateAndConsumer.Designer.cs
+³       20250603143557_AddBillNoToBilling.cs
+³       20250603143557_AddBillNoToBilling.Designer.cs
+³       20250603150214_MakeBillNoNullable.cs
+³       20250603150214_MakeBillNoNullable.Designer.cs
+³       20250604001456_AddPermissionSystem.cs
+³       20250604001456_AddPermissionSystem.Designer.cs
+³       20250604002007_SeedPermissions.cs
+³       20250604002007_SeedPermissions.Designer.cs
+³       20250604011415_AddMorePermissions.cs
+³       20250604011415_AddMorePermissions.Designer.cs
+³       20250604024138_AddProfileImageUrlToUser.cs
+³       20250604024138_AddProfileImageUrlToUser.Designer.cs
+³       20250604083931_AddFeedbackModel.cs
+³       20250604083931_AddFeedbackModel.Designer.cs
+³       20250604085856_AddFeedbackWithUser.cs
+³       20250604085856_AddFeedbackWithUser.Designer.cs
+³       20250605082458_AddNewPermissions.cs
+³       20250605082458_AddNewPermissions.Designer.cs
+³       20250606001556_UpdateFeedbackFields.cs
+³       20250606001556_UpdateFeedbackFields.Designer.cs
+³       20250613050242_EnableCascadeDeleteUserConsumer.cs
+³       20250613050242_EnableCascadeDeleteUserConsumer.Designer.cs
+³       20250613051305_SetNullOnConsumerDeleteInNotifications.cs
+³       20250613051305_SetNullOnConsumerDeleteInNotifications.Designer.cs
+³       20250614103405_AddIsReplySeenToSupport.cs
+³       20250614103405_AddIsReplySeenToSupport.Designer.cs
+³       20250616123505_AddSmsLog.cs
+³       20250616123505_AddSmsLog.Designer.cs
+³       20250617031331_AddProcessedByToPayments.cs
+³       20250617031331_AddProcessedByToPayments.Designer.cs
+³       20250625064559_CreateSmsLogsTable.cs
+³       20250625064559_CreateSmsLogsTable.Designer.cs
+³       20250710114939_AddProfilePictureToConsumer.cs
+³       20250710114939_AddProfilePictureToConsumer.Designer.cs
+³       20250711105313_AddUserValidation.cs
+³       20250711105313_AddUserValidation.Designer.cs
+³       20250711110614_MakeFullNameNullable.cs
+³       20250711110614_MakeFullNameNullable.Designer.cs
+³       20250712130752_AddAuditTrailArchive.cs
+³       20250712130752_AddAuditTrailArchive.Designer.cs
+³       20250714115446_AddBillNotificationAndPushSubscription.cs
+³       20250714115446_AddBillNotificationAndPushSubscription.Designer.cs
+³       20250714151537_AddBillNotificationFKsFixed.cs
+³       20250714151537_AddBillNotificationFKsFixed.Designer.cs
+³       20250716131654_AddIsLockedToUser.cs
+³       20250716131654_AddIsLockedToUser.Designer.cs
+³       20250717061411_AddIsDisconnectedToDisconnection.cs
+³       20250717061411_AddIsDisconnectedToDisconnection.Designer.cs
+³       20250717065533_LinkBillingToDisconnectionFixed.cs
+³       20250717065533_LinkBillingToDisconnectionFixed.Designer.cs
+³       20250721022648_AddDisconnectionModelAndConsumerStatus.cs
+³       20250721022648_AddDisconnectionModelAndConsumerStatus.Designer.cs
+³       20250721030152_AddDisconnectionDates.cs
+³       20250721030152_AddDisconnectionDates.Designer.cs
+³       20250721030312_RemoveDatePerformedFromDisconnection.cs
+³       20250721030312_RemoveDatePerformedFromDisconnection.Designer.cs
+³       20250725044646_AddNewPermissionsOnly.cs
+³       20250725044646_AddNewPermissionsOnly.Designer.cs
+³       20250725103732_AddConsumerPermissions.cs
+³       20250725103732_AddConsumerPermissions.Designer.cs
+³       20250725112540_AddBillingPermissions.cs
+³       20250725112540_AddBillingPermissions.Designer.cs
+³       20250725124605_AddPaymentPermissions.cs
+³       20250725124605_AddPaymentPermissions.Designer.cs
+³       20250801012417_AddRemarksToBilling.cs
+³       20250801012417_AddRemarksToBilling.Designer.cs
+³       20250804061329_AddIsArchivedToSmsLog.cs
+³       20250804061329_AddIsArchivedToSmsLog.Designer.cs
+³       ApplicationDbContextModelSnapshot.cs
+³       
+ÃÄÄÄModels
+³   ³   AuditLogArchive.cs
+³   ³   AuditTrail.cs
+³   ³   Billing.cs
+³   ³   BillNotification.cs
+³   ³   Consumer.cs
+³   ³   ConsumerType.cs
+³   ³   Disconnection.cs
+³   ³   ErrorViewModel.cs
+³   ³   Feedback.cs
+³   ³   Notification.cs
+³   ³   Payment.cs
+³   ³   Permission.cs
+³   ³   Rate.cs
+³   ³   Setting.cs
+³   ³   SmsLog.cs
+³   ³   StaffPermission.cs
+³   ³   Support.cs
+³   ³   User.cs
+³   ³   UserPermission.cs
+³   ³   UserPushSubscription.cs
+³   ³   
+³   ÀÄÄÄViewModels
+³           AdminLoginViewModel.cs
+³           BillingFormViewModel.cs
+³           BillingHistoryViewModel.cs
+³           BillingViewModel.cs
+³           ConsumerViewModel.cs
+³           CreatePaymentViewModel.cs
+³           DisconnectionViewModel.cs
+³           EditAdminUserViewModel.cs
+³           EditConsumerUserViewModel.cs
+³           EditPermissionsViewModel.cs
+³           ForgotPasswordUserViewModel.cs
+³           LoginViewModel.cs
+³           ManageUserViewModel.cs
+³           MonthlyBillingSummaryViewModel.cs
+³           PaginatedList.cs
+³           PaginatedNotificationsViewModel.cs
+³           PaginatedPaymentsViewModel.cs
+³           PaymentConfirmationViewModel.cs
+³           PaymentReceiptViewModel.cs
+³           PaymentViewModel.cs
+³           PayViewModel.cs
+³           PermissionCheckbox.cs
+³           ReportsViewModel.cs
+³           ResetPasswordUserViewModel.cs
+³           ResetPasswordViewModel.cs
+³           SmsLogViewModel.cs
+³           SmsNotificationViewModel.cs
+³           TwoFactorSetupViewModel.cs
+³           TwoFactorViewModel.cs
+³           UserAdminProfileViewModel.cs
+³           UserDashboardViewModel.cs
+³           UserLoginViewModel.cs
+³           UserPaymentViewModel.cs
+³           UserProfileViewModel.cs
+³           UserRegisterViewModel.cs
+³           UserSupportViewModel.cs
+³           
+ÃÄÄÄobj
+³   ³   project.assets.json
+³   ³   project.nuget.cache
+³   ³   SantaFeWaterSystem.csproj.nuget.dgspec.json
+³   ³   SantaFeWaterSystem.csproj.nuget.g.props
+³   ³   SantaFeWaterSystem.csproj.nuget.g.targets
+³   ³   
+³   ÃÄÄÄDebug
+³   ³   ÀÄÄÄnet8.0
+³   ³       ³   .NETCoreApp,Version=v8.0.AssemblyAttributes.cs
+³   ³       ³   ApiEndpoints.json
+³   ³       ³   apphost.exe
+³   ³       ³   rjimswa.dswa.cache.json
+³   ³       ³   rjsmcshtml.dswa.cache.json
+³   ³       ³   rjsmrazor.dswa.cache.json
+³   ³       ³   rpswa.dswa.cache.json
+³   ³       ³   SantaFeW.1CBB7204.Up2Date
+³   ³       ³   SantaFeWaterSystem.AssemblyInfo.cs
+³   ³       ³   SantaFeWaterSystem.AssemblyInfoInputs.cache
+³   ³       ³   SantaFeWaterSystem.assets.cache
+³   ³       ³   SantaFeWaterSystem.csproj.AssemblyReference.cache
+³   ³       ³   SantaFeWaterSystem.csproj.BuildWithSkipAnalyzers
+³   ³       ³   SantaFeWaterSystem.csproj.CoreCompileInputs.cache
+³   ³       ³   SantaFeWaterSystem.csproj.FileListAbsolute.txt
+³   ³       ³   SantaFeWaterSystem.dll
+³   ³       ³   SantaFeWaterSystem.GeneratedMSBuildEditorConfig.editorconfig
+³   ³       ³   SantaFeWaterSystem.genruntimeconfig.cache
+³   ³       ³   SantaFeWaterSystem.GlobalUsings.g.cs
+³   ³       ³   SantaFeWaterSystem.MvcApplicationPartsAssemblyInfo.cache
+³   ³       ³   SantaFeWaterSystem.MvcApplicationPartsAssemblyInfo.cs
+³   ³       ³   SantaFeWaterSystem.pdb
+³   ³       ³   SantaFeWaterSystem.RazorAssemblyInfo.cache
+³   ³       ³   SantaFeWaterSystem.RazorAssemblyInfo.cs
+³   ³       ³   SantaFeWaterSystem.sourcelink.json
+³   ³       ³   staticwebassets.build.endpoints.json
+³   ³       ³   staticwebassets.build.json
+³   ³       ³   staticwebassets.build.json.cache
+³   ³       ³   staticwebassets.development.json
+³   ³       ³   staticwebassets.references.upToDateCheck.txt
+³   ³       ³   staticwebassets.removed.txt
+³   ³       ³   staticwebassets.upToDateCheck.txt
+³   ³       ³   
+³   ³       ÃÄÄÄref
+³   ³       ³       SantaFeWaterSystem.dll
+³   ³       ³       
+³   ³       ÃÄÄÄrefint
+³   ³       ³       SantaFeWaterSystem.dll
+³   ³       ³       
+³   ³       ÃÄÄÄscopedcss
+³   ³       ³   ÃÄÄÄbundle
+³   ³       ³   ³       SantaFeWaterSystem.styles.css
+³   ³       ³   ³       
+³   ³       ³   ÃÄÄÄprojectbundle
+³   ³       ³   ³       SantaFeWaterSystem.bundle.scp.css
+³   ³       ³   ³       
+³   ³       ³   ÀÄÄÄViews
+³   ³       ³       ÀÄÄÄShared
+³   ³       ³               _Layout.cshtml.rz.scp.css
+³   ³       ³               
+³   ³       ÀÄÄÄstaticwebassets
+³   ÀÄÄÄRelease
+³       ÀÄÄÄnet8.0
+³           ³   .NETCoreApp,Version=v8.0.AssemblyAttributes.cs
+³           ³   SantaFeWaterSystem.AssemblyInfo.cs
+³           ³   SantaFeWaterSystem.AssemblyInfoInputs.cache
+³           ³   SantaFeWaterSystem.assets.cache
+³           ³   SantaFeWaterSystem.csproj.AssemblyReference.cache
+³           ³   SantaFeWaterSystem.GeneratedMSBuildEditorConfig.editorconfig
+³           ³   SantaFeWaterSystem.GlobalUsings.g.cs
+³           ³   SantaFeWaterSystem.RazorAssemblyInfo.cache
+³           ³   SantaFeWaterSystem.RazorAssemblyInfo.cs
+³           ³   
+³           ÃÄÄÄref
+³           ÀÄÄÄrefint
+ÃÄÄÄProperties
+³       launchSettings.json
+³       
+ÃÄÄÄServices
+³       AuditLogService.cs
+³       BillingHistoryPdfService.cs
+³       BillingPdfService.cs
+³       BillingService.cs
+³       IEmailSender.cs
+³       InMemorySmsQueue.cs
+³       ISemaphoreSmsService.cs
+³       MockSmsService.cs
+³       MonthlyBillingSummaryDocument.cs
+³       PaymentPdfService.cs
+³       PdfService.cs
+³       PermissionService.cs
+³       ReportPdfService.cs
+³       SemaphoreSmsService.cs
+³       SmtpEmailSender.cs
+³       WalkInReceiptPdfService.cs
+³       
+ÃÄÄÄSettings
+³       EmailSettings.cs
+³       SemaphoreSettings.cs
+³       
+ÃÄÄÄViewComponents
+³       AuditTrailViewComponent.cs
+³       TwoFactorStatusAdminViewComponent.cs
+³       UserAvatarViewComponent.cs
+³       
+ÃÄÄÄViews
+³   ³   _ViewImports.cshtml
+³   ³   _ViewStart.cshtml
+³   ³   
+³   ÃÄÄÄAccount
+³   ³       AccessDenied.cshtml
+³   ³       AccountLocked.cshtml
+³   ³       AdminLogin.cshtml
+³   ³       ForgotPassword.cshtml
+³   ³       ForgotPasswordUser.cshtml
+³   ³       ForgotPasswordUserConfirmation.cshtml
+³   ³       Login.cshtml
+³   ³       MySecretEmergenceResetPasswordforAdmin.cshtml
+³   ³       Register.cshtml
+³   ³       RegisterAdmin.cshtml
+³   ³       RegisterUser.cshtml
+³   ³       Reset2FA.cshtml
+³   ³       ResetPassword.cshtml
+³   ³       ResetPasswordUser.cshtml
+³   ³       ResetPasswordUserConfirmation.cshtml
+³   ³       ResetPasswordUserInvalid.cshtml
+³   ³       Setup2FAAdmin.cshtml
+³   ³       Setup2FAUser.cshtml
+³   ³       TemporaryLocked.cshtml
+³   ³       UserLogin.cshtml
+³   ³       Verify2FAAdmin.cshtml
+³   ³       Verify2FAUser.cshtml
+³   ³       
+³   ÃÄÄÄAdmin
+³   ³       ConsumerDetails.cshtml
+³   ³       Consumers.cshtml
+³   ³       CreateConsumer.cshtml
+³   ³       Dashboard.cshtml
+³   ³       DeleteConsumer.cshtml
+³   ³       DeleteUser.cshtml
+³   ³       EditAdminUser.cshtml
+³   ³       EditConsumer.cshtml
+³   ³       EditConsumerUser.cshtml
+³   ³       EditPermissions.cshtml
+³   ³       LockUser.cshtml
+³   ³       ManageUsers.cshtml
+³   ³       Profile.cshtml
+³   ³       ResetPassword.cshtml
+³   ³       UnlockUser.cshtml
+³   ³       UserList.cshtml
+³   ³       
+³   ÃÄÄÄAuditTrail
+³   ³       ArchiveDetails.cshtml
+³   ³       AuditArchive.cshtml
+³   ³       Details.cshtml
+³   ³       Index.cshtml
+³   ³       
+³   ÃÄÄÄBilling
+³   ³       Create.cshtml
+³   ³       Delete.cshtml
+³   ³       Details.cshtml
+³   ³       Edit.cshtml
+³   ³       Index.cshtml
+³   ³       
+³   ÃÄÄÄDisconnection
+³   ³       Details.cshtml
+³   ³       Index.cshtml
+³   ³       
+³   ÃÄÄÄFeedback
+³   ³       Archive.cshtml
+³   ³       ArchivedFeedbacks.cshtml
+³   ³       Create.cshtml
+³   ³       Details.cshtml
+³   ³       Edit.cshtml
+³   ³       Index.cshtml
+³   ³       Reply.cshtml
+³   ³       ThankYou.cshtml
+³   ³       UserFeedbacks.cshtml
+³   ³       
+³   ÃÄÄÄHome
+³   ³       Contact.cshtml
+³   ³       Index.cshtml
+³   ³       Privacy.cshtml
+³   ³       
+³   ÃÄÄÄNotifications
+³   ³       Archived.cshtml
+³   ³       ArchivedSmsLogs.cshtml
+³   ³       Create.cshtml
+³   ³       Index.cshtml
+³   ³       SendSms.cshtml
+³   ³       SmsLogs.cshtml
+³   ³       UserNotification.cshtml
+³   ³       
+³   ÃÄÄÄPayments
+³   ³       CreatePayment.cshtml
+³   ³       Delete.cshtml
+³   ³       Details.cshtml
+³   ³       Edit.cshtml
+³   ³       ManagePayments.cshtml
+³   ³       WalkInConfirmation.cshtml
+³   ³       
+³   ÃÄÄÄRate
+³   ³       Create.cshtml
+³   ³       Delete.cshtml
+³   ³       Edit.cshtml
+³   ³       Index.cshtml
+³   ³       
+³   ÃÄÄÄReports
+³   ³       Index.cshtml
+³   ³       
+³   ÃÄÄÄSettings
+³   ³       GcashQr.cshtml
+³   ³       QrCodes.cshtml
+³   ³       
+³   ÃÄÄÄShared
+³   ³   ³   Error.cshtml
+³   ³   ³   _AccountLayout.cshtml
+³   ³   ³   _AdminLayout.cshtml
+³   ³   ³   _DashboardModals.cshtml
+³   ³   ³   _Layout.cshtml
+³   ³   ³   _Layout.cshtml.css
+³   ³   ³   _ToastNotification.cshtml
+³   ³   ³   _UserLayout.cshtml
+³   ³   ³   _ValidationScriptsPartial.cshtml
+³   ³   ³   
+³   ³   ÀÄÄÄComponents
+³   ³       ÃÄÄÄAuditTrail
+³   ³       ³       Default.cshtml
+³   ³       ³       
+³   ³       ÃÄÄÄTwoFactorStatusAdmin
+³   ³       ³       Default.cshtml
+³   ³       ³       
+³   ³       ÀÄÄÄUserAvatar
+³   ³               Default.cshtml
+³   ³               
+³   ÃÄÄÄStaff
+³   ³       AssignPermissions.cshtml
+³   ³       
+³   ÃÄÄÄSupports
+³   ³       Archived.cshtml
+³   ³       Details.cshtml
+³   ³       Edit.cshtml
+³   ³       Index.cshtml
+³   ³       Reply.cshtml
+³   ³       UserSupport.cshtml
+³   ³       
+³   ÃÄÄÄUser
+³   ³       BillingDetails.cshtml
+³   ³       BillingHistory.cshtml
+³   ³       Dashboard.cshtml
+³   ³       Pay.cshtml
+³   ³       Payment.cshtml
+³   ³       PaymentConfirmation.cshtml
+³   ³       PaymentReceipt.cshtml
+³   ³       Profile.cshtml
+³   ³       ResetPassword.cshtml
+³   ³       Support.cshtml
+³   ³       _BillingCard.cshtml
+³   ³       
+³   ÃÄÄÄUserActivity
+³   ³       Archive.cshtml
+³   ³       Index.cshtml
+³   ³       
+³   ÀÄÄÄUserProfile
+³           Profile.cshtml
+³           ResetPassword.cshtml
+³           
+ÀÄÄÄwwwroot
+    ³   favicon.ico
+    ³   service-worker.js
+    ³   
+    ÃÄÄÄcss
+    ³       account.css
+    ³       admin-dashboard.css
+    ³       admin-layout.css
+    ³       audit-log.css
+    ³       auditlogs-details.css
+    ³       auditlogs-page.css
+    ³       billing-card.css
+    ³       billing-history.css
+    ³       billing.css
+    ³       dark-mode.css
+    ³       disconnection.css
+    ³       feedback.css
+    ³       glow.css
+    ³       home.css
+    ³       layout.css
+    ³       login.css
+    ³       manage-billing.css
+    ³       manage-consumers.css
+    ³       manage-payments.css
+    ³       payment-confirmation.css
+    ³       payment-steps.css
+    ³       payments.css
+    ³       privacy.css
+    ³       profile.css
+    ³       receipt.css
+    ³       site.css
+    ³       support.css
+    ³       twofa.css
+    ³       twofaUser.css
+    ³       user-activity.css
+    ³       user-dashboard.css
+    ³       user-login.css
+    ³       userlayout.css
+    ³       usernotifications.css
+    ³       usersupport.css
+    ³       
+    ÃÄÄÄimages
+    ³   ³   default-avatar.png
+    ³   ³   gcash-logo.png
+    ³   ³   gcash-qr.png
+    ³   ³   logo.png
+    ³   ³   maya-logo.png
+    ³   ³   maya-qr.png
+    ³   ³   
+    ³   ÀÄÄÄprofiles
+    ³           4bd0ea0a-94b4-44f3-8066-9b68919abdd1.jpg
+    ³           default.png
+    ³           f226ffab-b7f6-4a62-b4bf-9db458ec0508.jpeg
+    ³           user_1_20e04d28-2d67-44a1-ad0a-b3ce6bd97375.png
+    ³           user_2_3c33ccfe-3883-4353-b07e-bcffa29e0df5.jpeg
+    ³           
+    ÃÄÄÄjs
+    ³       site.js
+    ³       user-dashboard.js
+    ³       
+    ÃÄÄÄlib
+    ³   ÃÄÄÄbootstrap
+    ³   ³   ³   LICENSE
+    ³   ³   ³   
+    ³   ³   ÀÄÄÄdist
+    ³   ³       ÃÄÄÄcss
+    ³   ³       ³       bootstrap-grid.css
+    ³   ³       ³       bootstrap-grid.css.map
+    ³   ³       ³       bootstrap-grid.min.css
+    ³   ³       ³       bootstrap-grid.min.css.map
+    ³   ³       ³       bootstrap-grid.rtl.css
+    ³   ³       ³       bootstrap-grid.rtl.css.map
+    ³   ³       ³       bootstrap-grid.rtl.min.css
+    ³   ³       ³       bootstrap-grid.rtl.min.css.map
+    ³   ³       ³       bootstrap-reboot.css
+    ³   ³       ³       bootstrap-reboot.css.map
+    ³   ³       ³       bootstrap-reboot.min.css
+    ³   ³       ³       bootstrap-reboot.min.css.map
+    ³   ³       ³       bootstrap-reboot.rtl.css
+    ³   ³       ³       bootstrap-reboot.rtl.css.map
+    ³   ³       ³       bootstrap-reboot.rtl.min.css
+    ³   ³       ³       bootstrap-reboot.rtl.min.css.map
+    ³   ³       ³       bootstrap-utilities.css
+    ³   ³       ³       bootstrap-utilities.css.map
+    ³   ³       ³       bootstrap-utilities.min.css
+    ³   ³       ³       bootstrap-utilities.min.css.map
+    ³   ³       ³       bootstrap-utilities.rtl.css
+    ³   ³       ³       bootstrap-utilities.rtl.css.map
+    ³   ³       ³       bootstrap-utilities.rtl.min.css
+    ³   ³       ³       bootstrap-utilities.rtl.min.css.map
+    ³   ³       ³       bootstrap.css
+    ³   ³       ³       bootstrap.css.map
+    ³   ³       ³       bootstrap.min.css
+    ³   ³       ³       bootstrap.min.css.map
+    ³   ³       ³       bootstrap.rtl.css
+    ³   ³       ³       bootstrap.rtl.css.map
+    ³   ³       ³       bootstrap.rtl.min.css
+    ³   ³       ³       bootstrap.rtl.min.css.map
+    ³   ³       ³       
+    ³   ³       ÀÄÄÄjs
+    ³   ³               bootstrap.bundle.js
+    ³   ³               bootstrap.bundle.js.map
+    ³   ³               bootstrap.bundle.min.js
+    ³   ³               bootstrap.bundle.min.js.map
+    ³   ³               bootstrap.esm.js
+    ³   ³               bootstrap.esm.js.map
+    ³   ³               bootstrap.esm.min.js
+    ³   ³               bootstrap.esm.min.js.map
+    ³   ³               bootstrap.js
+    ³   ³               bootstrap.js.map
+    ³   ³               bootstrap.min.js
+    ³   ³               bootstrap.min.js.map
+    ³   ³               
+    ³   ÃÄÄÄjquery
+    ³   ³   ³   LICENSE.txt
+    ³   ³   ³   
+    ³   ³   ÀÄÄÄdist
+    ³   ³           jquery.js
+    ³   ³           jquery.min.js
+    ³   ³           jquery.min.map
+    ³   ³           
+    ³   ÃÄÄÄjquery-validation
+    ³   ³   ³   LICENSE.md
+    ³   ³   ³   
+    ³   ³   ÀÄÄÄdist
+    ³   ³           additional-methods.js
+    ³   ³           additional-methods.min.js
+    ³   ³           jquery.validate.js
+    ³   ³           jquery.validate.min.js
+    ³   ³           
+    ³   ÀÄÄÄjquery-validation-unobtrusive
+    ³           jquery.validate.unobtrusive.js
+    ³           jquery.validate.unobtrusive.min.js
+    ³           LICENSE.txt
+    ³           
+    ÀÄÄÄuploads
+        ÀÄÄÄreceipts
+                00d6e96c-f757-4339-8087-75bb0e9f8458.png
+                02ffd9f5-0c43-4407-b67f-ba79e5982253.jpg
+                048c22f6-9fba-4e76-8bc1-53dbc8b16b96.png
+                0a747697-17ec-450a-965c-6fc9485a91c1.png
+                111ab2bb-971e-49b6-a824-845aaeac8e26.jpg
+                131938cf-6aca-4f41-add2-4f5d3b6be855.jpg
+                13d0f2b4-c550-41d0-b3f2-f0f5b730e679.jpg
+                19c45a58-1390-4ca2-ac10-e12055373e00.png
+                1a84d10c-4641-41ff-aecd-c66c77ae2598.png
+                1ccc5524-8fa0-4dcb-9d24-15322026a98b.jpg
+                21ff709e-f3d2-432c-88de-9672a70748e5.png
+                248e702e-6606-468e-88fd-54345a76d888.png
+                27917175-33b9-4bb3-8741-addd5b9e8034.png
+                35148d99-b11c-4721-b798-9d582584be0a.jpg
+                3a37af8a-1d28-40df-9f3c-99ae1df1e5a8.png
+                3b7c7e2c-7280-49d8-82d7-835a2ebc343a.png
+                3fe063b9-9312-4b09-9287-96a8e69f5248.jpg
+                45840c81-27fd-4490-b934-1b7f4c33de7f.jpg
+                50960b96-45fb-4b3c-a826-4c7b01e429d0.png
+                5ad9d20d-2761-4254-bedf-c8c796d0a2a1.jpg
+                5e062677-c28b-4bdd-9a82-f15401075e19.jpg
+                62fa5248-07d5-4001-a7fd-73d6f2df4bd0.jpeg
+                654e1815-0226-4f97-b44f-724744054266.jpg
+                676905e4-d31f-43d9-9766-30d896976ace.jpg
+                69c38d1c-a5a3-4c5b-8dc2-ea5ce4c5c975.jpg
+                6e0ae8e2-04dc-4e80-8f86-45d64e0fc49b.png
+                6f7c8b40-c942-4e1f-bd21-cc002c067eae.jpg
+                70ff7ed1-c729-41a2-b5e6-7d44923d8e1d.png
+                71b1ada9-e2e1-467b-893c-0e95a747e348.png
+                747dbfa5-423c-4764-ba53-77e6bc76fa28.jpg
+                755eff0c-e72f-4769-96e4-e708aaef4b77.png
+                78371e55-4d7c-4d58-8d37-9832816f9dcc.jpg
+                7e75c7cb-bd17-48b7-8865-a20768577a73.png
+                7e770f2a-6a82-4ce0-b01b-b5228ec36d6e.jpeg
+                7f99f0b0-5f5b-491e-80a1-d640bd1ac4db.png
+                80494554-ce43-4df0-9a01-4e101b186fc9.png
+                84a1fff7-a1a7-48e3-b750-5cf2170bdd4b.jpg
+                86c511af-b389-4abc-92d4-6ec111f64848.png
+                9259c8e6-2645-4b9d-9c91-317c303c337d.png
+                981d80d0-bf55-47b8-8722-f66d2310ccaa.png
+                98991953-5518-4f22-8bbf-f83d26d41b07.png
+                9d7e97de-aedd-412f-a796-f4c76c3a448b.jpg
+                a182b015-3607-4980-89ad-c81b32186beb.png
+                a3fdcdab-6754-4de7-85c2-4fdcc77122a4.jpg
+                a59fd914-b42a-48ed-a2c8-00713193fd13.png
+                ae52e8c7-f8a1-4399-b05e-7b0d86ade79a.png
+                b0aaf735-2236-4657-9e18-432b4f0b47fc.png
+                bbb909e5-d30b-4e8d-b8e6-09d2f795479d.jpg
+                c18177e1-3659-4daa-a64e-ab876d787d9f.png
+                caff4347-b90e-421f-a536-6134d96a29fd.png
+                d13c79c9-d23f-4b6b-b128-50d49d5dda08.png
+                dd14d9e4-3be0-41e0-b973-b845be773330.png
+                df367904-5ea3-48b0-bec8-20801c4621e9.png
+                e3a855ac-88a1-40a5-8a7e-c238332c3e50.png
+                e40c50af-d58a-4cc3-8d0b-c72342092834.png
+                eaaf62f7-9177-4043-8777-8f2cc9f2a525.jpg
+                eaebde39-83d5-40e9-baf6-02a9e80c8aab.png
+                f3494dc0-f5dc-43ed-b05d-ee13281d58e2.png
+                f7e45805-7e97-4804-9398-44e1f11babee.png
+                f81cbe04-2fb8-420f-bee3-2a0c89ef4fab.png
+                ff09817f-eb23-4f00-847c-daf8bd543a57.png
+                

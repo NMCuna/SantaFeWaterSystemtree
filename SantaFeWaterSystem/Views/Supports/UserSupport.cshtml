@@ -1,0 +1,342 @@
+﻿@model IEnumerable<SantaFeWaterSystem.Models.Support>
+
+@{
+    ViewData["Title"] = "Support Requests";
+    Layout = "~/Views/Shared/_UserLayout.cshtml";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/usersupport.css" asp-append-version="true" />
+}
+
+<h2 class="mb-4 text-black" style="text-shadow: 0 0 10px rgba(0, 123, 255, 0.8);">
+    My Support Requests
+</h2>
+
+<div class="mb-3 text-end">
+    <a asp-controller="User" asp-action="Support" class="btn btn-primary">
+        <i class="bi bi-plus-circle me-1"></i> New Support Request
+    </a>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info">You haven't sent any support requests yet.</div>
+}
+else
+{
+    <div class="row g-4">
+        @foreach (var item in Model.OrderByDescending(s => s.CreatedAt))
+        {
+            var cardClass = item.IsReplySeen
+            ? "border-success border-2 shadow glow-seen"
+            : "border-warning border-2 shadow glow-unseen";
+            var headerClass = item.IsReplySeen
+            ? "bg-success text-white"
+            : "bg-warning text-dark";
+
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 @cardClass">
+                    <div class="card-header @headerClass d-flex justify-content-between align-items-center">
+                        <span class="fw-bold">@item.Subject</span>
+                        @if (!item.IsReplySeen)
+                        {
+                            <span class="badge bg-danger glow-badge">
+                                <i class="bi bi-eye-slash-fill me-1"></i>New Reply
+                            </span>
+                        }
+                    </div>
+                    <div class="card-body">
+                        <p>
+                            <strong>Status:</strong>
+                            @if (item.IsResolved)
+                            {
+                                <span class="badge bg-success">Resolved</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-warning text-dark">Open</span>
+                            }
+                        </p>
+
+                        <p><strong>Created:</strong> @item.CreatedAt.ToString("MMM dd, yyyy - hh:mm tt")</p>
+
+                        <p>
+                            <strong>Message:</strong>
+                            @Html.Raw(item.Message.Length > 100 ? item.Message.Substring(0, 100) + "..." : item.Message)
+                        </p>
+
+                        <div class="mt-2">
+                            <strong>Admin Reply:</strong>
+                            @if (!string.IsNullOrWhiteSpace(item.AdminReply))
+                            {
+                                <div>
+                                    @Html.Raw(item.AdminReply.Length > 100 ? item.AdminReply.Substring(0, 100) + "..." : item.AdminReply)
+                                </div>
+
+                                <hr />
+
+                                @if (string.IsNullOrEmpty(item.SupportFeedbackEmoji))
+                                {
+                                    <button class="btn btn-sm btn-primary"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#feedbackModal"
+                                            data-id="@item.Id"
+                                            data-subject="@item.Subject"
+                                            data-message="@item.Message"
+                                            data-reply="@item.AdminReply">
+                                        Give Feedback
+                                    </button>
+                                }
+                                else
+                                {
+                                    <div class="alert alert-success p-2 mt-2">
+                                        <strong>Feedback:</strong> @item.SupportFeedbackEmoji <br />
+                                        <span>@item.SupportFeedbackNote</span><br />
+                                        <small class="text-muted">
+                                            Submitted on @item.SupportFeedbackAt?.ToLocalTime().ToString("MMM dd, yyyy - hh:mm tt")
+                                        </small>
+                                    </div>
+                                }
+                            }
+                            else
+                            {
+                                <span class="text-muted">No reply yet</span>
+                            }
+                        </div>
+
+
+                        <div class="text-end mt-3">
+                            <button class="btn btn-outline-primary btn-sm"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#viewSupportModal"
+                                    data-subject="@item.Subject"
+                                    data-status="@(item.IsResolved ? "Resolved" : "Open")"
+                                    data-created="@item.CreatedAt.ToString("MMM dd, yyyy - hh:mm tt")"
+                                    data-message="@item.Message"
+                                    data-reply="@(item.AdminReply ?? "No reply yet")"
+                                    data-replied="@item.RepliedAt?.ToString("MMM dd, yyyy - hh:mm tt") ?? " -""
+                                    data-seen="@(item.IsReplySeen ? "Seen" : "Unseen")">
+                                <i class="bi bi-eye"></i> View 
+                            </button>
+                            <button class="btn btn-outline-danger btn-sm" onclick="deleteSupport(@item.Id)">
+                                <i class="bi bi-trash"></i> Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+
+<!-- Feedback Modal -->
+<div class="modal fade" id="feedbackModal" tabindex="-1" aria-labelledby="feedbackModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="feedbackModalLabel">Submit Feedback</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body">
+                <form id="feedbackForm" method="post" asp-action="SubmitSupportFeedback" asp-controller="Supports">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" id="feedbackId" />
+
+                    <div class="mb-2">
+                        <strong>Message:</strong>
+                        <div class="bg-light border rounded p-2" id="feedbackMessage"></div>
+                    </div>
+
+                    <div class="mb-3">
+                        <strong>Admin Reply:</strong>
+                        <div class="bg-light border rounded p-2" id="feedbackAdminReply"></div>
+                    </div>
+
+                    <hr />
+
+                    <div class="mb-2">
+                        <label class="fw-bold">Your Feedback:</label><br />
+                        <button type="button" class="btn btn-light emoji-btn" data-value="❤️">❤️</button>
+                        <button type="button" class="btn btn-light emoji-btn" data-value="😊">😊</button>
+                        <button type="button" class="btn btn-light emoji-btn" data-value="😐">😐</button>
+                        <button type="button" class="btn btn-light emoji-btn" data-value="😞">😞</button>
+                        <button type="button" class="btn btn-light emoji-btn" data-value="😡">😡</button>
+                        <input type="hidden" name="emoji" id="feedbackEmoji" />
+                    </div>
+
+                    <div class="mb-3">
+                        <textarea name="note" id="feedbackNote" class="form-control" rows="3" placeholder="Leave a note (optional)"></textarea>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Submit Feedback</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 🔍 Full Details Modal -->
+<div class="modal fade" id="viewSupportModal" tabindex="-1" aria-labelledby="viewSupportModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable modal-lg">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="viewSupportModalLabel">Support Request Details</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row mb-3">
+                    <div class="col-md-6 mb-2">
+                        <strong>Subject:</strong>
+                        <div class="form-control-plaintext" id="modalSubject"></div>
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <strong>Status:</strong>
+                        <div class="form-control-plaintext" id="modalStatus"></div>
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <strong>Reply Seen:</strong>
+                        <div class="form-control-plaintext" id="modalSeen"></div>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6 mb-2">
+                        <strong>Created At:</strong>
+                        <div class="form-control-plaintext" id="modalCreated"></div>
+                    </div>
+                    <div class="col-md-6 mb-2">
+                        <strong>Replied At:</strong>
+                        <div class="form-control-plaintext" id="modalReplied"></div>
+                    </div>
+                </div>
+
+                <hr />
+
+                <div class="mb-4">
+                    <h6 class="fw-bold text-secondary">Message:</h6>
+                    <div class="bg-light border rounded p-3" id="modalMessage" style="white-space: pre-wrap;"></div>
+                </div>
+
+                <div class="mb-3">
+                    <h6 class="fw-bold text-secondary">Admin Reply:</h6>
+                    <div class="bg-light border rounded p-3" id="modalReply" style="white-space: pre-wrap;"></div>
+                </div>
+
+                <!-- ✅ User Feedback Section -->
+                <div id="modalFeedback" class="mt-3">
+                    <h6 class="fw-bold text-secondary">Your Feedback:</h6>
+                    <div class="bg-light border rounded p-3" id="modalFeedbackContent" style="white-space: pre-wrap;">
+                        <!-- Feedback content will be injected here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+@section Scripts {
+
+    <script>
+        const feedbackModal = document.getElementById('feedbackModal');
+        const emojiButtons = feedbackModal.querySelectorAll('.emoji-btn');
+        const feedbackEmoji = document.getElementById('feedbackEmoji');
+
+        function highlightSelected(value) {
+            emojiButtons.forEach(btn => {
+                btn.classList.toggle('btn-primary', btn.dataset.value === value);
+                btn.classList.toggle('btn-light', btn.dataset.value !== value);
+            });
+        }
+
+        // Emoji click
+        emojiButtons.forEach(btn => {
+            btn.addEventListener('click', function() {
+                feedbackEmoji.value = this.dataset.value;
+                highlightSelected(this.dataset.value);
+            });
+        });
+
+        feedbackModal.addEventListener('show.bs.modal', function (event) {
+            const button = event.relatedTarget;
+            const id = button.getAttribute('data-id');
+            const subject = button.getAttribute('data-subject');
+            const message = button.getAttribute('data-message');
+            const reply = button.getAttribute('data-reply');
+
+            document.getElementById('feedbackId').value = id;
+            document.getElementById('feedbackMessage').innerText = message;
+            document.getElementById('feedbackAdminReply').innerText = reply;
+            document.getElementById('feedbackNote').value = '';
+            feedbackEmoji.value = '';
+            highlightSelected('');
+            document.getElementById('feedbackModalLabel').innerText = `Submit Feedback for: ${subject}`;
+        });
+    </script>
+
+    <script>
+               var viewSupportModal = document.getElementById('viewSupportModal');
+        viewSupportModal.addEventListener('show.bs.modal', function (event) {
+            var button = event.relatedTarget; // Button that triggered the modal
+
+            // Read data attributes
+            var subject = button.getAttribute('data-subject');
+            var status = button.getAttribute('data-status');
+            var seen = button.getAttribute('data-seen');
+            var created = button.getAttribute('data-created');
+            var replied = button.getAttribute('data-replied');
+            var message = button.getAttribute('data-message');
+            var reply = button.getAttribute('data-reply');
+
+            // Populate modal fields
+            document.getElementById('modalSubject').innerText = subject;
+            document.getElementById('modalStatus').innerText = status;
+            document.getElementById('modalSeen').innerText = seen;
+            document.getElementById('modalCreated').innerText = created;
+            document.getElementById('modalReplied').innerText = replied;
+            document.getElementById('modalMessage').innerText = message;
+            document.getElementById('modalReply').innerText = reply;
+
+            // Optional: Feedback
+            var feedbackContent = document.getElementById('modalFeedbackContent');
+            var emoji = button.getAttribute('data-feedback-emoji');
+            var note = button.getAttribute('data-feedback-note');
+            var at = button.getAttribute('data-feedback-at');
+
+            if (emoji) {
+                feedbackContent.innerText = emoji + (note ? "\nNote: " + note : "") + (at ? "\nSubmitted: " + at : "");
+            } else {
+                feedbackContent.innerText = "No feedback submitted yet.";
+            }
+        });
+    </script>
+
+    <script>
+        function deleteSupport(id) {
+            if (!confirm("Are you sure you want to delete this support request?")) return;
+
+            fetch(`/User/DeleteSupport?id=${id}`, {
+                method: 'POST',
+                headers: {
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                }
+            })
+            .then(res => {
+                if (res.ok) {
+                    location.reload(); // Refresh the page to update the list
+                } else {
+                    alert("Failed to delete support request.");
+                }
+            });
+        }
+    </script>
+
+    
+}

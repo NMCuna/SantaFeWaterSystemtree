@@ -1,0 +1,120 @@
+﻿.clickable-card {
+    border: 1px solid #dee2e6;
+    border-radius: 0.5rem;
+    padding: 0.75rem 1rem;
+    margin-bottom: 1rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+    .clickable-card:hover {
+        background-color: #f8f9fa;
+    }
+
+.badge-status {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.875rem;
+}
+
+.pay-now-btn {
+    font-size: 0.85rem;
+    padding: 0.25rem 0.5rem;
+}
+
+.bg-cash {
+    background-color: #fff3cd !important;
+    color: #664d03 !important;
+}
+
+.bg-gcash {
+    background-color: #87ceeb !important;
+    color: #0c2340 !important;
+}
+
+/* === Dark Mode Styles === */
+body.dark-mode {
+    background-color: #121212;
+    color: #e0e0e0;
+}
+
+    body.dark-mode .card {
+        background-color: #1e1e1e;
+        color: #ccc;
+        border-color: #333;
+    }
+
+    body.dark-mode .card-header {
+        background-color: #292929;
+        border-bottom: 1px solid #444;
+    }
+
+    body.dark-mode .clickable-card {
+        background-color: #2c2c2c;
+        border-color: #444;
+    }
+
+        body.dark-mode .clickable-card:hover {
+            background-color: #3a3a3a;
+        }
+
+    body.dark-mode .badge-status {
+        opacity: 0.9;
+    }
+
+    body.dark-mode .bg-success {
+        background-color: #198754 !important;
+        color: #d4edda !important;
+    }
+
+    body.dark-mode .bg-danger {
+        background-color: #dc3545 !important;
+        color: #f8d7da !important;
+    }
+
+    body.dark-mode .bg-warning {
+        background-color: #ffc107 !important;
+        color: #212529 !important;
+    }
+
+    body.dark-mode .bg-secondary {
+        background-color: #6c757d !important;
+        color: #e2e3e5 !important;
+    }
+
+    body.dark-mode .btn-primary {
+        background-color: #0d6efd;
+        border-color: #0d6efd;
+    }
+
+    body.dark-mode .btn-outline-primary {
+        color: #0d6efd;
+        border-color: #0d6efd;
+    }
+
+        body.dark-mode .btn-outline-primary:hover {
+            background-color: #0d6efd;
+            color: #fff;
+        }
+
+    body.dark-mode .bg-cash {
+        background-color: #665c00 !important;
+        color: #fff3cd !important;
+    }
+
+    body.dark-mode .bg-gcash {
+        background-color: #1e90ff !important;
+        color: #cce6ff !important;
+    }
+
+/* Dark mode toggle button */
+#darkModeToggle {
+    transition: background-color 0.3s, color 0.3s;
+}
+
+body.dark-mode #darkModeToggle {
+    background-color: #444;
+    color: #eee;
+    border-color: #666;
+}

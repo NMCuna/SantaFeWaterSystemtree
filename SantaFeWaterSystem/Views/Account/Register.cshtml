@@ -1,0 +1,131 @@
+﻿@{
+    ViewData["Title"] = "Register User";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-6 col-md-8 col-sm-10">
+            <div class="register-card shadow-lg p-4 rounded-4 bg-white">
+                <h3 class="text-center text-primary mb-4">
+                    <i class="fas fa-user-plus me-2"></i> Register New User
+                </h3>
+
+                <form id="registerForm" method="post" novalidate autocomplete="off">
+                    <div class="mb-3">
+                        <label for="username" class="form-label">Username</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-user"></i></span>
+                            <input name="username" id="username" class="form-control" required />
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Password</label>
+                        <div class="input-group position-relative">
+                            <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                            <input name="password" id="password" type="password" class="form-control" required />
+                            <i class="fas fa-eye toggle-password" toggle="#password"></i>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="role" class="form-label">Role</label>
+                        <select name="role" id="role" class="form-select" required>
+                            <option value="" disabled selected>Select Role</option>
+                            <option value="User">User</option>
+                            <option value="Admin">Admin</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="consumerId" class="form-label">Consumer ID (optional)</label>
+                        <input name="consumerId" id="consumerId" type="number" class="form-control" />
+                    </div>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-between">
+                        <button type="submit" class="btn btn-primary shadow-sm">
+                            <i class="fas fa-user-plus me-1"></i> Register
+                        </button>
+                        <a asp-controller="Admin" asp-action="Dashboard" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-1"></i> Back
+                        </a>
+                    </div>
+
+                    @if (ViewBag.Error != null)
+                    {
+                        <div class="alert alert-danger mt-3">@ViewBag.Error</div>
+                    }
+
+                    @if (ViewBag.Success != null)
+                    {
+                        <div class="alert alert-success mt-3" id="successMsg">@ViewBag.Success</div>
+                    }
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha512" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        .register-card {
+            animation: fadeInUp 0.6s ease;
+        }
+
+        @@keyframes fadeInUp {
+            from
+
+        {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        }
+
+        .toggle-password {
+            position: absolute;
+            top: 50%;
+            right: 15px;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: #6c757d;
+        }
+
+            .toggle-password:hover {
+                color: #0d6efd;
+            }
+    </style>
+}
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const successMsg = document.getElementById('successMsg');
+            const form = document.getElementById('registerForm');
+
+            if (successMsg && form) {
+                setTimeout(() => {
+                    form.reset();
+                    document.getElementById("role").selectedIndex = 0;
+                }, 1200);
+            }
+
+            document.querySelectorAll('.toggle-password').forEach(icon => {
+                icon.addEventListener('click', function () {
+                    const input = document.querySelector(this.getAttribute('toggle'));
+                    const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
+                    input.setAttribute('type', type);
+                    this.classList.toggle('fa-eye');
+                    this.classList.toggle('fa-eye-slash');
+                });
+            });
+        });
+    </script>
+}

@@ -1,0 +1,123 @@
+﻿@model SantaFeWaterSystem.ViewModels.EditConsumerUserViewModel
+
+@{
+    ViewData["Title"] = "Edit Consumer User";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+@section Styles {
+    <style>
+        .page-header i {
+            margin-right: 10px;
+            color: #0d6efd;
+        }
+
+        .form-icon {
+            margin-right: 8px;
+            color: #0d6efd;
+            transition: transform 0.3s ease;
+        }
+
+        .form-control:focus {
+            border-color: #0d6efd;
+            box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+        }
+
+        .form-card {
+            background-color: #fff;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        }
+
+        label {
+            font-weight: 600;
+        }
+    </style>
+}
+
+<div class="container py-4">
+    <h2 class="page-header">
+        <i class="bi bi-person-circle"></i> Edit Consumer User
+    </h2>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="toast-container position-fixed bottom-0 end-0 p-3">
+            <div class="toast show text-white bg-success border-0">
+                <div class="d-flex">
+                    <div class="toast-body">
+                        <i class="bi bi-check-circle-fill me-2"></i> @TempData["SuccessMessage"]
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            </div>
+        </div>
+    }
+
+    <form asp-action="EditConsumerUser" method="post" class="form-card" autocomplete="off">
+        @Html.AntiForgeryToken()
+        @Html.ValidationSummary(true, "", new { @class = "text-danger mb-3" })
+
+        <input type="hidden" asp-for="Id" />
+        <input type="hidden" asp-for="Role" />
+
+        <div class="mb-3">
+            <label asp-for="Username" class="form-label">
+                <i class="fas fa-user form-icon" data-bs-toggle="tooltip" title="Edit username"></i> Username
+            </label>
+            <input asp-for="Username" class="form-control" />
+            <span asp-validation-for="Username" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="AccountNumber" class="form-label">
+                <i class="fas fa-id-card form-icon" data-bs-toggle="tooltip" title="Unique user account number"></i> Account Number
+            </label>
+            <input asp-for="AccountNumber" class="form-control" />
+            <span asp-validation-for="AccountNumber" class="text-danger"></span>
+        </div>
+
+        <div class="form-check mb-4">
+            <input asp-for="IsMfaEnabled" class="form-check-input" id="mfaToggle" />
+            <label class="form-check-label" for="mfaToggle">
+                <i class="fas fa-shield-alt form-icon"></i> Enable Two-Factor Authentication
+            </label>
+        </div>
+
+        <div class="mt-4 d-flex gap-2">
+            <button type="submit" class="btn btn-success shadow-sm">
+                <i class="bi bi-save"></i> Save Changes
+            </button>
+            <a asp-action="ManageUsers" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left-circle"></i> Cancel
+            </a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // Tooltip
+            document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => {
+                new bootstrap.Tooltip(el);
+            });
+
+            // Toast show
+            const toastEl = document.querySelector('.toast');
+            if (toastEl) {
+                const toast = new bootstrap.Toast(toastEl, { delay: 3000 });
+                toast.show();
+            }
+
+            // Trim all text inputs
+            document.querySelector("form").addEventListener("submit", function () {
+                document.querySelectorAll("input[type='text']").forEach(input => {
+                    input.value = input.value.trim();
+                });
+            });
+        });
+    </script>
+}

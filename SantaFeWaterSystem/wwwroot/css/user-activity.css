@@ -1,0 +1,103 @@
+﻿/* General Table Styling */
+.table th, .table td {
+    vertical-align: middle;
+    font-size: clamp(0.8rem, 1vw, 1rem);
+    word-break: break-word;
+}
+
+/* Responsive Cards for Mobile View */
+@media (max-width: 576px) {
+    table.table {
+        display: none;
+    }
+
+    .mobile-activity-card {
+        display: block;
+        border: 1px solid #ccc;
+        border-radius: 10px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        background-color: #fff;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        font-size: 0.9rem;
+    }
+
+        .mobile-activity-card strong {
+            display: inline-block;
+            min-width: 90px;
+        }
+
+    .mobile-action-icon {
+        font-size: 1.2rem;
+        margin-right: 5px;
+    }
+}
+
+/* Action Icon Mapping */
+.icon-login::before {
+    content: "\f2f6";
+    font-family: "Bootstrap-icons";
+}
+
+.icon-update::before {
+    content: "\f4d2";
+    font-family: "Bootstrap-icons";
+}
+
+.icon-delete::before {
+    content: "\f1c0";
+    font-family: "Bootstrap-icons";
+}
+
+.icon-archive::before {
+    content: "\f1c5";
+    font-family: "Bootstrap-icons";
+}
+
+.icon-default::before {
+    content: "\f4ca";
+    font-family: "Bootstrap-icons";
+}
+
+/* Modal and Text Adjustments */
+.modal-body p {
+    font-size: 0.95rem;
+}
+
+/* Filter form */
+.filter-form input,
+.filter-form button {
+    font-size: 0.95rem;
+}
+
+.filter-form .btn {
+    padding: 0.5rem 1rem;
+}
+
+/* Archive/View Button Row */
+.action-btn-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+/* Pagination */
+.pagination {
+    flex-wrap: wrap;
+    font-size: 0.9rem;
+}
+
+@media (max-width: 576px) {
+    .card-title {
+        font-size: 1rem;
+    }
+
+    .card-text {
+        font-size: 0.9rem;
+    }
+
+    .card .btn-link {
+        font-size: 0.85rem;
+    }
+}

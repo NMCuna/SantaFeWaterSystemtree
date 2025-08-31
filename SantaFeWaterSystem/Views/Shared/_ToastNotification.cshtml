@@ -1,0 +1,41 @@
+﻿@{
+    var toastType = TempData["ToastType"]?.ToString(); // success, danger, etc.
+    var toastMessage = TempData["ToastMessage"]?.ToString();
+
+    var iconHtml = toastType switch
+    {
+        "success" => "<i class='fas fa-check-circle me-2'></i>",
+        "danger" => "<i class='fas fa-times-circle me-2'></i>",
+        "warning" => "<i class='fas fa-exclamation-triangle me-2'></i>",
+        "info" => "<i class='fas fa-info-circle me-2'></i>",
+        _ => "<i class='fas fa-bell me-2'></i>"
+    };
+}
+
+@if (!string.IsNullOrEmpty(toastType) && !string.IsNullOrEmpty(toastMessage))
+{
+    <script>
+        window.addEventListener('DOMContentLoaded', () => {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast fade show align-items-center text-white bg-${toastType} border-0 shadow-sm mb-3`;
+            toast.setAttribute('role', 'alert');
+            toast.setAttribute('aria-live', 'assertive');
+            toast.setAttribute('aria-atomic', 'true');
+            toast.innerHTML = `
+                <div class="d-flex">
+                    <div class="toast-body">
+                        ${`@Html.Raw(iconHtml)`}@Html.Raw(toastMessage)
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            `;
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.classList.remove('show');
+                toast.classList.add('hide');
+            }, 5000);
+        });
+    </script>
+}

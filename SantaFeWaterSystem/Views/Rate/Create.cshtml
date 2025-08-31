@@ -1,0 +1,89 @@
+﻿@model SantaFeWaterSystem.Models.Rate
+
+@{
+    ViewData["Title"] = "Create Rate";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+@section Styles {
+    <style>
+        .rate-card {
+            background: #ffffffcc;
+            backdrop-filter: blur(6px);
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 0 15px rgba(0,0,0,0.05);
+            max-width: 700px;
+            margin: 2rem auto;
+        }
+
+        .form-label i {
+            margin-right: 6px;
+            color: #0d6efd;
+        }
+
+        .page-header {
+            text-align: center;
+            font-weight: bold;
+            color: #0d6efd;
+            margin-bottom: 1.5rem;
+        }
+
+        .btn i {
+            margin-right: 5px;
+        }
+    </style>
+}
+
+<div class="rate-card">
+    <h2 class="page-header"><i class="bi bi-cash-coin"></i> @ViewData["Title"]</h2>
+
+    <form asp-action="Create" method="post" class="needs-validation" novalidate>
+        <div class="mb-3">
+            <label asp-for="AccountType" class="form-label">
+                <i class="bi bi-person-lines-fill"></i> Account Type
+            </label>
+            <select asp-for="AccountType" class="form-select" asp-items="ViewBag.AccountTypes" required>
+                <option value="">-- Select Account Type --</option>
+            </select>
+            <span asp-validation-for="AccountType" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="RatePerCubicMeter" class="form-label">
+                <i class="bi bi-droplet-half"></i> Rate per Cubic Meter
+            </label>
+            <input asp-for="RatePerCubicMeter" class="form-control" type="number" step="0.01" required />
+            <span asp-validation-for="RatePerCubicMeter" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="PenaltyAmount" class="form-label">
+                <i class="bi bi-exclamation-triangle-fill"></i> Penalty Amount
+            </label>
+            <input asp-for="PenaltyAmount" class="form-control" type="number" step="0.01" required />
+            <span asp-validation-for="PenaltyAmount" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="EffectiveDate" class="form-label">
+                <i class="bi bi-calendar-event-fill"></i> Effective Date
+            </label>
+            <input asp-for="EffectiveDate" class="form-control" type="date" required />
+            <span asp-validation-for="EffectiveDate" class="text-danger"></span>
+        </div>
+
+        <div class="d-flex justify-content-between">
+            <button type="submit" class="btn btn-success">
+                <i class="bi bi-check-circle-fill"></i> Create
+            </button>
+            <a asp-action="Index" class="btn btn-secondary">
+                <i class="bi bi-x-circle-fill"></i> Cancel
+            </a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

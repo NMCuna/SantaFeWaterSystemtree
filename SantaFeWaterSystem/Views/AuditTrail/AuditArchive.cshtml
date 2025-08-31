@@ -1,0 +1,242 @@
+﻿@model SantaFeWaterSystem.ViewModels.PaginatedList<SantaFeWaterSystem.Models.AuditTrailArchive>
+@using Microsoft.AspNetCore.Http
+
+@{
+    ViewData["Title"] = "Archived Audit Logs";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+
+    var phTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Asia/Manila");
+    var nowPH = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, phTimeZone);
+    var selectedMonth = Context.Request.Query["month"].FirstOrDefault() ?? nowPH.ToString("yyyy-MM");
+    var selectedActionType = Context.Request.Query["actionType"].FirstOrDefault() ?? "";
+}
+
+@section Styles {
+    <style>
+        .truncate-text {
+            max-width: 180px;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            display: inline-block;
+            vertical-align: middle;
+        }
+    </style>
+}
+
+<div class="audit-logs-container">
+    <h2 class="fw-bold text-primary mb-1">Archived Audit Logs</h2>
+
+    <p class="text-muted mb-4">
+        Showing archived logs for <strong>@DateTime.Parse(selectedMonth + "-01").ToString("MMMM yyyy")</strong>
+    </p>
+
+    <form asp-action="AuditArchive" method="get" class="row g-3 align-items-center mb-4">
+        <div class="col-auto">
+            <label for="monthFilter" class="col-form-label">Month:</label>
+        </div>
+        <div class="col-auto">
+            <input type="month" name="month" id="monthFilter" class="form-control" value="@selectedMonth" />
+        </div>
+
+        <div class="col-auto">
+            <label for="actionType" class="col-form-label">Action Type:</label>
+        </div>
+        <div class="col-auto">
+            <select name="actionType" id="actionType" class="form-select">
+                <option value="" selected="@("" == selectedActionType)">-- All --</option>
+                @* Options trimmed for brevity *@
+                <option value="Edit" selected="@(selectedActionType == "Edit")">Edit</option>
+                <option value="Delete" selected="@(selectedActionType == "Delete")">Delete</option>
+                <option value="Verified" selected="@(selectedActionType == "Verified")">Verified</option>
+                <option value="Unverified" selected="@(selectedActionType == "Unverified")">Unverified</option>
+                <option value="Walk-in Payment" selected="@(selectedActionType == "Walk-in Payment")">Walk-in Payment</option>
+                <option value="Register User" selected="@(selectedActionType == "Register User")">Register User</option>
+                <option value="Register Admin" selected="@(selectedActionType == "Register Admin")">Register Admin</option>
+                <option value="Login" selected="@(selectedActionType == "Login")">Login</option>
+                <option value="Logout" selected="@(selectedActionType == "Logout")">Logout</option>
+                <option value="Change Password" selected="@(selectedActionType == "Change Password")">Change Password</option>
+                <option value="Update Profile" selected="@(selectedActionType == "Update Profile")">Update Profile</option>
+                <option value="Reset Password" selected="@(selectedActionType == "Reset Password")">Reset Password</option>
+                <option value="Deactivate Account" selected="@(selectedActionType == "Deactivate Account")">Deactivate Account</option>
+                <option value="Activate Account" selected="@(selectedActionType == "Activate Account")">Activate Account</option>
+                <option value="Generate Bill" selected="@(selectedActionType == "Generate Bill")">Generate Bill</option>
+                <option value="Update Billing" selected="@(selectedActionType == "Update Billing")">Update Billing</option>
+                <option value="Send Bill Notification" selected="@(selectedActionType == "Send Bill Notification")">Send Bill Notification</option>
+                <option value="Apply Penalty" selected="@(selectedActionType == "Apply Penalty")">Apply Penalty</option>
+                <option value="Download Receipt" selected="@(selectedActionType == "Download Receipt")">Download Receipt</option>
+                <option value="Schedule Disconnection" selected="@(selectedActionType == "Schedule Disconnection")">Schedule Disconnection</option>
+                <option value="Reconnect Consumer" selected="@(selectedActionType == "Reconnect Consumer")">Reconnect Consumer</option>
+                <option value="Auto Disconnect Flagged" selected="@(selectedActionType == "Auto Disconnect Flagged")">Auto Disconnect Flagged</option>
+                <option value="Admin Reply Support" selected="@(selectedActionType == "Admin Reply Support")">Admin Reply Support</option>
+                <option value="Send SMS Notification" selected="@(selectedActionType == "Send SMS Notification")">Send SMS Notification</option>
+                <option value="Archive Support Ticket" selected="@(selectedActionType == "Archive Support Ticket")">Archive Support Ticket</option>
+                <option value="Mark Notification as Read" selected="@(selectedActionType == "Mark Notification as Read")">Mark Notification as Read</option>
+            </select>
+        </div>
+
+       
+            <div class="col-md-auto d-flex align-items-center gap-2">
+                <label for="search" class="col-form-label mb-0">Search:</label>
+                <input type="text" name="search" id="search" class="form-control"
+                       value="@Context.Request.Query["search"].FirstOrDefault()" placeholder="Search logs..." />
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-search"></i>
+                </button>
+            </div>
+       
+
+        <div class="col ms-auto text-end">
+            <a asp-controller="AuditTrail" asp-action="Index" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Back to Logs
+            </a>
+        </div>
+    </form>
+
+    <div class="table-responsive">
+        <table class="table table-bordered table-striped">
+            <thead class="table-light">
+                <tr>
+                    <th>Date</th>
+                    <th>Action</th>
+                    <th>Performed By</th>
+                    <th>Details</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Any())
+                {
+                    foreach (var log in Model)
+                    {
+                        <tr>
+                            <td>@log.Timestamp.ToString("MMM dd, yyyy hh:mm tt")</td>
+                            <td>
+                                <span class="truncate-text" title="@log.Action">@log.Action</span>
+                                @if (log.Action?.Length > 25)
+                                {
+                                    <a href="#" class="ms-2 text-info text-decoration-none" data-bs-toggle="modal"
+                                       data-bs-target="#textModal" data-title="Action" data-content="@log.Action">
+                                        <i class="bi bi-eye-fill"></i>
+                                    </a>
+                                }
+                            </td>
+                            <td>
+                                <span class="truncate-text" title="@log.PerformedBy">@log.PerformedBy</span>
+                                @if (log.PerformedBy?.Length > 25)
+                                {
+                                    <a href="#" class="ms-2 text-info text-decoration-none" data-bs-toggle="modal"
+                                       data-bs-target="#textModal" data-title="Performed By" data-content="@log.PerformedBy">
+                                        <i class="bi bi-eye-fill"></i>
+                                    </a>
+                                }
+                            </td>
+                            <td>
+                                <a asp-action="ArchiveDetails" asp-route-id="@log.Id" class="btn btn-sm btn-outline-primary">View</a>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="4" class="text-center">No records found.</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <!-- ✅ Pagination -->
+    @if (Model.TotalPages > 1)
+    {
+        <nav>
+            <ul class="pagination justify-content-center">
+                <li class="page-item @(Model.HasPreviousPage ? "" : "disabled")">
+                    <a class="page-link" asp-action="AuditArchive" asp-route-page="@(Model.PageIndex - 1)"
+                       asp-route-month="@selectedMonth" asp-route-actionType="@selectedActionType">Previous</a>
+                </li>
+
+                @{
+                    int startPage = Math.Max(1, Model.PageIndex - 2);
+                    int endPage = Math.Min(Model.TotalPages, Model.PageIndex + 2);
+                }
+
+                @if (startPage > 1)
+                {
+                    <li class="page-item">
+                        <a class="page-link" asp-action="AuditArchive" asp-route-page="1"
+                           asp-route-month="@selectedMonth" asp-route-actionType="@selectedActionType">1</a>
+                    </li>
+                    <li class="page-item disabled"><span class="page-link">...</span></li>
+                }
+
+                @for (int i = startPage; i <= endPage; i++)
+                {
+                    <li class="page-item @(i == Model.PageIndex ? "active" : "")">
+                        <a class="page-link" asp-action="AuditArchive" asp-route-page="@i"
+                           asp-route-month="@selectedMonth" asp-route-actionType="@selectedActionType">@i</a>
+                    </li>
+                }
+
+                @if (endPage < Model.TotalPages)
+                {
+                    <li class="page-item disabled"><span class="page-link">...</span></li>
+                    <li class="page-item">
+                        <a class="page-link" asp-action="AuditArchive" asp-route-page="@Model.TotalPages"
+                           asp-route-month="@selectedMonth" asp-route-actionType="@selectedActionType">@Model.TotalPages</a>
+                    </li>
+                }
+
+                <li class="page-item @(Model.HasNextPage ? "" : "disabled")">
+                    <a class="page-link" asp-action="AuditArchive" asp-route-page="@(Model.PageIndex + 1)"
+                       asp-route-month="@selectedMonth" asp-route-actionType="@selectedActionType">Next</a>
+                </li>
+            </ul>
+        </nav>
+    }
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="textModal" tabindex="-1" aria-labelledby="textModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="textModalLabel">Full Text</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="textModalBody"></div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        const textModal = document.getElementById('textModal');
+        textModal.addEventListener('show.bs.modal', function (event) {
+            const button = event.relatedTarget;
+            const content = button.getAttribute('data-content');
+            const title = button.getAttribute('data-title');
+
+            textModal.querySelector('.modal-title').textContent = title;
+            textModal.querySelector('.modal-body').textContent = content;
+        });
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const monthInput = document.getElementById('monthFilter');
+            const actionSelect = document.getElementById('actionType');
+
+            if (monthInput) {
+                monthInput.addEventListener('change', function () {
+                    this.form.submit();
+                });
+            }
+
+            if (actionSelect) {
+                actionSelect.addEventListener('change', function () {
+                    this.form.submit();
+                });
+            }
+        });
+    </script>
+   
+}

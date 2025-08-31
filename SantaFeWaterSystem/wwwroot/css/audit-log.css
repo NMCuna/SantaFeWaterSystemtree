@@ -1,0 +1,15 @@
+﻿/* audit-log.css */
+.modal-body {
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+.list-group-item {
+    font-size: 0.95rem;
+    line-height: 1.4;
+}
+
+    .list-group-item em {
+        font-style: italic;
+        color: #6c757d;
+    }

@@ -1,0 +1,226 @@
+﻿@model TwoFactorSetupViewModel
+@{
+    ViewData["Title"] = "Enable 2FA";
+    Layout = "_AccountLayout";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/twofa.css" asp-append-version="true" />
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #ffffff;
+            color: #212529;
+            font-size: calc(12px + 0.3vw);
+        }
+
+        .twofa-container {
+            background-color: #ffffff;
+            border-radius: 12px;
+            padding: 2rem;
+            width: 90vw;
+            max-width: 550px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.1);
+            position: relative;
+            font-size: 1em;
+        }
+
+        .close-home-btn-inside {
+            position: absolute;
+            top: 15px;
+            right: 15px; /* ✅ changed from left to right */
+            font-size: 1.75rem;
+            color: #ff4d4d;
+            text-decoration: none;
+            font-weight: bold;
+            z-index: 10;
+            text-shadow: 0 0 6px rgba(255, 77, 77, 0.6);
+            transition: transform 0.2s ease, color 0.3s ease;
+        }
+
+
+            .close-home-btn-inside:hover {
+                color: #fff;
+                transform: scale(1.2);
+                text-shadow: 0 0 12px rgba(255, 255, 255, 0.9), 0 0 20px rgba(255, 77, 77, 0.9);
+            }
+
+        .qr-image {
+            width: 160px;
+            height: 160px;
+            margin: auto;
+            display: block;
+        }
+
+        .twofa-title {
+            font-weight: bold;
+            color: #0d6efd;
+            font-size: 1.6em;
+        }
+
+        .btn-instructions {
+            margin-top: 0.5rem;
+            font-size: 0.95em;
+        }
+
+        @@media (max-width: 576px) {
+            .twofa-container
+
+        {
+            padding: 1.25rem;
+        }
+
+        .twofa-title {
+            font-size: 1.4em;
+        }
+
+        html, body {
+            font-size: calc(11px + 0.3vw);
+        }
+
+        .modal-content {
+            font-size: 0.95rem;
+        }
+
+        .modal-header h5 {
+            font-size: 1rem;
+        }
+
+        }
+
+        @@media (max-width: 360px) {
+            .twofa-title
+
+        {
+            font-size: 1.2em;
+        }
+
+        .close-home-btn-inside {
+            font-size: 1.4rem;
+        }
+
+        }
+    </style>
+}
+
+@section Scripts {
+    <script>
+        window.onload = function () {
+            const modal = new bootstrap.Modal(document.getElementById('twoFAReminderModal'));
+            modal.show();
+        };
+    </script>
+}
+
+
+<!-- 🚨 Security Reminder Modal -->
+<div class="modal fade" id="twoFAReminderModal" tabindex="-1" aria-labelledby="twoFAReminderModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border border-danger shadow-lg">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="twoFAReminderModalLabel">
+                    <i class="bi bi-shield-lock-fill me-2"></i> Critical Security Alert
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-dark">
+                <p class="mb-2">
+                    You are accessing an administrative account with <strong>elevated system privileges</strong>.
+                </p>
+                <p class="fw-bold text-danger">
+                    Enabling <strong>Two-Factor Authentication (2FA)</strong> is <u>mandatory</u> to protect against unauthorized access, data breaches, and critical system threats.
+                </p>
+                <p>
+                    Please complete the setup now to ensure your account — and the system — remain secure.
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger w-100" data-bs-dismiss="modal">
+                    <i class="bi bi-shield-check me-1"></i> I Understand the Risk
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ℹ️ Setup Instructions Modal -->
+<div class="modal fade" id="setupInstructionsModal" tabindex="-1" aria-labelledby="setupInstructionsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="setupInstructionsModalLabel">
+                    <i class="bi bi-info-circle me-2"></i> 2FA Setup Instructions
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <ul class="ps-3">
+                    <li><i class="bi bi-1-circle-fill text-primary me-1"></i> Download <strong>Microsoft Authenticator</strong> or <strong>Google Authenticator</strong>.</li>
+                    <li><i class="bi bi-2-circle-fill text-primary me-1"></i> Open the app and select "Scan QR Code" or "Enter code manually".</li>
+                    <li><i class="bi bi-3-circle-fill text-primary me-1"></i> Scan the QR code or use the manual code below.</li>
+                    <li><i class="bi bi-4-circle-fill text-primary me-1"></i> Enter the 6-digit code from the app.</li>
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary w-100" data-bs-dismiss="modal">
+                    <i class="bi bi-check-circle me-1"></i> Got it
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 🔐 2FA Main Form -->
+<div class="twofa-container">
+    <h2 class="text-center mb-3 twofa-title">
+        <i class="bi bi-shield-lock-fill me-2"></i> Secure Your Account with 2FA
+    </h2>
+
+    <a href="/Home/Index" class="close-home-btn-inside" title="Go to Home">
+        &times;
+    </a>
+
+
+
+    <p class="text-center text-muted">
+        Two-Factor Authentication (2FA) adds a second layer of protection to your admin account.
+    </p>
+
+    <div class="text-center">
+        <button type="button" class="btn btn-outline-primary btn-sm btn-instructions" data-bs-toggle="modal" data-bs-target="#setupInstructionsModal">
+            <i class="bi bi-question-circle me-1"></i> How to set up?
+        </button>
+    </div>
+
+    <div class="text-center mt-4">
+        <img src="@Model.QRCodeUrl" alt="QR Code" class="qr-image" />
+        <p class="mt-3 mb-0"><strong>Manual Code:</strong> <code>@Model.SecretKey</code></p>
+    </div>
+
+    <form asp-action="Setup2FAAdmin" method="post" class="mt-4">
+        @Html.HiddenFor(m => m.UserId)
+        @Html.HiddenFor(m => m.Role)
+        @Html.HiddenFor(m => m.SecretKey)
+        @Html.HiddenFor(m => m.QRCodeUrl)
+
+        <div class="mb-3">
+            <label asp-for="Code" class="form-label">
+                <i class="bi bi-key me-1"></i> 6-digit Code
+            </label>
+            <input asp-for="Code" class="form-control" placeholder="Enter code from app" autocomplete="off" />
+            <span asp-validation-for="Code" class="text-danger"></span>
+        </div>
+
+        <button type="submit" class="btn btn-primary w-100">
+            <i class="bi bi-shield-check me-1"></i> Verify 2FA
+        </button>
+    </form>
+</div>
