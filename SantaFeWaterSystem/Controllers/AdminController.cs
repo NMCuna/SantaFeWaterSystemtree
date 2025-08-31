@@ -158,19 +158,18 @@ public class AdminController(PermissionService permissionService, ApplicationDbC
         if (!string.IsNullOrWhiteSpace(searchTerm))
         {
             string lowerSearch = searchTerm.ToLower();
-
             switch (roleFilter)
             {
                 case "Admin":
-                    adminQuery = adminQuery.Where(u => u.Username.ToLower().Contains(lowerSearch));
+                    adminQuery = adminQuery.Where(u => !string.IsNullOrEmpty(u.Username) && u.Username.ToLower().Contains(lowerSearch));
                     break;
                 case "Staff":
-                    staffQuery = staffQuery.Where(u => u.Username.ToLower().Contains(lowerSearch));
+                    staffQuery = staffQuery.Where(u => !string.IsNullOrEmpty(u.Username) && u.Username.ToLower().Contains(lowerSearch));
                     break;
                 case "User":
                     userQuery = userQuery.Where(u =>
                         (!string.IsNullOrEmpty(u.AccountNumber) && u.AccountNumber.ToLower().Contains(lowerSearch)) ||
-                        u.Username.ToLower().Contains(lowerSearch));
+                        (!string.IsNullOrEmpty(u.Username) && u.Username.ToLower().Contains(lowerSearch)));
                     break;
             }
         }
@@ -283,8 +282,8 @@ public class AdminController(PermissionService permissionService, ApplicationDbC
         bool oldMfa = user.IsMfaEnabled;
 
         // Update fields
-        user.AccountNumber = model.AccountNumber.Trim();
-        user.Username = model.Username.Trim();
+        user.AccountNumber = model.AccountNumber?.Trim() ?? string.Empty;
+        user.Username = model.Username?.Trim() ?? string.Empty;
         user.IsMfaEnabled = model.IsMfaEnabled;
 
         var auditDetails = new List<string> { $"User ID: {user.Id}" };
@@ -306,7 +305,7 @@ public class AdminController(PermissionService permissionService, ApplicationDbC
             {
                 _context.AuditTrails.Add(new AuditTrail
                 {
-                    PerformedBy = User?.Identity?.IsAuthenticated == true ? User.Identity.Name : "System",
+                    PerformedBy = (User?.Identity?.IsAuthenticated == true ? User?.Identity?.Name : null) ?? "System",
                     Action = "Edited Consumer User",
                     Timestamp = DateTime.Now,
                     Details = string.Join(", ", auditDetails)
@@ -358,8 +357,8 @@ public class AdminController(PermissionService permissionService, ApplicationDbC
         var model = new EditAdminUserViewModel
         {
             Id = user.Id,
-            Username = user.Username,
-            FullName = user.FullName,
+            Username = user.Username ?? string.Empty,
+            FullName = user.FullName ?? string.Empty,
             IsMfaEnabled = user.IsMfaEnabled,
             Role = user.Role
         };
@@ -513,16 +512,16 @@ public class AdminController(PermissionService permissionService, ApplicationDbC
             user.IsLocked = true;
             await _context.SaveChangesAsync();
 
-            var performedBy = User.Identity.Name ?? "Unknown";
+            var performedBy = User?.Identity?.Name ?? "Unknown";
             await _audit.LogAsync("User Locked", $"User account {user.AccountNumber} was locked.", performedBy);
         }
 
         // Redirect back WITH pagination and filters
         return RedirectToAction("ManageUsers", new
         {
-            roleFilter = roleFilter,
-            searchTerm = searchTerm,
-            page = page
+            roleFilter,
+            searchTerm,
+            page
         });
     }
 
@@ -600,9 +599,9 @@ public class AdminController(PermissionService permissionService, ApplicationDbC
         // Redirect back with filters and pagination preserved
         return RedirectToAction("ManageUsers", new
         {
-            roleFilter = roleFilter,
-            searchTerm = searchTerm,
-            page = page
+            roleFilter,
+            searchTerm,
+            page
         });
     }
 
@@ -637,9 +636,9 @@ public class AdminController(PermissionService permissionService, ApplicationDbC
         // Preserve filters & pagination
         return RedirectToAction("ManageUsers", new
         {
-            roleFilter = roleFilter,
-            searchTerm = searchTerm,
-            page = page
+            roleFilter,
+            searchTerm,
+            page
         });
     }
 
@@ -670,9 +669,10 @@ public class AdminController(PermissionService permissionService, ApplicationDbC
         // Pass filters and pagination back
         return RedirectToAction("ManageUsers", new
         {
-            roleFilter = roleFilter,
-            searchTerm = searchTerm,
-            page = page
+            roleFilter,
+            searchTerm,
+            page
+
         });
     }
 
@@ -696,10 +696,10 @@ public class AdminController(PermissionService permissionService, ApplicationDbC
     [Authorize(Roles = "Admin,Staff")]
     public async Task<IActionResult> Consumers(string searchTerm, string addressFilter, int page = 1, int pageSize = 6)
         {
-            searchTerm = searchTerm?.Trim();
-            addressFilter = addressFilter?.Trim();
+        searchTerm = searchTerm?.Trim() ?? string.Empty;
+        addressFilter = addressFilter?.Trim() ?? string.Empty;
 
-            var consumersQuery = _context.Consumers
+        var consumersQuery = _context.Consumers
                 .Include(c => c.User)
                 .AsQueryable();
 
@@ -815,9 +815,10 @@ public class AdminController(PermissionService permissionService, ApplicationDbC
 
     // GET: ConsumerDetails
     [Authorize(Roles = "Admin,Staff")]
-    public IActionResult ConsumerDetails(int id)
-        {
-            ViewBag.Users = new SelectList(_context.Users, "Id", "AccountNumber");
+    public IActionResult ConsumerDetails(int id, int page = 1)
+    {
+        ViewBag.CurrentPage = page;
+        ViewBag.Users = new SelectList(_context.Users, "Id", "AccountNumber");
 
             var consumer = _context.Consumers
                 .Include(c => c.User)
@@ -847,7 +848,7 @@ public class AdminController(PermissionService permissionService, ApplicationDbC
     // GET: EditConsumer
     [Authorize(Roles = "Admin,Staff")]
     [HttpGet]
-    public async Task<IActionResult> EditConsumer(int id)
+    public async Task<IActionResult> EditConsumer(int id, int page = 1)
     {
         var consumer = await _context.Consumers.FindAsync(id);
         if (consumer == null)
@@ -858,6 +859,7 @@ public class AdminController(PermissionService permissionService, ApplicationDbC
         //  Updated to use enum values
         var types = Enum.GetNames(typeof(ConsumerType));
         ViewBag.AccountTypes = new SelectList(types, consumer.AccountType);
+        ViewBag.CurrentPage = page;
 
         return View(consumer);
     }
@@ -866,7 +868,7 @@ public class AdminController(PermissionService permissionService, ApplicationDbC
     // POST: EditConsumer
     [Authorize(Roles = "Admin,Staff")]
     [HttpPost]
-    public async Task<IActionResult> EditConsumer(Consumer consumer)
+    public async Task<IActionResult> EditConsumer(Consumer consumer, int page = 1)
     {
         if (!ModelState.IsValid)
         {
@@ -875,6 +877,7 @@ public class AdminController(PermissionService permissionService, ApplicationDbC
             // Updated to use enum values
             var types = Enum.GetNames(typeof(ConsumerType));
             ViewBag.AccountTypes = new SelectList(types, consumer.AccountType);
+            ViewBag.CurrentPage = page;
 
             return View(consumer);
         }
@@ -920,7 +923,7 @@ public class AdminController(PermissionService permissionService, ApplicationDbC
         });
 
         await _context.SaveChangesAsync();
-        return RedirectToAction("Consumers");
+        return RedirectToAction("Consumers", new { page });
     }
 
 
@@ -929,8 +932,8 @@ public class AdminController(PermissionService permissionService, ApplicationDbC
 
     // GET: Confirm Delete
     [Authorize(Roles = "Admin,Staff")]
-    public IActionResult DeleteConsumer(int id)
-        {
+    public IActionResult DeleteConsumer(int id, int page = 1)
+    {
             var consumer = _context.Consumers
                 .Include(c => c.User)
                 .FirstOrDefault(c => c.Id == id);
@@ -938,14 +941,16 @@ public class AdminController(PermissionService permissionService, ApplicationDbC
             if (consumer == null)
                 return NotFound();
 
-            return View(consumer);
+        ViewBag.CurrentPage = page;
+
+        return View(consumer);
         }
 
         // POST: Delete
         [HttpPost, ActionName("DeleteConsumer")]
         [ValidateAntiForgeryToken]
-        public IActionResult DeleteConsumerConfirmed(int id)
-        {
+    public IActionResult DeleteConsumerConfirmed(int id, int page = 1)
+    {
             var consumer = _context.Consumers
                 .Include(c => c.User)
                 .FirstOrDefault(c => c.Id == id);
@@ -971,8 +976,8 @@ public class AdminController(PermissionService permissionService, ApplicationDbC
             });
 
             _context.SaveChanges();
-            return RedirectToAction(nameof(Consumers));
-        }
+        return RedirectToAction(nameof(Consumers), new { page });
+    }
 
 
     // ================== GetConsumerInfo (AJAX) ==================

@@ -21,10 +21,11 @@ namespace SantaFeWaterSystem.Controllers
             _audit = audit;
 
         }
-   
 
 
-public override async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
+        // ================== BASE CONTROLER EXECUTION ==================
+
+        public override async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
     {
         int? userId = null;
 
@@ -55,7 +56,5 @@ public override async Task OnActionExecutionAsync(ActionExecutingContext context
 
         await next();
     }
-
-
 }
 }

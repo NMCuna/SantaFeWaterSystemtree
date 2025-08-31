@@ -45,7 +45,9 @@ namespace SantaFeWaterSystem.Controllers
                 Directory.CreateDirectory(backupFolder);
 
             string backupFile = Path.Combine(backupFolder, $"Backup_{DateTime.Now:yyyyMMdd_HHmmss}.bak");
-            string connectionString = _configuration.GetConnectionString("DefaultConnection");
+            string connectionString = _configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' is missing.");
+
+
 
             try
             {
@@ -111,8 +113,7 @@ namespace SantaFeWaterSystem.Controllers
             {
                 await backupFile.CopyToAsync(stream);
             }
-
-            string connectionString = _configuration.GetConnectionString("DefaultConnection");
+            string connectionString = _configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' is missing.");
 
             try
             {
@@ -155,6 +156,7 @@ namespace SantaFeWaterSystem.Controllers
         }
 
 
+
         // ================== ManageBackups  ==================
 
         // List existing backups
@@ -174,8 +176,8 @@ namespace SantaFeWaterSystem.Controllers
 
 
 
-        // ================== DownloadBackup  ==================
 
+        // ================== DownloadBackup  ==================
 
         // Download backup
         public IActionResult DownloadBackup(string fileName)
@@ -220,15 +222,7 @@ namespace SantaFeWaterSystem.Controllers
 
 
 
-
-
-
-
-
-
-
         // ================== ScheduledBackup  ==================
-
 
         [NonAction] // Prevent direct HTTP access
         public async Task ScheduledBackup()
@@ -238,7 +232,7 @@ namespace SantaFeWaterSystem.Controllers
                 Directory.CreateDirectory(backupFolder);
 
             string backupFile = Path.Combine(backupFolder, $"Backup_{DateTime.Now:yyyyMMdd_HHmmss}.bak");
-            string connectionString = _configuration.GetConnectionString("DefaultConnection");
+            string connectionString = _configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' is missing.");
 
             try
             {
@@ -263,7 +257,7 @@ namespace SantaFeWaterSystem.Controllers
                 });
                 await _context.SaveChangesAsync();
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 // log error
             }

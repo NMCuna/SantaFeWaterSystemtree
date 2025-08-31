@@ -56,6 +56,8 @@
 
     <form asp-action="EditConsumer" method="post" class="mt-4">
         <input type="hidden" asp-for="Id" />
+        <input type="hidden" name="page" value="@ViewBag.CurrentPage" />
+
 
         <div class="row g-3">
             <div class="col-md-4 form-floating-icon" title="Last Name">
@@ -134,7 +136,7 @@
 
         <div class="mt-4">
             <button type="submit" class="btn btn-primary"><i class="bi bi-check-circle"></i> Update</button>
-            <a asp-action="Consumers" class="btn btn-secondary"><i class="bi bi-arrow-left-circle"></i> Cancel</a>
+            <a asp-action="Consumers" asp-route-page="@ViewBag.CurrentPage" class="btn btn-secondary"><i class="bi bi-arrow-left-circle"></i> Cancel</a>
         </div>
     </form>
 </div>

@@ -98,21 +98,21 @@
                 <td class="action-buttons">
                     @if (userPermissions.Contains("ViewConsumer"))
                     {
-                        <a asp-action="ConsumerDetails" asp-route-id="@consumer.Id" class="btn btn-sm btn-outline-info" data-bs-toggle="tooltip" title="View Consumer">
+                        <a asp-action="ConsumerDetails" asp-route-id="@consumer.Id" asp-route-page="@ViewBag.CurrentPage" class="btn btn-sm btn-outline-info" data-bs-toggle="tooltip" title="View Consumer">
                             <i class="bi bi-eye"></i> View
                         </a>
                     }
 
                     @if (userPermissions.Contains("EditConsumer"))
                     {
-                        <a asp-action="EditConsumer" asp-route-id="@consumer.Id" class="btn btn-sm btn-outline-warning" data-bs-toggle="tooltip" title="Edit Consumer">
+                        <a asp-action="EditConsumer" asp-route-id="@consumer.Id" asp-route-page="@ViewBag.CurrentPage" class="btn btn-sm btn-outline-warning" data-bs-toggle="tooltip" title="Edit Consumer">
                             <i class="bi bi-pencil-square"></i> Edit
                         </a>
                     }
 
                     @if (userPermissions.Contains("DeleteConsumer"))
                     {
-                        <a asp-action="DeleteConsumer" asp-route-id="@consumer.Id" class="btn btn-sm btn-outline-danger" data-bs-toggle="tooltip" title="Delete Consumer">
+                        <a asp-action="DeleteConsumer" asp-route-id="@consumer.Id" asp-route-page="@ViewBag.CurrentPage" class="btn btn-sm btn-outline-danger" data-bs-toggle="tooltip" title="Delete Consumer">
                             <i class="bi bi-trash"></i> Delete
                         </a>
                     }

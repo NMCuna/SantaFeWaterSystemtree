@@ -43,7 +43,7 @@ namespace SantaFeWaterSystem.Models
         public int? ConsumerId { get; set; }
         public Consumer? Consumer { get; set; }
 
-        // ✅ NEW: Permissions assigned to staff
+      
         public ICollection<StaffPermission> StaffPermissions { get; set; } = new List<StaffPermission>();
         public ICollection<Feedback> Feedbacks { get; set; }
       

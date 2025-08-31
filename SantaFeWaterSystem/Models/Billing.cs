@@ -6,27 +6,21 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace SantaFeWaterSystem.Models
 {
     public class Billing
-    {
-        internal object User;
-
+    {      
         public int Id { get; set; }
 
         [Required]
         public int ConsumerId { get; set; }
 
         // Navigation property
-        public Consumer? Consumer { get; set; }
-
-       
+        public Consumer? Consumer { get; set; } 
         public string? BillNo { get; set; } = string.Empty;
-
 
         [Required]
         [DataType(DataType.Date)]
         [Display(Name = "Billing Date")]
         public DateTime BillingDate { get; set; }
-
-        // ✅ Add this:
+     
         public string? Remarks { get; set; }
 
         [Required]
@@ -91,9 +85,7 @@ namespace SantaFeWaterSystem.Models
 
 
         [NotMapped]
-        public bool HasPendingPayment { get; set; }
-
-        // ✅ New: Navigation property
+        public bool HasPendingPayment { get; set; }     
         public ICollection<Disconnection>? Disconnections { get; set; }
 
     }

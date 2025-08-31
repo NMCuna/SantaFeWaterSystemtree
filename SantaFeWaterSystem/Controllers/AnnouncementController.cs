@@ -20,6 +20,9 @@ public class AnnouncementController : Controller
         _env = env;
     }
 
+
+    // ================== GetCurrentUserId ==================
+
     // Helper: get numeric user ID from claims
     private int? GetCurrentUserId()
     {
@@ -30,14 +33,16 @@ public class AnnouncementController : Controller
     }
 
 
-    ///////////////////////////////////COMMUNITY FEED//////////////////////////////////////////////////////////
+   
+
+    // ================== COMMUNITY FEED USER,ADMIN,STAFF ==================
 
     // Display all posts with feedback
     [Authorize(Roles = "Admin,Staff,User")]
     public async Task<IActionResult> Index()
     {
         var posts = await _context.Announcements
-            .Where(a => a.IsActive == true) // ✅ explicitly check for true
+            .Where(a => a.IsActive == true) 
             .Include(a => a.Admin)
             .Include(a => a.Feedbacks!)
                 .ThenInclude(f => f.User)
@@ -56,7 +61,8 @@ public class AnnouncementController : Controller
 
 
 
-   ///////////////////////////////////CREATE//////////////////////////////////////////////////////////
+    
+    // ================== CREATE ANNOUNCEMENT ADMIN,STAFF=================
 
     // Admin create post (GET)
     [Authorize(Roles = "Admin,Staff")]
@@ -101,7 +107,8 @@ public class AnnouncementController : Controller
 
 
 
-    ///////////////////////////////////ADD FEEDBACK//////////////////////////////////////////////////////////
+
+    // ================== ADD FEEDBACK USER,ADMIN,STAFF ==================
 
 
     // User adds feedback (text/image)
@@ -149,7 +156,9 @@ public class AnnouncementController : Controller
 
 
 
-    ///////////////////////////////////EDIT FEEDBACK //////////////////////////////////////////////////////////
+
+    // ================== EDIT FEEDBACK USER,ADMIN,STAFF ==================
+
 
     // Edit feedback
     [Authorize(Roles = "Admin,Staff,User")]
@@ -200,8 +209,8 @@ public class AnnouncementController : Controller
 
 
 
-    ///////////////////////////////////Add Feedback Comment //////////////////////////////////////////////////////////
-
+   
+    // ================== ADD FEEDBACK COMMENT USER,ADMIN,STAFF ==================
 
     // Add comment to feedback
     [Authorize(Roles = "Admin,Staff,User")]
@@ -231,9 +240,10 @@ public class AnnouncementController : Controller
     }
 
 
-    // ===============================
-    // DELETE COMMENT
-    // ===============================
+
+    
+    // ================== DELETE COMMENT ==================
+
     [Authorize(Roles = "Admin,Staff,User")]
     [HttpPost]
     [ValidateAntiForgeryToken]
@@ -260,9 +270,10 @@ public class AnnouncementController : Controller
         return Json(new { success = false, message = "You are not allowed to delete this comment." });
     }
 
-    // ===============================
-    // DELETE FEEDBACK
-    // ===============================
+
+
+    // ================== DELETE FEEDBACK USER,ADMIN,STAFF==================
+
     [Authorize(Roles = "Admin,Staff,User")]
     [HttpPost]
     [ValidateAntiForgeryToken]
@@ -298,8 +309,9 @@ public class AnnouncementController : Controller
     }
 
 
-    ///////////////////////////////////Toggle Feedback Like //////////////////////////////////////////////////////////
 
+
+    // ================== TOGGLE FEEDBACK LIKE USER,ADMIN,STAFF ==================
 
 
     // Like/unlike feedback
@@ -334,8 +346,8 @@ public class AnnouncementController : Controller
 
 
 
-    ///////////////////////////////////Edit Announcement //////////////////////////////////////////////////////////
 
+    // ================== EDIT ANNOUNCEMENT ==================
 
 
     // Admin edit/delete announcement
@@ -386,8 +398,4 @@ public class AnnouncementController : Controller
         await _context.SaveChangesAsync();
         return RedirectToAction("Index");
     }
-
-
-
-
 }

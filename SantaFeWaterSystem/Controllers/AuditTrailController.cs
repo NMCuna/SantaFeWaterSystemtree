@@ -16,9 +16,7 @@ namespace SantaFeWaterSystem.Controllers
 {
     [Authorize(Roles = "Admin")]
     public class AuditTrailController : BaseController
-    {
-       
-
+    {      
         public AuditTrailController(ApplicationDbContext context, PermissionService permissionService, AuditLogService audit)
             : base(permissionService, context, audit)
         {
@@ -26,6 +24,8 @@ namespace SantaFeWaterSystem.Controllers
         }
 
 
+
+        // ================== INDEX LIST OF THE ADITTRAIL ==================
 
         public IActionResult Index(string month, string actionType, string search, int page = 1)
         {
@@ -76,7 +76,7 @@ namespace SantaFeWaterSystem.Controllers
 
                 return View(pagedLogs);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 // Log the error if needed: _logger.LogError(ex, "Error loading audit logs");
                 TempData["Error"] = "An error occurred while loading the audit logs. Please try again.";
@@ -84,6 +84,9 @@ namespace SantaFeWaterSystem.Controllers
             }
         }
 
+
+
+        // ================== DETAILS ==================
 
         public IActionResult Details(int id)
         {
@@ -98,24 +101,23 @@ namespace SantaFeWaterSystem.Controllers
 
 
 
-        /////////ARCHIVE/////////////
-
+        // ================== ARCHIVE OLD LOGS ==================
 
         [HttpPost]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> ArchiveOldAuditLogs()
         {
-            // ✅ Get Philippine Standard Time
+            // Get Philippine Standard Time
             var phTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Asia/Manila");
             var nowPH = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, phTimeZone);
 
-            // ✅ Set cutoff to 12 hours ago PH time
+            // Set cutoff to 12 hours ago PH time
             var cutoffPH = nowPH.AddHours(-12);
 
-            // ✅ Convert cutoff to UTC since log timestamps are likely stored in UTC
+            // Convert cutoff to UTC since log timestamps are likely stored in UTC
             var cutoffUTC = TimeZoneInfo.ConvertTimeToUtc(cutoffPH, phTimeZone);
 
-            // ✅ Get logs older than 12 hours in PH time
+            // Get logs older than 12 hours in PH time
             var oldLogs = await _context.AuditTrails
                 .Where(log => log.Timestamp < cutoffUTC)
                 .ToListAsync();
@@ -143,6 +145,9 @@ namespace SantaFeWaterSystem.Controllers
             return RedirectToAction("Index");
         }
 
+
+
+        // ================== ARCHIVE LIST ==================
 
         [HttpGet]
         [Authorize(Roles = "Admin")]
@@ -193,6 +198,8 @@ namespace SantaFeWaterSystem.Controllers
 
 
 
+        // ================== ARCHIVE DETAILS ==================
+
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> ArchiveDetails(int id)
         {
@@ -202,8 +209,5 @@ namespace SantaFeWaterSystem.Controllers
 
             return View(archiveLog); 
         }
-
-
-
     }
 }

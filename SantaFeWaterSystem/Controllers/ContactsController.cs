@@ -21,12 +21,18 @@ namespace SantaFeWaterSystem.Controllers.Admin
             _audit = audit;
         }
 
+
+        //================== Contact Management ==================
         // GET: Admin/Contacts
         public async Task<IActionResult> Index()
         {
             var contacts = await _context.ContactInfos.ToListAsync();
             return View(contacts);
         }
+
+
+
+        //================== CREATE CONTACT ==================
 
         // GET: Admin/Contacts/Create
         public IActionResult Create()
@@ -44,7 +50,7 @@ namespace SantaFeWaterSystem.Controllers.Admin
                 _context.ContactInfos.Add(model);
                 await _context.SaveChangesAsync();
 
-                // ✅ Audit trail
+                // Audit trail
                 var performedBy = User.Identity?.Name ?? "Unknown";
                 var details = $"New contact created. Name={model.FacebookName}, Email={model.Email}, Phone={model.Phone}.";
 
@@ -68,6 +74,10 @@ namespace SantaFeWaterSystem.Controllers.Admin
             return View(model);
         }
 
+
+
+
+        //================== EDIT CONTACT ==================
 
         // GET: Admin/Contacts/Edit/5
         public async Task<IActionResult> Edit(int? id)
@@ -101,7 +111,7 @@ namespace SantaFeWaterSystem.Controllers.Admin
                     _context.Update(model);
                     await _context.SaveChangesAsync();
 
-                    // ✅ Audit trail
+                    // Audit trail
                     var performedBy = User.Identity?.Name ?? "Unknown";
                     var details = $"Contact updated. " +
                                   $"Before: Name={originalContact.FacebookName}, Email={originalContact.Email}, Phone={originalContact.Phone}. " +
@@ -135,6 +145,10 @@ namespace SantaFeWaterSystem.Controllers.Admin
             return View(model);
         }
 
+
+
+        //================== DELETE CONTACT ==================
+
         // GET: Admin/Contacts/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
@@ -159,7 +173,7 @@ namespace SantaFeWaterSystem.Controllers.Admin
                 _context.ContactInfos.Remove(contact);
                 await _context.SaveChangesAsync();
 
-                // ✅ Audit trail
+                // Audit trail
                 var performedBy = User.Identity?.Name ?? "Unknown";
                 var details = $"Contact deleted. Name={contact.FacebookName}, Email={contact.Email}, Phone={contact.Phone}.";
                 var phTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Asia/Manila");
@@ -181,6 +195,10 @@ namespace SantaFeWaterSystem.Controllers.Admin
 
 
 
+
+        //================== HELPER METHODS ==================
+
+        // Helper method to check if contact exists
         private bool ContactExists(int id)
         {
             return _context.ContactInfos.Any(e => e.Id == id);

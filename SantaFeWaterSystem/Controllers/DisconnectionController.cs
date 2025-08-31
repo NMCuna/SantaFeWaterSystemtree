@@ -28,11 +28,20 @@ namespace SantaFeWaterSystem.Controllers
             _httpContextAccessor = httpContextAccessor;
         }
 
+
+
+        //================== HELPER METHODS ==================
+
+        // Helper to get current username
         private string GetCurrentUsername()
         {
             return _httpContextAccessor.HttpContext?.User?.Identity?.Name ?? "Unknown";
         }
 
+
+
+
+        //================== INDEX DISCONNECTION LIST  ==================
         public async Task<IActionResult> Index(string searchTerm, string sortOrder, int page = 1, int pageSize = PageSize)
         {
             var today = DateTime.Today;
@@ -49,11 +58,11 @@ namespace SantaFeWaterSystem.Controllers
                     TotalUnpaidAmount = g.Sum(b => b.TotalAmount),
                     LatestDueDate = g.Max(b => b.DueDate)
                 })
-                .ToListAsync(); // ✅ Now in memory
+                .ToListAsync(); // Now in memory
 
             // Step 2 & 3: Switch Consumers query to in-memory before join
             var disconnectionData = _context.Consumers
-                .AsEnumerable() // ✅ Forces client-side join
+                .AsEnumerable() // Forces client-side join
                 .Join(overdueGrouped,
                     c => c.Id,
                     b => b.ConsumerId,
@@ -99,7 +108,7 @@ namespace SantaFeWaterSystem.Controllers
 
             var paginated = new PaginatedList<DisconnectionViewModel>(items, count, page, pageSize);
 
-            // ✅ Pass values to view for search + sorting persistence
+            // Pass values to view for search + sorting persistence
             ViewBag.CurrentSort = sortOrder;
             ViewBag.SearchTerm = searchTerm;
 
@@ -107,7 +116,10 @@ namespace SantaFeWaterSystem.Controllers
         }
 
 
-        // GET: Disconnection/Details/5
+
+        //================== DETAILS  DISCONNECTION  ==================
+
+        // GET: Disconnection/Details
         public async Task<IActionResult> Details(int id)
         {
             var consumer = await _context.Consumers
@@ -142,11 +154,15 @@ namespace SantaFeWaterSystem.Controllers
                 IsDisconnected = disconnection != null
             };
 
-            return View(viewModel); // ✅ now matches your view model structure
+            return View(viewModel); // now matches your view model structure
         }
 
 
 
+
+        //================== DISCONNECT ACTIONS ==================
+
+        // POST: Disconnection/Disconnect
         [Authorize(Roles = "Admin,Staff")]
         [HttpPost]
         public async Task<IActionResult> Disconnect(int id)
@@ -177,7 +193,7 @@ namespace SantaFeWaterSystem.Controllers
             // Store current date in a readable format
             var notificationDate = DateTime.Now.ToString("MMMM dd, yyyy");
 
-            // ✅ In-App Notification
+            // In-App Notification
             var notif = new Notification
             {
                 ConsumerId = consumer.Id,
@@ -189,7 +205,7 @@ namespace SantaFeWaterSystem.Controllers
 
             _context.Notifications.Add(notif);
 
-            // ✅ Push Notification
+            // Push Notification
             var user = consumer.User;
             if (user != null)
             {
@@ -238,7 +254,7 @@ namespace SantaFeWaterSystem.Controllers
                 }
             }
 
-            // 🔍 Audit log
+            // Audit log
             var audit = new AuditTrail
             {
                 Action = "Disconnect",
@@ -256,7 +272,11 @@ namespace SantaFeWaterSystem.Controllers
         }
 
 
-        // POST: Disconnection/Reconnect/5
+
+
+        //================== RECONNECT ACTIONS ==================
+
+        // POST: Disconnection/Reconnect
         [HttpPost]
         public async Task<IActionResult> Reconnect(int id)
         {
@@ -294,7 +314,7 @@ namespace SantaFeWaterSystem.Controllers
             };
             _context.Notifications.Add(notif);
 
-            // ✅ Push Notification
+            // Push Notification
             var user = consumer.User;
             if (user != null)
             {
@@ -343,7 +363,7 @@ namespace SantaFeWaterSystem.Controllers
                 }
             }
 
-            // 🔍 Audit Log
+            // Audit Log
             var audit = new AuditTrail
             {
                 Action = "Reconnect",
@@ -362,7 +382,9 @@ namespace SantaFeWaterSystem.Controllers
 
 
 
-        // POST: Disconnection/Notify/5
+        //================== NOTIFY ACTIONS ==================
+
+        // POST: Disconnection/Notify
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Notify(int id)
@@ -392,7 +414,7 @@ namespace SantaFeWaterSystem.Controllers
 
                     _context.Notifications.Add(notif);
 
-                    // ✅ Push Notification
+                    // Push Notification
                     var user = consumer.User;
                     if (user != null)
                     {
@@ -441,7 +463,7 @@ namespace SantaFeWaterSystem.Controllers
                         }
                     }
 
-                    // 🔍 Audit log
+                    // Audit log
                     var audit = new AuditTrail
                     {
                         Action = "Notify",
@@ -466,7 +488,5 @@ namespace SantaFeWaterSystem.Controllers
 
             return RedirectToAction("Index");
         }
-
-
     }
 }

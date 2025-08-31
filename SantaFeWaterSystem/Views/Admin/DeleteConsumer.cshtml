@@ -79,6 +79,7 @@
 
     <form asp-action="DeleteConsumer" method="post">
         <input type="hidden" asp-for="Id" />
+        <input type="hidden" name="page" value="@ViewBag.CurrentPage" />
 
         <div id="confirmBox" class="form-check mb-3">
             <input type="checkbox" class="form-check-input" id="confirmDeleteCheck">
@@ -91,7 +92,7 @@
             <i class="bi bi-trash3-fill"></i> Yes, Delete
         </button>
 
-        <a asp-action="Consumers" class="btn btn-secondary">
+        <a asp-action="Consumers" asp-route-page="@ViewBag.CurrentPage" class="btn btn-secondary">
             <i class="bi bi-arrow-left-circle"></i> Cancel
         </a>
     </form>

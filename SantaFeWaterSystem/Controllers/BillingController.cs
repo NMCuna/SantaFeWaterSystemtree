@@ -29,9 +29,9 @@ namespace SantaFeWaterSystem.Controllers
         PermissionService permissionService,
         ISemaphoreSmsService smsService,     
         IOptions<SemaphoreSettings> semaphoreOptions,
-         IWebHostEnvironment env,
-          ISmsQueue smsQueue,
-          AuditLogService audit
+        IWebHostEnvironment env,
+        ISmsQueue smsQueue,
+        AuditLogService audit
     ) : BaseController(permissionService, context, audit)
     {
         private readonly ISemaphoreSmsService _smsService = smsService;        
@@ -42,7 +42,7 @@ namespace SantaFeWaterSystem.Controllers
 
 
 
-
+        // ================== INDEX BILLING LIST ==================       
 
         // GET: Billing    
         [Authorize(Roles = "Admin,Staff")]
@@ -65,7 +65,7 @@ namespace SantaFeWaterSystem.Controllers
         {
             query = query.Where(b => b.Status == statusFilter);
         }
-            // ✅ Filter by Month and Year if selected
+            // Filter by Month and Year if selected
             if (selectedMonth.HasValue && selectedYear.HasValue)
             {
                 query = query.Where(b =>
@@ -134,6 +134,8 @@ namespace SantaFeWaterSystem.Controllers
 
 
 
+        // ================== NOTIFY BUTTON CAN BE USE IF USER IS OVERDUE ==================
+
         [Authorize(Roles = "Admin,Staff")]
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -160,7 +162,7 @@ namespace SantaFeWaterSystem.Controllers
 
                 _context.Notifications.Add(notif);
 
-                // ✅ Push Notification
+                // Push Notification
                 var user = billing.Consumer.User;
                 if (user != null)
                 {
@@ -211,7 +213,7 @@ namespace SantaFeWaterSystem.Controllers
                     }
                 }
 
-                // 🔍 Audit log
+                // Audit log
                 var audit = new AuditTrail
                 {
                     Action = "Notify",
@@ -234,12 +236,16 @@ namespace SantaFeWaterSystem.Controllers
         }
 
 
+
+        // ================== GetCurrentUsername ==================
         private string GetCurrentUsername()
         {
             return User.FindFirst(ClaimTypes.Name)?.Value ?? "Unknown";
         }
 
 
+
+        // ================== ExportSelectedToPdf ==================
 
         [Authorize(Roles = "Admin,Staff")]
         [HttpPost]
@@ -283,7 +289,7 @@ namespace SantaFeWaterSystem.Controllers
 
 
 
-
+        // ================== ExportMonthlySummaryPdf ==================
 
         [Authorize(Roles = "Admin,Staff")]
         public async Task<IActionResult> ExportMonthlySummaryPdf(int month, int year)
@@ -321,7 +327,7 @@ namespace SantaFeWaterSystem.Controllers
 
 
 
-
+        // ================== CREATE NEW BILLING ==================
 
         // GET: Billing/Create
         [Authorize(Roles = "Admin,Staff")]
@@ -449,13 +455,13 @@ namespace SantaFeWaterSystem.Controllers
 
                 billing.TotalAmount = billing.AmountDue + billing.Penalty + additionalFees;
 
-                // ✅ Generate and assign BillNo here
+                //  Generate and assign BillNo here
                 billing.BillNo = await GenerateBillNoForConsumerAsync(billing.ConsumerId);
 
                 _context.Billings.Add(billing);
                 await _context.SaveChangesAsync();
 
-                // ✅ In-app notification creation
+                //  In-app notification creation
                 var billingNotification = new Notification
                 {
                     ConsumerId = billing.ConsumerId,
@@ -465,7 +471,7 @@ namespace SantaFeWaterSystem.Controllers
                 };
                 _context.Notifications.Add(billingNotification);
 
-                // ✅ Add AuditTrail after successful SaveChanges
+                //  Add AuditTrail after successful SaveChanges
                 _context.AuditTrails.Add(new AuditTrail
                 {
                     PerformedBy = User.Identity?.Name ?? "Unknown",
@@ -485,7 +491,7 @@ namespace SantaFeWaterSystem.Controllers
                               $"Status: {billing.Status}"
                 });
 
-                // ✅ Add push notification record and optionally send
+                //  Add push notification record and optionally send
                 var user = await _context.Users
                     .Include(u => u.Consumer)
                     .FirstOrDefaultAsync(u => u.Consumer != null && u.Consumer.Id == billing.ConsumerId);
@@ -550,7 +556,7 @@ namespace SantaFeWaterSystem.Controllers
                         }
                     }
 
-                    // ✅ Mark as notified only if at least one success
+                    //  Mark as notified only if at least one success
                     if (anySuccess)
                     {
                         billNotif.IsNotified = true;
@@ -559,7 +565,7 @@ namespace SantaFeWaterSystem.Controllers
                 }
 
                 await _context.SaveChangesAsync();
-                // ✅ Send SMS
+                //  Send SMS
                 if (!string.IsNullOrWhiteSpace(consumer.ContactNumber))
                 {
                     var smsMessage = $"Hello {consumer.FullName}, your water bill (#{billing.BillNo}) for {billing.BillingDate:MMMM yyyy} is ₱{billing.TotalAmount:N2}. It is due on {billing.DueDate:MMMM d}. – Santa Fe Water System";
@@ -572,7 +578,7 @@ namespace SantaFeWaterSystem.Controllers
                         ? "✅ SMS sent successfully (mock)."
                         : $"❌ SMS failed: {smsResult.response}";
                 
-                // ✅ Save to SMS log
+                //  Save to SMS log
                 _context.SmsLogs.Add(new SmsLog
                 {
                     ConsumerId = consumer.Id,
@@ -595,6 +601,9 @@ namespace SantaFeWaterSystem.Controllers
             return View(viewModel);
         }
 
+
+
+        // ================== LoadEligibleConsumersAsync ==================
 
         // Helper method to populate consumer dropdown
         private async Task LoadEligibleConsumersAsync(BillingFormViewModel viewModel)
@@ -637,6 +646,8 @@ namespace SantaFeWaterSystem.Controllers
 
 
 
+        // ================== DETAILS BILLING ==================
+
         // GET: Billing/Details/5
         [Authorize(Roles = "Admin,Staff")]
         public async Task<IActionResult> Details(int? id)
@@ -652,7 +663,7 @@ namespace SantaFeWaterSystem.Controllers
             if (billing == null)
                 return NotFound();
 
-            // ✅ Log the audit trail
+            // Log the audit trail
             _context.AuditTrails.Add(new AuditTrail
             {
                 PerformedBy = User.Identity?.Name ?? "Unknown",
@@ -669,6 +680,8 @@ namespace SantaFeWaterSystem.Controllers
 
 
 
+
+        // ================== EDIT BILLING ==================
 
         // GET: Billing/Edit/5
         [Authorize(Roles = "Admin,Staff")]
@@ -741,7 +754,7 @@ namespace SantaFeWaterSystem.Controllers
 
                 _context.Update(existing);
 
-                // ✅ Audit trail with old vs. new values
+                //  Audit trail with old vs. new values
                 _context.AuditTrails.Add(new AuditTrail
                 {
                     PerformedBy = User.Identity?.Name ?? "Unknown",
@@ -773,6 +786,9 @@ namespace SantaFeWaterSystem.Controllers
 
 
 
+
+        // ================== DELETE BILLING ==================
+
         // GET: Billing/Delete/5
         [Authorize(Roles = "Admin,Staff")]
         public async Task<IActionResult> Delete(int? id)
@@ -802,7 +818,7 @@ namespace SantaFeWaterSystem.Controllers
 
             _context.Billings.Remove(billing);
 
-            // ✅ Audit trail log for deletion
+            //  Audit trail log for deletion
             _context.AuditTrails.Add(new AuditTrail
             {
                 PerformedBy = User.Identity?.Name ?? "Unknown",
@@ -824,9 +840,7 @@ namespace SantaFeWaterSystem.Controllers
 
 
 
-
-
-
+        // ================== SEND SMS ==================
 
         [HttpPost]
         public async Task<IActionResult> SendSms([FromBody] List<int> billingIds)
@@ -876,7 +890,7 @@ namespace SantaFeWaterSystem.Controllers
                     sentCount++;
                 }
 
-                // ✅ Log to database
+                // Log to database
                 _context.SmsLogs.Add(new SmsLog
                 {
                     ConsumerId = consumer.Id,
@@ -888,7 +902,7 @@ namespace SantaFeWaterSystem.Controllers
                 });
             }
 
-            await _context.SaveChangesAsync(); // 💾 Save logs
+            await _context.SaveChangesAsync(); // Save logs
 
             return Ok(new
             {
@@ -897,7 +911,5 @@ namespace SantaFeWaterSystem.Controllers
                 failedRecipients = failed
             });
         }
-
-
     }
 }

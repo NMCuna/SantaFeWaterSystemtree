@@ -16,6 +16,9 @@ public class BillNotificationController : Controller
         _context = context;
     }
 
+
+    // ================== SendPendingNotifications ==================
+
     [HttpPost]
     public async Task<IActionResult> SendPendingNotifications()
     {
@@ -66,7 +69,7 @@ public class BillNotificationController : Controller
                 try
                 {
                     await pushClient.RequestPushMessageDeliveryAsync(subscription, new PushMessage(payload));
-                    anySuccess = true; // ✅ at least one delivery succeeded
+                    anySuccess = true; //  at least one delivery succeeded
                 }
                 catch (Exception ex)
                 {
@@ -76,7 +79,7 @@ public class BillNotificationController : Controller
 
             if (anySuccess)
             {
-                item.IsNotified = true; // ✅ Only set to true if at least one was sent
+                item.IsNotified = true; //  Only set to true if at least one was sent
             }
         }
 
@@ -87,7 +90,8 @@ public class BillNotificationController : Controller
 
 
 
-    //////////PUSH NOTIFICATION////////
+   
+    // ================== PUSH NOTIFICATION ==================
 
     [HttpPost]
     [Authorize(Roles = "User")] // Only logged-in users can save
@@ -123,6 +127,8 @@ public class BillNotificationController : Controller
         return Ok();
     }
 
+
+    // ================== PushSubscriptionModel ==================
     public class PushSubscriptionModel
     {
         public string? Endpoint { get; set; }
