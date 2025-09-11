@@ -11,28 +11,39 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace SantaFeWaterSystem.Controllers.Admin
+namespace SantaFeWaterSystem.Controllers
 {
     [Authorize(Roles = "Admin,Staff")]
-    public class SystemBrandingController : Controller
+    public class SystemBrandingController(ApplicationDbContext context, IWebHostEnvironment webHostEnvironment, AuditLogService audit)
+    : Controller
     {
-        private readonly ApplicationDbContext _context;
-        private readonly IWebHostEnvironment _webHostEnvironment;
-        protected readonly AuditLogService _audit;
+        private readonly ApplicationDbContext _context = context;
+        private readonly IWebHostEnvironment _webHostEnvironment = webHostEnvironment;
+        protected readonly AuditLogService _audit = audit;
 
-        public SystemBrandingController(ApplicationDbContext context, IWebHostEnvironment webHostEnvironment, AuditLogService audit)
-        {
-            _context = context;
-            _webHostEnvironment = webHostEnvironment;
-            _audit = audit;
-        }
 
-        // READ (Index)
+
+
+        ///////////////////////////////////////////////////////////////
+        //      MANAGE LANDING PAGE (HOME) /ADMIN/STAFF ACTION       //
+        ///////////////////////////////////////////////////////////////
+
+
+
+
+        // ================== INDEX (SHOW THE LIST OF NEW CREATED) ==================
+
+        // READ - LIST ALL
         public async Task<IActionResult> Index()
         {
             var brandings = await _context.SystemBrandings.ToListAsync();
             return View(brandings);
         }
+
+
+
+
+        // ================== CREATE (ADD NEW) ==================
 
         // CREATE (GET)
         [HttpGet]
@@ -98,6 +109,10 @@ namespace SantaFeWaterSystem.Controllers.Admin
         }
 
 
+
+
+
+        // ================== EDIT (UPDATE EXISTING) ==================
 
         // EDIT (GET)
         [HttpGet]
@@ -183,6 +198,11 @@ namespace SantaFeWaterSystem.Controllers.Admin
             return View(model);
         }
 
+
+
+
+        // ================== DELETE (REMOVE EXISTING) ==================
+
         // DELETE (GET confirmation page)
         [HttpGet]
         public async Task<IActionResult> Delete(int id)
@@ -216,7 +236,7 @@ namespace SantaFeWaterSystem.Controllers.Admin
                 _context.SystemBrandings.Remove(branding);
                 await _context.SaveChangesAsync();
 
-                // ✅ Audit trail
+                // Audit trail
                 var performedBy = User.Identity?.Name ?? "Unknown";
                 var details = $"Deleted System Branding. SystemName: {systemName}, IconClass: {iconClass}, LogoPath: {logoPath}";
 
@@ -237,6 +257,5 @@ namespace SantaFeWaterSystem.Controllers.Admin
 
             return RedirectToAction(nameof(Index));
         }
-
     }
 }

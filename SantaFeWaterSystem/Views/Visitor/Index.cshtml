@@ -1,0 +1,43 @@
+﻿@{
+    ViewData["Title"] = "Visitor Counters";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="mb-3">
+    <a href="@Url.Action("Details", "Visitor")" class="btn btn-outline-dark">
+        <i class="bi bi-list-check me-2"></i> Visitor Details
+    </a>
+</div>
+
+<div class="card" style="max-width:420px;padding:16px;border-radius:14px;box-shadow:0 10px 25px rgba(0,0,0,.07);">
+    <h3 style="margin:0 0 12px;">👥 Visitor Counters</h3>
+    <div id="visitorCounts">
+        <p>Today: <b>—</b></p>
+        <p>This Month: <b>—</b></p>
+        <p>This Year: <b>—</b></p>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
+<script>
+    const countsDiv = document.getElementById("visitorCounts");
+
+    function renderCounts(obj) {
+        countsDiv.innerHTML =
+            `<p>Today: <b>${obj.daily}</b></p>
+             <p>This Month: <b>${obj.monthly}</b></p>
+             <p>This Year: <b>${obj.yearly}</b></p>`;
+    }
+
+    const connection = new signalR.HubConnectionBuilder()
+        .withUrl("/visitorHub")
+        .withAutomaticReconnect()
+        .build();
+
+    connection.on("ReceiveVisitorUpdate", (payload) => renderCounts(payload));
+
+    connection.start()
+        .then(() => connection.invoke("GetCurrentCounts"))
+        .then(initial => renderCounts(initial))
+        .catch(err => console.error(err));
+</script>

@@ -1,0 +1,31 @@
+﻿@model IEnumerable<SantaFeWaterSystem.Models.VisitorLog>
+@{
+    ViewData["Title"] = "Visitor Details";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="card p-3 shadow-sm rounded-3">
+    <h3 class="mb-3">👥 Visitor Details</h3>
+
+    <table class="table table-striped table-hover">
+        <thead class="table-light">
+            <tr>
+                <th>#</th>
+                <th>IP Address</th>
+                <th>Visit Date (Local)</th>
+                <th>Visit Date (UTC)</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var visitor in Model)
+            {
+                <tr>
+                    <td>@visitor.Id</td>
+                    <td>@visitor.IpAddress</td>
+                    <td>@visitor.VisitDateLocal.ToString("yyyy-MM-dd")</td>
+                    <td>@visitor.VisitedAtUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

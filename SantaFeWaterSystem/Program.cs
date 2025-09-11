@@ -11,7 +11,10 @@ using SantaFeWaterSystem.Services;
 using SantaFeWaterSystem.Settings;
 using System.Globalization;
 
-
+// ==== ADDED FOR VISITOR TRACKER / SIGNALR ====
+using Microsoft.AspNetCore.HttpOverrides;
+using SantaFeWaterSystem.Hubs;
+// =============================================
 
 QuestPDF.Settings.License = LicenseType.Community;
 
@@ -75,6 +78,19 @@ builder.Services.AddHangfireServer();
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+// ==== ADDED FOR VISITOR TRACKER / SIGNALR ====
+// Trust forwarded headers (useful if behind proxy / cloudflare / nginx). We add the configuration so the real client IP is available.
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    options.KnownNetworks.Clear();
+    options.KnownProxies.Clear();
+});
+
+// Register SignalR so admin dashboard can receive real-time visitor updates
+builder.Services.AddSignalR();
+// =============================================
+
 // Configure cookie authentication
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
@@ -83,8 +99,8 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.AccessDeniedPath = "/Account/AccessDenied";
         options.ExpireTimeSpan = TimeSpan.FromMinutes(20); // Cookie expiration
         options.SlidingExpiration = true;
-        options.Cookie.SecurePolicy = CookieSecurePolicy.Always; // ✅ Always use Secure cookies
-        options.Cookie.SameSite = SameSiteMode.Strict; // ✅ Optional but recommended
+        options.Cookie.SecurePolicy = CookieSecurePolicy.Always; // Always use Secure cookies
+        options.Cookie.SameSite = SameSiteMode.Strict; // Optional but recommended
     });
 
 // Add session support with timeout
@@ -93,7 +109,7 @@ builder.Services.AddSession(options =>
     options.IdleTimeout = TimeSpan.FromMinutes(20);
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
-    options.Cookie.SecurePolicy = CookieSecurePolicy.Always; // ✅ Mark session cookie as Secure
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always; // Mark session cookie as Secure
     options.Cookie.SameSite = SameSiteMode.Lax; // Optional: use Strict or Lax
 });
 
@@ -119,7 +135,7 @@ using (var scope = app.Services.CreateScope())
         {
             Username = "st_admin",
             PasswordHash = BCrypt.Net.BCrypt.HashPassword("st_Admin@6047"),
-            Role = "Admin",  
+            Role = "Admin",
             IsMfaEnabled = false
         };
 
@@ -135,6 +151,12 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+// ==== ADDED FOR VISITOR TRACKER / SIGNALR ====
+// Apply forwarded header middleware early (before StaticFiles/Auth) so RemoteIpAddress is correct when we log visitor IPs.
+app.UseForwardedHeaders();
+// =============================================
+
 app.UseStaticFiles();
 
 app.UseRouting();
@@ -151,6 +173,12 @@ RecurringJob.AddOrUpdate<BackupController>(
 app.UseSession();
 app.UseAuthentication();
 app.UseAuthorization();
+
+// ==== ADDED FOR VISITOR TRACKER / SIGNALR ====
+// Map the SignalR hub endpoint for admins/staff to connect to.
+// Make sure you create Hubs/VisitorHub.cs (example provided below).
+app.MapHub<VisitorHub>("/visitorHub");
+// =============================================
 
 app.MapControllerRoute(
     name: "default",

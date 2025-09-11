@@ -13,17 +13,14 @@ using System.Threading.Tasks;
 namespace SantaFeWaterSystem.Controllers
 {
     [Authorize(Roles = "Admin,Staff")]
-    public class RateController : BaseController
+    public class RateController(ApplicationDbContext context, PermissionService permissionService, AuditLogService audit)
+     : BaseController(permissionService, context, audit)
     {
-        
-
-        public RateController(ApplicationDbContext context, PermissionService permissionService, AuditLogService audit)
-            : base(permissionService, context, audit)
-        {
-          
-        }
 
 
+
+
+        //================== INDEX RATE VIEW LIST ==================
 
         // GET: Rate
         public async Task<IActionResult> Index()
@@ -31,6 +28,11 @@ namespace SantaFeWaterSystem.Controllers
             var rates = await _context.Rates.ToListAsync();
             return View(rates);
         }
+
+
+
+
+        //================== CREATE RATE ==================
 
         // GET: Rate/Create
         public IActionResult Create()
@@ -99,6 +101,11 @@ namespace SantaFeWaterSystem.Controllers
             return View(rate);
         }
 
+
+
+
+
+        //================== EDIT RATE ==================
 
         // GET: Rate/Edit/5
         public async Task<IActionResult> Edit(int? id)
@@ -176,6 +183,10 @@ namespace SantaFeWaterSystem.Controllers
         }
 
 
+
+
+        //================== DELETE RATE ==================
+
         // GET: Rate/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
@@ -224,11 +235,18 @@ namespace SantaFeWaterSystem.Controllers
         }
 
 
+
+        //================== HELPER METHODS ==================
         private bool RateExists(int id)
         {
             return _context.Rates.Any(e => e.Id == id);
         }
 
+
+
+        //================== DROPDOWN POPULATE ==================
+
+        // Populate Account Types Dropdown
         private void PopulateAccountTypesDropdown()
         {
             var accountTypes = Enum.GetValues(typeof(ConsumerType))

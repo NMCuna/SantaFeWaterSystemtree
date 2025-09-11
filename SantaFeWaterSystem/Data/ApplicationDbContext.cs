@@ -1,13 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using SantaFeWaterSystem.Models;
-using System.Collections.Generic;
+ using SantaFeWaterSystem.Models;
 
 namespace SantaFeWaterSystem.Data
 {
-    public class ApplicationDbContext : DbContext
+    public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
+        : DbContext(options)
     {
-        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
-            : base(options) { }
 
         public DbSet<User> Users { get; set; }
         public DbSet<Consumer> Consumers { get; set; }
@@ -31,13 +29,13 @@ namespace SantaFeWaterSystem.Data
         public DbSet<UserPushSubscription> UserPushSubscriptions { get; set; }
         public DbSet<PrivacyPolicy> PrivacyPolicies { get; set; }
         public DbSet<PrivacyPolicySection> PrivacyPolicySections { get; set; }
-
         public DbSet<UserPrivacyAgreement> UserPrivacyAgreements { get; set; }
         public DbSet<ContactInfo> ContactInfos { get; set; }
         public DbSet<HomePageContent> HomePageContents { get; set; }
         public DbSet<SystemBranding> SystemBrandings { get; set; }
         public DbSet<BackupLog> BackupLogs { get; set; }
         public DbSet<Backup> Backups { get; set; }
+        public DbSet<VisitorLog> VisitorLogs => Set<VisitorLog>();
 
 
 
@@ -56,7 +54,7 @@ namespace SantaFeWaterSystem.Data
                 .HasOne(u => u.Consumer)
                 .WithOne(c => c.User)
                 .HasForeignKey<Consumer>(c => c.UserId)
-                .OnDelete(DeleteBehavior.Cascade); // ✅ allow deleting user with linked consumer
+                .OnDelete(DeleteBehavior.Cascade); // allow deleting user with linked consumer
 
             modelBuilder.Entity<Billing>()
                 .Property(b => b.AmountDue)
@@ -142,6 +140,18 @@ namespace SantaFeWaterSystem.Data
             modelBuilder.Entity<UserPrivacyAgreement>()
                 .HasIndex(a => new { a.ConsumerId, a.PolicyVersion })
                 .IsUnique();
+
+            modelBuilder.Entity<VisitorLog>()
+          .Property(v => v.VisitDateLocal)
+          .HasColumnType("date"); // store only the date part
+
+            // Ensure "one IP per local day" uniqueness at the DB level
+            modelBuilder.Entity<VisitorLog>()
+                .HasIndex(v => new { v.VisitDateLocal, v.IpAddress })
+                .IsUnique();
+
+
+
 
             // Seed a default policy (version 1)
             modelBuilder.Entity<PrivacyPolicy>().HasData(

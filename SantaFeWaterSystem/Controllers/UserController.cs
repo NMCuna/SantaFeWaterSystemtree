@@ -23,21 +23,24 @@ namespace SantaFeWaterSystem.Controllers
 {
     [Authorize(Roles = "User")]
     [RequirePrivacyAgreement]
-    public class UserController : Controller
+    public class UserController(ApplicationDbContext context, IWebHostEnvironment environment, IPasswordHasher<User> passwordHasher, AuditLogService audit) : Controller
     {
-        private readonly ApplicationDbContext _context;
-        private readonly IWebHostEnvironment _environment;
-        private readonly IPasswordHasher<User> _passwordHasher;
-        private readonly AuditLogService _audit;
+        private readonly ApplicationDbContext _context = context;
+        private readonly IWebHostEnvironment _environment = environment;
+        private readonly IPasswordHasher<User> _passwordHasher = passwordHasher;
+        private readonly AuditLogService _audit = audit;
 
-        public UserController(ApplicationDbContext context, IWebHostEnvironment environment, IPasswordHasher<User> passwordHasher, AuditLogService audit)
-        {
-            _context = context;
-            _environment = environment;
-            _passwordHasher = passwordHasher;
-            _audit = audit;
-        }
 
+
+
+        //////////////////////////////////
+        //          DASHBOARD           //
+        //////////////////////////////////
+
+
+        // ================== SHOW THE DASHBOARD VIEW ==================
+
+        // GET: /User/Dashboard
         [Authorize(Roles = "User")]
         public async Task<IActionResult> Dashboard()
         {
@@ -55,7 +58,7 @@ namespace SantaFeWaterSystem.Controllers
 
             ViewBag.IsMfaEnabled = consumer.User?.IsMfaEnabled ?? false;
 
-            // ✅ Get latest 5 bills (can be changed if needed)
+            // Get latest 5 bills (can be changed if needed)
             var recentBills = await _context.Billings
                 .Where(b => b.ConsumerId == consumer.Id)
                 .OrderByDescending(b => b.BillingDate)
@@ -76,7 +79,7 @@ namespace SantaFeWaterSystem.Controllers
                 bill.Status = hasVerified ? "Paid" : hasAny ? "Pending" : "Unpaid";
             }
 
-            // ✅ Get ALL unpaid bills from the latest 5
+            // Get ALL unpaid bills from the latest 5
             var filteredBills = recentBills
                 .Where(b => b.Status == "Unpaid")
                 .OrderByDescending(b => b.BillingDate)
@@ -102,10 +105,17 @@ namespace SantaFeWaterSystem.Controllers
 
 
 
+
+
+
         ///////////////////////////
-        /////BillingHistory////
+        //     BILLING HISTORY   //
         ///////////////////////////
 
+
+        // ================== SHOW THE BILLING HISTORY VIEW ==================
+
+        // GET: /User/BillingHistory
         [Authorize(Roles = "User")]
         public async Task<IActionResult> BillingHistory(string? searchTerm, string? statusFilter)
         {
@@ -117,7 +127,7 @@ namespace SantaFeWaterSystem.Controllers
 
             if (consumer == null) return NotFound();
 
-            // ✅ Use AccountNumber instead of userId
+            // Use AccountNumber instead of userId
             await _audit.LogAsync(
                 "Viewed Billing History",
                 $"User ({consumer.User.AccountNumber}) viewed their billing history. Filters - SearchTerm: '{searchTerm}', Status: '{statusFilter}'",
@@ -147,7 +157,7 @@ namespace SantaFeWaterSystem.Controllers
 
             var billingIds = billings.Select(b => b.Id).ToList();
 
-            // ✅ One query to get all payment statuses
+            // One query to get all payment statuses
             var paymentStatuses = await _context.Payments
                 .Where(p => billingIds.Contains(p.BillingId))
                 .GroupBy(p => p.BillingId)
@@ -159,7 +169,7 @@ namespace SantaFeWaterSystem.Controllers
                 })
                 .ToListAsync();
 
-            // ✅ Build view models
+            // Build view models
             var billingViewModels = billings.Select(b =>
             {
                 var statusInfo = paymentStatuses.FirstOrDefault(p => p.BillingId == b.Id);
@@ -201,7 +211,9 @@ namespace SantaFeWaterSystem.Controllers
 
 
 
+        // ================== SHOW THE BILLING DETAILS VIEW ==================
 
+        // GET: /User/BillingDetails/{id}
         [Authorize(Roles = "User")]
         public async Task<IActionResult> BillingDetails(int id)
         {
@@ -215,7 +227,7 @@ namespace SantaFeWaterSystem.Controllers
             var billing = await _context.Billings.FirstOrDefaultAsync(b => b.Id == id && b.ConsumerId == consumer.Id);
             if (billing == null) return NotFound();
 
-            // ✅ Log activity with AccountNumber instead of userId
+            // Log activity with AccountNumber instead of userId
             await _audit.LogAsync(
                 "Viewed Billing Details",
                 $"User ({consumer.User.AccountNumber}) viewed details for BillNo: {billing.BillNo}, Billing Date: {billing.BillingDate:d}",
@@ -245,6 +257,9 @@ namespace SantaFeWaterSystem.Controllers
 
 
 
+        // ================== DOWNLOAD BILLING HISTORY AS PDF ==================
+
+        // GET: /User/DownloadBillingHistoryPdf
         [Authorize(Roles = "User")]
         [HttpGet]
         public async Task<IActionResult> DownloadBillingHistoryPdf(string? searchTerm, string? statusFilter)
@@ -277,7 +292,7 @@ namespace SantaFeWaterSystem.Controllers
                 .OrderByDescending(b => b.BillingDate)
                 .ToListAsync();
 
-            // 🔄 Map Billing model to BillingViewModel
+            // Map Billing model to BillingViewModel
             var billingViewModels = billings.Select(b => new BillingViewModel
             {
                 AccountNumber = consumer.User?.AccountNumber ?? "-",
@@ -300,7 +315,7 @@ namespace SantaFeWaterSystem.Controllers
                 Billings = billingViewModels
             };
 
-            // ✅ Audit Log
+            // Audit Log
             await _audit.LogAsync("Downloaded Billing History PDF",
                 $"User downloaded their billing history as PDF. Filter - SearchTerm: '{searchTerm}', Status: '{statusFilter}'",
                 userId.ToString());
@@ -313,6 +328,9 @@ namespace SantaFeWaterSystem.Controllers
 
 
 
+        // ================== DOWNLOAD SINGLE BILLING RECEIPT AS PDF ==================
+
+        // GET: /User/DownloadBillingReceiptPdf/{billingId}
         [Authorize(Roles = "User")]
         public async Task<IActionResult> DownloadBillingReceiptPdf(int billingId)
         {
@@ -348,7 +366,7 @@ namespace SantaFeWaterSystem.Controllers
             if (billing == null)
                 return NotFound();
 
-            // ✅ Audit Log
+            // Audit Log
             await _audit.LogAsync("Downloaded Billing Receipt PDF",
                 $"User downloaded billing receipt PDF for BillNo: {billing.BillNo}, Billing Date: {billing.BillingDate:d}",
                 userId.ToString());
@@ -366,10 +384,14 @@ namespace SantaFeWaterSystem.Controllers
 
 
         ///////////////////////////
-        /////Payment user /////////
+        //     PAYMENT USER      //
         ///////////////////////////
 
 
+
+        // ================== SHOW THE PAYMENT VIEW ==================
+
+        // GET: /User/Payment
         [Authorize(Roles = "User")]
         public async Task<IActionResult> Payment()
         {
@@ -443,6 +465,9 @@ namespace SantaFeWaterSystem.Controllers
 
 
 
+        // ================== SHOW THE PAYMENT FORM FOR A SPECIFIC BILL ==================
+
+        // GET: /User/Pay/{billId}
         [Authorize(Roles = "User")]
         [HttpGet]
         public async Task<IActionResult> Pay(int billId)
@@ -482,7 +507,7 @@ namespace SantaFeWaterSystem.Controllers
                 MayaQrImageUrl = mayaSetting?.Value ?? "/images/maya-qr.png"
             };
 
-            // ✅ Audit logging: viewing payment page for specific bill
+            // Audit logging: viewing payment page for specific bill
             await _audit.LogAsync(
                 "Viewed Payment Form",
                 $"User accessed payment form for Bill #{bill.BillNo} (ID: {bill.Id})",
@@ -578,18 +603,18 @@ namespace SantaFeWaterSystem.Controllers
 
             await _context.SaveChangesAsync();
 
-            // ✅ Audit Logging
+            // Audit Logging
             await _audit.LogAsync(
            "Payment Submitted",
            $"User submitted a payment for Bill #{bill.BillNo} using {model.SelectedPaymentMethod}. Amount: ₱{model.TotalAmount:F2}. Transaction ID: {model.TransactionId}",
            accountNumber
             );
 
-            // ✅ Add app + push notification for user
+            // Add app + push notification for user
             var consumer = bill.Consumer;
             var user = bill.Consumer?.User;
 
-            // ✅ In-App Notification
+            // In-App Notification
             var paymentNotif = new Notification
             {
                 ConsumerId = consumer.Id,
@@ -599,7 +624,7 @@ namespace SantaFeWaterSystem.Controllers
             };
             _context.Notifications.Add(paymentNotif);
 
-            // ✅ Push Notification
+            //Push Notification
             if (user != null)
             {
                 var subscriptions = await _context.UserPushSubscriptions
@@ -647,10 +672,10 @@ namespace SantaFeWaterSystem.Controllers
                 }
             }
 
-            // ✅ Save new notification
+            // Save new notification
             await _context.SaveChangesAsync();
 
-            // ✅ Store Transaction Info in TempData for Confirmation View
+            // Store Transaction Info in TempData for Confirmation View
             TempData["TransactionId"] = model.TransactionId;
             TempData["AmountPaid"] = model.TotalAmount.ToString("F2"); // <- 🔧 Fixed here
             TempData["Method"] = model.SelectedPaymentMethod;
@@ -663,6 +688,10 @@ namespace SantaFeWaterSystem.Controllers
             return RedirectToAction("PaymentConfirmation");
         }
 
+
+        // ================== SHOW PAYMENT CONFIRMATION ==================
+
+        // GET: /User/PaymentConfirmation
         public IActionResult PaymentConfirmation()
         {
             // Redirect if accessed directly without payment submission
@@ -687,6 +716,9 @@ namespace SantaFeWaterSystem.Controllers
 
 
 
+        // ================== HELPER METHODS ==================
+
+        // Generate a unique transaction ID
         private string GenerateTransactionId()
         {
             return "TXN" + DateTime.Now.ToString("yyyyMMddHHmmss") + new Random().Next(1000, 9999);
@@ -694,7 +726,10 @@ namespace SantaFeWaterSystem.Controllers
 
 
 
-        // ✅ GET: /User/PaymentReceipt/{paymentId}
+
+        // ================== SHOW PAYMENT RECEIPT ==================
+
+        // GET: /User/PaymentReceipt/{paymentId}
         [Authorize(Roles = "User")]
         [HttpGet]
         public async Task<IActionResult> PaymentReceipt(int paymentId)
@@ -702,7 +737,7 @@ namespace SantaFeWaterSystem.Controllers
             var payment = await _context.Payments
                 .Include(p => p.Billing)
                 .Include(p => p.Consumer)
-                    .ThenInclude(c => c.User) // ✅ Load User from Consumer
+                    .ThenInclude(c => c.User) //Load User from Consumer
                 .FirstOrDefaultAsync(p => p.Id == paymentId);
 
             if (payment == null)
@@ -741,10 +776,16 @@ namespace SantaFeWaterSystem.Controllers
 
 
 
+
+
         ///////////////////////////
-        /////  Profile CONTROLLER
+        //     PROFILE USER      //
         ///////////////////////////
 
+
+        // ================== SHOW THE PROFILE VIEW ==================
+
+        // GET: /User/Profile
         [Authorize(Roles = "User")]
         [HttpGet]
         public async Task<IActionResult> Profile()
@@ -773,7 +814,7 @@ namespace SantaFeWaterSystem.Controllers
                 MeterNo = consumer.MeterNo,
                 ExistingProfilePicture = consumer.ProfilePicture
             };
-            // ✅ Log audit for viewing profile
+            // Log audit for viewing profile
             await _audit.LogAsync("Viewed Profile", "User viewed their profile page.", consumer.User?.AccountNumber ?? userId.ToString());
 
             return View(vm);
@@ -805,17 +846,17 @@ namespace SantaFeWaterSystem.Controllers
             if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId) || consumer.UserId != userId)
                 return Unauthorized();
 
-            // ✅ Track old values before updating
+            // Track old values before updating
             var originalEmail = consumer.Email;
             var originalContact = consumer.ContactNumber;
             var oldPicture = consumer.ProfilePicture;
 
 
-            // ✅ Only update editable fields
+            // Only update editable fields
             consumer.ContactNumber = model.ContactNumber;
             consumer.Email = model.Email;
 
-            // ✅ Handle profile picture upload
+            // Handle profile picture upload
             if (model.ProfileImage != null && model.ProfileImage.Length > 0)
             {
                 var uploadsFolder = Path.Combine(_environment.WebRootPath, "images", "profiles");
@@ -844,7 +885,7 @@ namespace SantaFeWaterSystem.Controllers
 
             TempData["Message"] = "Profile updated successfully.";
 
-            // ✅ Log audit for profile update
+            // Log audit for profile update
             await _audit.LogAsync(
                 "Updated Profile",
                 $"User updated profile info. Email: {originalEmail} → {consumer.Email}, Contact: {originalContact} → {consumer.ContactNumber}",
@@ -855,11 +896,23 @@ namespace SantaFeWaterSystem.Controllers
         }
 
 
+
+
+
+
+
+
+
+
         ///////////////////////////
-        /////Support CONTROLLER////
+        //     SUPPORT  USER     //
         ///////////////////////////
 
 
+
+        // ================== SHOW THE SUPPORT VIEW ==================
+
+        // GET: /User/Support
         [Authorize(Roles = "User")]
         [HttpGet]
         public async Task<IActionResult> Support()
@@ -895,7 +948,7 @@ namespace SantaFeWaterSystem.Controllers
         public async Task<IActionResult> Support(UserSupportViewModel model)
         {
             var userIdClaim = User.FindFirst("UserId");
-            var accountNumber = User.Identity?.Name; // ✅ Add this line
+            var accountNumber = User.Identity?.Name; 
 
             if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
                 return Unauthorized();
@@ -916,9 +969,9 @@ namespace SantaFeWaterSystem.Controllers
                     Subject = model.Subject,
                     Message = model.Message,
                     CreatedAt = DateTime.UtcNow,
-                    Status = "Open",              // ✅ Ensure it is marked Open
-                    IsResolved = false,           // ✅ Not resolved by default
-                    AdminReply = null,            // ✅ No reply yet
+                    Status = "Open",              //  Ensure it is marked Open
+                    IsResolved = false,           //  Not resolved by default
+                    AdminReply = null,            //  No reply yet
                     IsReplySeen = false,
                     IsArchived = false
                 };
@@ -926,7 +979,7 @@ namespace SantaFeWaterSystem.Controllers
                 _context.Supports.Add(support);
                 await _context.SaveChangesAsync();
 
-                // ✅ Use accountNumber in audit log
+                // Use accountNumber in audit log
                 await _audit.LogAsync(
                     "Submitted Support Ticket",
                     $"Subject: {support.Subject}. Message: {support.Message}",
@@ -951,7 +1004,9 @@ namespace SantaFeWaterSystem.Controllers
         }
 
 
+        // ================== DELETE A SUPPORT TICKET ==================
 
+        // DELETE: /User/DeleteSupport/{id}
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteSupport(int id)
@@ -969,10 +1024,18 @@ namespace SantaFeWaterSystem.Controllers
 
 
 
+
+
+
+
         ///////////////////////////
-        /////FEEDBACK CONTROLLER////
+        //    FEEDBACK USER      //
         ///////////////////////////
 
+
+
+
+        // ================== SHOW THE FEEDBACK VIEW ==================
 
         // Show the empty feedback form
         [HttpGet]
@@ -1003,11 +1066,11 @@ namespace SantaFeWaterSystem.Controllers
                     _context.Feedbacks.Add(model);
                     await _context.SaveChangesAsync();
 
-                    // ✅ Use AccountNumber instead of userId
+                    //  Use AccountNumber instead of userId
                     await _audit.LogAsync(
                         "Submitted Feedback",
                         $"User submitted feedback with rating {model.Rating}. Comment: {model.Comment}",
-                        accountNumber // ✅ correct value
+                        accountNumber // correct value
                     );
 
                     TempData["Message"] = "Thank you for your feedback!";
@@ -1021,14 +1084,21 @@ namespace SantaFeWaterSystem.Controllers
 
 
 
-      
 
 
 
 
-        //////////RESET PASSWORD//////////////
+
+
+        ///////////////////////////
+        //    RESET PASS  USER    //
+        ///////////////////////////
+
+
+       
+        // ================== SHOW THE RESET PASSWORD VIEW ==================
+
         // GET: /User/ResetPassword
-
         [HttpGet]
         [Authorize(Roles = "User")]
         public IActionResult ResetPassword()
@@ -1051,11 +1121,11 @@ namespace SantaFeWaterSystem.Controllers
             var user = await _context.Users.FindAsync(int.Parse(userId));
             if (user == null) return NotFound();
 
-            // ✅ Hash the new password
+            //  Hash the new password
             user.PasswordHash = _passwordHasher.HashPassword(user, model.NewPassword);
             await _context.SaveChangesAsync();
 
-            // ✅ Add audit log
+            //  Add audit log
             await _audit.LogAsync("Reset Password", "User successfully reset their password.", user.AccountNumber);
 
             TempData["Message"] = "Password changed successfully.";

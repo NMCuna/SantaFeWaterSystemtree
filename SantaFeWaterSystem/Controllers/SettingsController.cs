@@ -10,20 +10,16 @@ using System.Threading.Tasks;
 namespace SantaFeWaterSystem.Controllers
 {
     [Authorize(Roles = "Admin,Staff")]
-    public class SettingsController : BaseController
+    public class SettingsController(IWebHostEnvironment env, PermissionService permissionService, ApplicationDbContext context, AuditLogService audit) : BaseController(permissionService, context, audit)
     {
-        private readonly IWebHostEnvironment _env;
+        private readonly IWebHostEnvironment _env = env;
 
-        public SettingsController(
-            IWebHostEnvironment env,
-            PermissionService permissionService,
-            ApplicationDbContext context,
-            AuditLogService audit)
-            : base(permissionService, context, audit)
-        {
-            _env = env;
-        }
 
+
+
+        // ================== QR CODE MANAGEMENT ==================
+
+        // Display QR Codes
         [HttpGet]
         public IActionResult QrCodes()
         {
@@ -39,33 +35,55 @@ namespace SantaFeWaterSystem.Controllers
             return View();
         }
 
-        // ✅ GCash QR Upload
+
+
+        //================== GCASH QR CODE UPLOAD ==================
+
+        // GCash QR Upload
         [HttpPost]
         public async Task<IActionResult> UploadGcashQr(IFormFile qrImage)
         {
             return await SaveQrImageAsync(qrImage, "gcash-qr.png", "GCash");
         }
-        // ✅ Maya QR Upload
+
+
+
+        //================== MAYA QR CODE UPLOAD ==================
+
+        // Maya QR Upload
         [HttpPost]
         public async Task<IActionResult> UploadMayaQr(IFormFile qrImage)
         {
             return await SaveQrImageAsync(qrImage, "maya-qr.png", "Maya");
         }
 
-        // ✅ GCash QR Delete
+
+
+
+        //================== GCASH QR CODE DELETE ==================
+
+        // GCash QR Delete
         [HttpPost]
         public async Task<IActionResult> DeleteGcashQr()
         {
             return await DeleteQrImageAsync("gcash-qr.png", "GCash");
         }
 
-        // ✅ Maya QR Delete
+
+
+        //================== MAYA QR CODE DELETE ==================
+        // Maya QR Delete
         [HttpPost]
         public async Task<IActionResult> DeleteMayaQr()
         {
             return await DeleteQrImageAsync("maya-qr.png", "Maya");
         }
 
+
+
+        //================== HELPER METHODS ==================
+
+        // Common method to save QR image and log audit
         private async Task<IActionResult> SaveQrImageAsync(IFormFile qrImage, string fileName, string label)
         {
             if (qrImage != null && qrImage.Length > 0)
@@ -92,9 +110,10 @@ namespace SantaFeWaterSystem.Controllers
                     await qrImage.CopyToAsync(stream);
                 }
 
-                // ✅ Audit trail
+                // Audit trail
                 var performedBy = User?.Identity?.Name ?? "System";
-                if (performedBy.Length > 100) performedBy = performedBy.Substring(0, 100);
+                performedBy = performedBy.Length > 100 ? performedBy[..100] : performedBy;
+
 
                 var audit = new AuditTrail
                 {
@@ -125,6 +144,12 @@ namespace SantaFeWaterSystem.Controllers
             return RedirectToAction("QrCodes");
         }
 
+
+
+
+        //================== DELETE QR IMAGE ==================
+
+        // Common method to delete QR image and log audit
         private async Task<IActionResult> DeleteQrImageAsync(string fileName, string label)
         {
             string filePath = Path.Combine(_env.WebRootPath, "images", fileName);
@@ -133,9 +158,10 @@ namespace SantaFeWaterSystem.Controllers
             {
                 System.IO.File.Delete(filePath);
 
-                // ✅ Audit trail
+                // Audit trail
                 var performedBy = User?.Identity?.Name ?? "System";
-                if (performedBy.Length > 100) performedBy = performedBy.Substring(0, 100);
+                performedBy = performedBy.Length > 100 ? performedBy[..100] : performedBy;
+
 
                 var audit = new AuditTrail
                 {

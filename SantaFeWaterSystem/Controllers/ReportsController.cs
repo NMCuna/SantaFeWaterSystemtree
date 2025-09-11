@@ -15,24 +15,15 @@ using X.PagedList;
 
 namespace SantaFeWaterSystem.Controllers
 {
-    [Authorize(Roles = "Admin,Staff")]
-    public class ReportsController : BaseController
+    public class ReportsController(ApplicationDbContext context, IWebHostEnvironment env, PermissionService permissionService, AuditLogService audit) : BaseController(permissionService, context, audit)
     {
-        
-        private readonly IWebHostEnvironment _env;
-
-        public ReportsController(
-            ApplicationDbContext context,
-            IWebHostEnvironment env,
-            PermissionService permissionService,
-            AuditLogService audit) 
-            : base(permissionService, context, audit)
-        {
-            
-            _env = env;
-        }
+        private readonly IWebHostEnvironment _env = env;
 
 
+
+        //================== REPORT VIEW LIST ==================
+
+        // GET: Reports
         public async Task<IActionResult> Index(
      DateTime? startDate,
      DateTime? endDate,
@@ -183,7 +174,9 @@ namespace SantaFeWaterSystem.Controllers
         }
 
 
+        //================== EXPORT TO PDF ==================
 
+        // GET: Reports/DownloadMonthlyReport?selectedMonth=2025-07
         [HttpGet]
         public async Task<IActionResult> DownloadMonthlyReport(string selectedMonth)
         {

@@ -13,29 +13,17 @@ using System.Text.Json;
 namespace SantaFeWaterSystem.Controllers
 {
     [Authorize(Roles = "Admin,Staff")]
-    public class PaymentsController : BaseController
+    public class PaymentsController(ApplicationDbContext context, IWebHostEnvironment env, BillingService billingService, PdfService pdfService,
+        PermissionService permissionService, AuditLogService audit) : BaseController(permissionService, context, audit)
     {
-        
-        private readonly IWebHostEnvironment _env;
-        private readonly BillingService _billingService;
-        private readonly PdfService _pdfService;
-
-        public PaymentsController(
-            ApplicationDbContext context,
-            IWebHostEnvironment env,
-            BillingService billingService,
-            PdfService pdfService,
-            PermissionService permissionService,
-            AuditLogService audit) 
-            : base(permissionService, context, audit)
-        {
-           
-            _env = env;
-            _billingService = billingService;
-            _pdfService = pdfService;
-        }
+        private readonly IWebHostEnvironment _env = env;
+        private readonly BillingService _billingService = billingService;
+        private readonly PdfService _pdfService = pdfService;
 
 
+
+
+        //================== MANAGE PAYMENST LIST ==================
 
         // GET: Payments/ManagePayments
         [Authorize(Roles = "Admin,Staff")]
@@ -50,15 +38,20 @@ namespace SantaFeWaterSystem.Controllers
         {
             var query = _context.Payments
                 .Include(p => p.Billing)
-                    .ThenInclude(b => b.Consumer)
+                 .ThenInclude(b => b!.Consumer)
                 .AsQueryable();
 
             // Filter: Search by Consumer First or Last Name
             if (!string.IsNullOrEmpty(searchTerm))
             {
                 query = query.Where(p =>
-                    p.Billing.Consumer.FirstName.Contains(searchTerm) ||
-                    p.Billing.Consumer.LastName.Contains(searchTerm));
+                    p.Billing != null &&
+                    p.Billing.Consumer != null &&
+                    (
+                        p.Billing.Consumer.FirstName.Contains(searchTerm) ||
+                        p.Billing.Consumer.LastName.Contains(searchTerm)
+                    )
+                );
             }
 
             // Filter: Status (Verified / Pending)
@@ -77,7 +70,7 @@ namespace SantaFeWaterSystem.Controllers
                 query = query.Where(p => p.Method == paymentMethodFilter);
             }
 
-            // ✅ Filter: Month and Year
+            // Filter: Month and Year
             if (selectedMonth.HasValue)
             {
                 query = query.Where(p => p.PaymentDate.Month == selectedMonth.Value);
@@ -97,8 +90,8 @@ namespace SantaFeWaterSystem.Controllers
                 .Select(p => new PaymentViewModel
                 {
                     PaymentId = p.Id,
-                    FirstName = p.Billing.Consumer.FirstName,
-                    LastName = p.Billing.Consumer.LastName,
+                    FirstName = p.Billing != null && p.Billing.Consumer != null ? p.Billing.Consumer.FirstName : string.Empty,
+                    LastName = p.Billing != null && p.Billing.Consumer != null ? p.Billing.Consumer.LastName : string.Empty,
                     BillingDate = p.Billing.BillingDate,
                     PaymentDate = p.PaymentDate,
                     AmountPaid = p.AmountPaid,
@@ -127,6 +120,7 @@ namespace SantaFeWaterSystem.Controllers
 
 
 
+        //================== MANAGE PAYMENST ExportSelectedToPdf ==================
 
         [Authorize(Roles = "Admin,Staff")]
         [HttpPost]
@@ -137,7 +131,7 @@ namespace SantaFeWaterSystem.Controllers
 
             var selectedPayments = await _context.Payments
                 .Include(p => p.Billing)
-                    .ThenInclude(b => b.Consumer)
+                    .ThenInclude(b => b!.Consumer)
                 .Where(p => selectedIds.Contains(p.Id))
                 .ToListAsync();
 
@@ -151,18 +145,14 @@ namespace SantaFeWaterSystem.Controllers
 
 
 
-
-
-
-
-
+        //================== CREATE PAYMENT VIEW ==================
 
         // GET: Create Walk-in Payment
         [Authorize(Roles = "Admin,Staff")]
         [HttpGet]
         public IActionResult CreatePayment()
         {
-            // ✅ Only consumers with at least one unpaid billing
+            // Only consumers with at least one unpaid billing
             var unpaidConsumers = _context.Consumers
        .Select(c => new
        {
@@ -176,7 +166,7 @@ namespace SantaFeWaterSystem.Controllers
                .OrderBy(b => b.BillingDate) // oldest unpaid/overdue
                .FirstOrDefault()
        })
-       .Where(x => x.Bill != null) // ✅ Only if they have an unpaid/overdue bill
+       .Where(x => x.Bill != null) // Only if they have an unpaid/overdue bill
        .OrderBy(x => x.FirstName)
        .Select(x => new
        {
@@ -185,7 +175,7 @@ namespace SantaFeWaterSystem.Controllers
                (x.User != null && !string.IsNullOrEmpty(x.User.AccountNumber)
                    ? $" ({x.User.AccountNumber})"
                    : "") +
-               $" - Bill No: {x.Bill.BillNo}" // ✅ Only show unpaid/overdue BillNo
+               $" - Bill No: {(x.Bill == null ? "N/A" : x.Bill.BillNo)}" // Only show unpaid/overdue BillNo
        })
        .ToList();
 
@@ -236,7 +226,7 @@ namespace SantaFeWaterSystem.Controllers
                 // Save everything together
                 await _context.SaveChangesAsync();
 
-                // ✅ Add in-app + push notification for walk-in payment
+                // Add in-app + push notification for walk-in payment
                 if (consumer != null)
                 {
                     // In-app notification
@@ -328,7 +318,7 @@ namespace SantaFeWaterSystem.Controllers
               (x.User != null && !string.IsNullOrEmpty(x.User.AccountNumber)
                   ? $" ({x.User.AccountNumber})"
                   : "") +
-              $" - Bill No: {x.Bill.BillNo}"
+             $" - Bill No: {(x.Bill == null ? "N/A" : x.Bill.BillNo)}"
       })
       .ToList();
 
@@ -338,24 +328,25 @@ namespace SantaFeWaterSystem.Controllers
 
 
 
+        //================== GetLatestBilling ==================
 
-        
+
         // API: Get oldest unpaid billing for selected consumer
         [HttpGet]
         public IActionResult GetLatestBilling(int consumerId)
         {
             var billing = _context.Billings
                 .Where(b => b.ConsumerId == consumerId && !b.IsPaid)
-                .OrderBy(b => b.BillingDate) // ✅ Order by oldest first
+                .OrderBy(b => b.BillingDate) //Order by oldest first
                 .Select(b => new
                 {
                     b.Id,
-                    b.BillNo,                // ✅ Include BillNo
+                    b.BillNo,                // Include BillNo
                     b.BillingDate,
                     CubicMeter = b.CubicMeterUsed,
                     b.AmountDue,
                     b.AdditionalFees,
-                    TotalAmount = b.TotalAmount
+                    b.TotalAmount
                 })
                 .FirstOrDefault();
 
@@ -367,6 +358,7 @@ namespace SantaFeWaterSystem.Controllers
 
 
 
+        //================== AUDIT LOGS ==================
 
         public IActionResult AuditLogs()
         {
@@ -378,12 +370,17 @@ namespace SantaFeWaterSystem.Controllers
         }
 
 
+
+
+        //================== WALK-IN PAYMENT CONFIRMATION & RECEIPT ==================
+
+        // GET: Walk-in Payment Confirmation
         [Authorize(Roles = "Admin,Staff")]
         public async Task<IActionResult> WalkInConfirmation(int id)
         {
             var payment = await _context.Payments
                 .Include(p => p.Consumer)
-                .ThenInclude(c => c.User) // Include User to get AccountNumber
+                .ThenInclude(c => c!.User) // Include User to get AccountNumber
                 .Include(p => p.Billing)
                 .FirstOrDefaultAsync(p => p.Id == id);
 
@@ -394,6 +391,11 @@ namespace SantaFeWaterSystem.Controllers
         }
 
 
+
+
+        //================== DOWNLOAD WALK-IN PAYMENT RECEIPT AS PDF ==================
+
+        // GET: Download Walk-in Payment Receipt as PDF
         [Authorize(Roles = "Admin,Staff")]
         public async Task<IActionResult> DownloadReceipt(int id)
         {
@@ -405,7 +407,14 @@ namespace SantaFeWaterSystem.Controllers
             if (payment == null)
                 return NotFound();
 
+            if (payment.Consumer == null || payment.Billing == null)
+            {
+                // Handle gracefully (log, return error, throw exception, etc.)
+                throw new InvalidOperationException("Consumer or Billing is missing.");
+            }
+
             var pdfBytes = WalkInReceiptPdfService.Generate(payment, payment.Consumer, payment.Billing);
+
             return File(pdfBytes, "application/pdf", $"WalkInReceipt_{id}.pdf");
         }
 
@@ -414,7 +423,8 @@ namespace SantaFeWaterSystem.Controllers
 
 
 
-
+        //================== EDIT PAYMENT ==================
+        
         // GET: Payments/Edit/5
         [Authorize(Roles = "Admin,Staff")]
         public IActionResult Edit(int id)
@@ -436,7 +446,7 @@ namespace SantaFeWaterSystem.Controllers
                 AmountPaid = payment.AmountPaid,
                 Method = payment.Method,
                 TransactionId = payment.TransactionId,
-                ExistingReceiptImageUrl = payment.ReceiptPath, // ✅ Consistent naming
+                ExistingReceiptImageUrl = payment.ReceiptPath, //  Consistent naming
                 Consumers = _context.Consumers.Select(c => new SelectListItem
                 {
                     Value = c.Id.ToString(),
@@ -496,7 +506,7 @@ namespace SantaFeWaterSystem.Controllers
             // Update values
             payment.PaymentDate = model.PaymentDate;
             payment.AmountPaid = model.AmountPaid;
-            payment.Method = model.Method;
+            payment.Method = model.Method ?? "Cash";
             payment.TransactionId = model.TransactionId;
 
             if (model.ReceiptImageFile != null)
@@ -540,6 +550,7 @@ namespace SantaFeWaterSystem.Controllers
 
 
 
+        //================== PAYMENT DETAILS ==================
 
         // GET: Payments/Details/5
         [Authorize(Roles = "Admin,Staff")]
@@ -555,9 +566,9 @@ namespace SantaFeWaterSystem.Controllers
             var model = new PaymentViewModel
             {
                 PaymentId = payment.Id,
-                FirstName = payment.Consumer.FirstName,
-                LastName = payment.Consumer.LastName,
-                BillingDate = payment.Billing.BillingDate,
+                FirstName = payment.Consumer?.FirstName ?? "N/A",
+                LastName = payment.Consumer?.LastName ?? "N/A",
+                BillingDate = payment.Billing?.BillingDate ?? DateTime.MinValue,
                 PaymentDate = payment.PaymentDate,
                 AmountPaid = payment.AmountPaid,
                 PaymentMethod = payment.Method,
@@ -575,10 +586,7 @@ namespace SantaFeWaterSystem.Controllers
 
 
 
-
-
-
-
+        //================== PAYMENT DETAILS ==================
 
         // GET: Payments/Delete/5
         [Authorize(Roles = "Admin,Staff")]
@@ -595,9 +603,9 @@ namespace SantaFeWaterSystem.Controllers
             var model = new PaymentViewModel
             {
                 PaymentId = payment.Id,
-                FirstName = payment.Consumer.FirstName,
-                LastName = payment.Consumer.LastName,
-                BillingDate = payment.Billing.BillingDate,
+                FirstName = payment.Consumer?.FirstName ?? "N/A",
+                LastName = payment.Consumer?.LastName ?? "N/A",
+                BillingDate = payment.Billing?.BillingDate ?? DateTime.MinValue,
                 PaymentDate = payment.PaymentDate,
                 AmountPaid = payment.AmountPaid,
                 PaymentMethod = payment.Method,
@@ -623,15 +631,15 @@ namespace SantaFeWaterSystem.Controllers
             if (payment == null)
                 return NotFound();
 
-            // ✅ Revert billing status and mark as unpaid
+            //  Revert billing status and mark as unpaid
             if (payment.Billing != null)
             {
-                payment.Billing.MarkAsUnpaid(); // ✅ Cleaner, uses your model logic
+                payment.Billing.MarkAsUnpaid(); //  Cleaner, uses your model logic
                 _context.Billings.Update(payment.Billing);
             }
 
 
-            // ✅ Add audit trail before deletion
+            //  Add audit trail before deletion
             _context.AuditTrails.Add(new AuditTrail
             {
                 Action = $"Deleted payment for {payment.Consumer?.FirstName} {payment.Consumer?.LastName}, " +
@@ -640,7 +648,7 @@ namespace SantaFeWaterSystem.Controllers
                 Timestamp = DateTime.Now
             });
 
-            // ✅ Remove the payment record
+            // Remove the payment record
             _context.Payments.Remove(payment);
             await _context.SaveChangesAsync();
 
@@ -650,19 +658,16 @@ namespace SantaFeWaterSystem.Controllers
 
 
 
+        //================== VERIFY / UNVERIFY ONLINE PAYMENT ==================
 
-
-
-
-
-
+        // POST: Payments/Verify
         [Authorize(Roles = "Admin,Staff")]
         [HttpPost]
         public async Task<IActionResult> Verify(int id)
         {
             var payment = await _context.Payments
                 .Include(p => p.Consumer)
-                .ThenInclude(c => c.User) // Include User for push notification
+                .ThenInclude(c => c!.User) // Include User for push notification
                 .FirstOrDefaultAsync(p => p.Id == id);
 
             if (payment == null) return NotFound();
@@ -676,19 +681,19 @@ namespace SantaFeWaterSystem.Controllers
                 billing.IsPaid = true;
             }
 
-            // ✅ In-App Notification
+            // In-App Notification
             var consumer = payment.Consumer;
             var user = payment.Consumer?.User;
             var inAppNotif = new Notification
             {
-                ConsumerId = consumer.Id,
+                ConsumerId = consumer?.Id,
                 Title = "✅ Payment Verified",
-                Message = $"Hello {consumer.FirstName}, your payment of ₱{payment.AmountPaid:N2} has been verified. Thank you!",
+                Message = $"Hello {consumer?.FirstName}, your payment of ₱{payment.AmountPaid:N2} has been verified. Thank you!",
                 CreatedAt = DateTime.Now
             };
             _context.Notifications.Add(inAppNotif);
 
-            // ✅ Push Notification
+            // Push Notification
             if (user != null)
             {
                 var subscriptions = await _context.UserPushSubscriptions
@@ -736,10 +741,10 @@ namespace SantaFeWaterSystem.Controllers
                 }
             }
 
-            // ✅ Add Audit Trail
+            // Add Audit Trail
             _context.AuditTrails.Add(new AuditTrail
             {
-                Action = $"Verified online payment for: {consumer.FirstName} {consumer.LastName}, Amount: ₱{payment.AmountPaid:N2}",
+                Action = $"Verified online payment for: {consumer?.FirstName} {consumer?.LastName}, Amount: ₱{payment.AmountPaid:N2}",
                 PerformedBy = User.Identity?.Name ?? "Admin",
                 Timestamp = DateTime.Now
             });
@@ -750,13 +755,18 @@ namespace SantaFeWaterSystem.Controllers
         }
 
 
+
+
+        //================== UNVERIFY ONLINE PAYMENT ==================
+
+        // POST: Payments/Unverify
         [Authorize(Roles = "Admin,Staff")]
         [HttpPost]
         public async Task<IActionResult> Unverify(int id)
         {
             var payment = await _context.Payments
                 .Include(p => p.Consumer)
-                .ThenInclude(c => c.User) // Include User for push notification
+                .ThenInclude(c => c!.User) // Include User for push notification
                 .FirstOrDefaultAsync(p => p.Id == id);
 
             if (payment == null) return NotFound();
@@ -773,10 +783,10 @@ namespace SantaFeWaterSystem.Controllers
             var consumer = payment.Consumer;
             var user = consumer?.User;
 
-            // ✅ In-App Notification
+            //  In-App Notification
             var notif = new Notification
             {
-                ConsumerId = consumer.Id,
+                ConsumerId = consumer?.Id,
                 Title = "⚠️ Payment Unverified",
                 Message = "Your payment is unverified because the receipt is invalid. After checking GCash using the provided reference number, we found no record of your payment." +
                           "Please check and confirm your payment. If unresolved within 3 days, " +
@@ -786,7 +796,7 @@ namespace SantaFeWaterSystem.Controllers
             };
             _context.Notifications.Add(notif);
 
-            // ✅ Push Notification
+            // Push Notification
             if (user != null)
             {
                 var subscriptions = await _context.UserPushSubscriptions
@@ -834,7 +844,7 @@ namespace SantaFeWaterSystem.Controllers
                 }
             }
 
-            // ✅ Audit Trail
+            // Audit Trail
             _context.AuditTrails.Add(new AuditTrail
             {
                 Action = $"Unverified online payment for consumer: {consumer?.FirstName} {consumer?.LastName}, Amount: ₱{payment.AmountPaid:N2}",
@@ -846,8 +856,5 @@ namespace SantaFeWaterSystem.Controllers
 
             return RedirectToAction(nameof(ManagePayments));
         }
-
-
-
     }
 }

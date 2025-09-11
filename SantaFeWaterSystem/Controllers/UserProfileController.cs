@@ -15,21 +15,20 @@ using System.Threading.Tasks;
 namespace SantaFeWaterSystem.Controllers
 {
     [Authorize(Roles = "Admin,Staff")]
-    public class UserProfileController : Controller
+    public class UserProfileController(ApplicationDbContext _context, IWebHostEnvironment _environment, AuditLogService _audit, IPasswordHasher<User> _passwordHasher) : Controller
     {
-        private readonly ApplicationDbContext _context;
-        private readonly IWebHostEnvironment _environment;
-        private readonly AuditLogService _audit;
-        private readonly IPasswordHasher<User> _passwordHasher;
 
-        public UserProfileController(ApplicationDbContext context, IWebHostEnvironment environment, AuditLogService audit, IPasswordHasher<User> passwordHasher)
-        {
-            _context = context;
-            _environment = environment;
-            _audit = audit;
-            _passwordHasher = passwordHasher;
-        }
 
+
+        /////////////////////////////////
+        //    PROFILE ADMIN,STAFF      //
+        /////////////////////////////////
+
+
+
+        // ================== PROFILE MANAGEMENT VIEW ==================
+
+        // GET: UserProfile
         [HttpGet]
         public IActionResult Profile()
         {
@@ -50,7 +49,7 @@ namespace SantaFeWaterSystem.Controllers
                 IsAdmin = user.Role == "Admin"
             };
 
-            // ✅ Set these so layout shows correct image and name
+            // Set these so layout shows correct image and name
             ViewBag.ProfileImage = Url.Content($"~/images/profiles/{user.ProfileImageUrl ?? "default-avatar.png"}");
             ViewBag.FullName = user.FullName;
 
@@ -70,7 +69,7 @@ namespace SantaFeWaterSystem.Controllers
             var user = _context.Users.FirstOrDefault(u => u.Id == model.Id);
             if (user == null) return NotFound();
 
-            // ✅ Handle profile image upload
+            // Handle profile image upload
             if (model.ProfileImage != null && model.ProfileImage.Length > 0)
             {
                 try
@@ -105,7 +104,7 @@ namespace SantaFeWaterSystem.Controllers
                 }
             }
 
-            // ✅ Update other profile fields
+            // Update other profile fields
             user.FullName = model.FullName;
             user.IsMfaEnabled = model.IsMfaEnabled;
 
@@ -114,9 +113,10 @@ namespace SantaFeWaterSystem.Controllers
                 _context.Update(user);
                 await _context.SaveChangesAsync();
 
-                // ✅ AUDIT LOG
-                await _audit.LogAsync(user.Username, "Update Profile", $"User updated their profile. Name: {user.FullName}");
+                // AUDIT LOG             
+                var username = user?.Username ?? "Unknown";
 
+                await _audit.LogAsync(action: "Update Profile", details: $"User updated their profile. Name: {user?.FullName ?? "N/A"}", performedBy: username);
 
                 TempData["Message"] = "Profile updated successfully.";
             }
@@ -126,9 +126,9 @@ namespace SantaFeWaterSystem.Controllers
                 return View(model);
             }
 
-            // ✅ Ensure layout has updated image and name right after redirect
-            ViewBag.ProfileImage = Url.Content($"~/images/profiles/{user.ProfileImageUrl ?? "default-avatar.png"}");
-            ViewBag.FullName = user.FullName;
+            // Ensure layout has updated image and name right after redirect
+            ViewBag.ProfileImage = Url.Content($"~/images/profiles/{user?.ProfileImageUrl ?? "default-avatar.png"}");
+            ViewBag.FullName = user?.FullName ?? "Unknown User";
 
             return RedirectToAction("Profile");
         }
@@ -136,7 +136,9 @@ namespace SantaFeWaterSystem.Controllers
 
 
 
-        /////////////CHANGES PASSWORD///////////////
+        // ================== CHANGE PASS ADMIN/STAFF ==================
+
+        // GET: UserProfile/ChangePassword
         [Authorize(Roles = "Admin,Staff")]
         [HttpGet]
         public IActionResult ResetPassword()
@@ -160,7 +162,7 @@ namespace SantaFeWaterSystem.Controllers
             user.PasswordHash = _passwordHasher.HashPassword(user, model.NewPassword);
             await _context.SaveChangesAsync();
 
-            // ✅ Audit trail
+            // Audit trail
             var performedBy = User.Identity?.Name ?? "Unknown";
             var details = $"Password reset for user: {user.Username} (ID: {user.Id})";
 

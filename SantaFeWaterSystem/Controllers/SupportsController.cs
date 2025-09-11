@@ -14,17 +14,25 @@ using SantaFeWaterSystem.Filters;
 namespace SantaFeWaterSystem.Controllers
 {
     [Authorize(Roles = "Admin,Staff,User")]
-    public class SupportsController : BaseController
+    public class SupportsController(ApplicationDbContext context, PermissionService permissionService, AuditLogService audit)
+     : BaseController(permissionService, context, audit)
     {
-       
 
-        public SupportsController(ApplicationDbContext context, PermissionService permissionService, AuditLogService audit)
-            : base(permissionService, context, audit)
-        {
-          
-        }
+
+
+
+
+
+        ///////////////////////////////////////
+        //       SUPPORT /ADMIN,STAFF       //
+        //////////////////////////////////////
+        
+
+
+        // ================== INDEX SHOW SUPPORT VIEW LIST ==================
 
         // GET: Supports
+        [Authorize(Roles = "Admin,Staff")]      
         public async Task<IActionResult> Index(string statusFilter, int page = 1)
         {
             int pageSize = 5;
@@ -61,7 +69,12 @@ namespace SantaFeWaterSystem.Controllers
         }
 
 
-        // GET: Supports/Archived
+
+
+        // ================== ARCHIVED SUPPORT VIEW LIST ==================
+
+        // GET: Supports/Archived    
+        [Authorize(Roles = "Admin,Staff")]
         public async Task<IActionResult> Archived()
         {
             var archived = await _context.Supports
@@ -73,7 +86,13 @@ namespace SantaFeWaterSystem.Controllers
             return View("Archived", archived);
         }
 
-        // GET: Supports/Details/5
+
+
+
+        // ================== SUPPORT TICKET DETAILS, EDIT, REPLY, DELETE, ARCHIVE ==================
+
+        // GET: Supports/Details/
+        [Authorize(Roles = "Admin,Staff")]
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null) return NotFound();
@@ -87,7 +106,12 @@ namespace SantaFeWaterSystem.Controllers
             return View(support);
         }
 
-        // GET: Supports/Edit/5
+
+
+        // ================== EDIT SUPPORT TICKET (ADMIN REPLY + RESOLVE) ==================
+
+        // GET: Supports/Edit/
+        [Authorize(Roles = "Admin,Staff")]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null) return NotFound();
@@ -123,7 +147,11 @@ namespace SantaFeWaterSystem.Controllers
 
 
 
+
+        // ================== ARCHIVE SUPPORT TICKET  ==================
+
         // POST: Supports/Archive/5
+        [Authorize(Roles = "Admin,Staff")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Archive(int id)
@@ -137,7 +165,12 @@ namespace SantaFeWaterSystem.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+
+
+        // ================== UNARCHIVE SUPPORT TICKET  ==================
+
         // POST: Supports/Unarchive/5
+        [Authorize(Roles = "Admin,Staff")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Unarchive(int id)
@@ -151,7 +184,12 @@ namespace SantaFeWaterSystem.Controllers
             return RedirectToAction(nameof(Archived));
         }
 
+
+
+        // ================== DELETE SUPPORT TICKET  ==================
+
         // POST: Supports/Delete/5
+        [Authorize(Roles = "Admin,Staff")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(int id)
@@ -165,7 +203,12 @@ namespace SantaFeWaterSystem.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+
+
+        // ================== REPLY TO SUPPORT TICKET (FIRST TIME) ==================
+
         // GET: Supports/Reply/5
+        [Authorize(Roles = "Admin,Staff")]
         public async Task<IActionResult> Reply(int? id)
         {
             if (id == null) return NotFound();
@@ -210,6 +253,10 @@ namespace SantaFeWaterSystem.Controllers
 
 
 
+
+        // ================== MARK REPLY AS SEEN (AJAX) ==================
+
+        // POST: Supports/MarkReplyAsSeen
         [HttpPost]
         public async Task<IActionResult> MarkReplyAsSeen([FromBody] int id)
         {
@@ -227,6 +274,10 @@ namespace SantaFeWaterSystem.Controllers
         }
 
 
+
+        // ================== DELETE SUPPORT TICKET (AJAX) ==================
+
+        // POST: Supports/DeleteViaAjax
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteViaAjax([FromBody] int id)
@@ -240,10 +291,25 @@ namespace SantaFeWaterSystem.Controllers
         }
 
 
-        ////////////////////////User Sopport top bar////////////////////////
 
 
 
+
+
+
+
+
+
+
+
+        ///////////////////////////////////////
+        //      TOP BAR SUPPORT /USER       //
+        //////////////////////////////////////
+
+
+        // ================== USER SUPPORT VIEW ==================
+
+        // GET: User Support View
         [Authorize(Roles = "User")]
         [RequirePrivacyAgreement]
         public async Task<IActionResult> UserSupport()
@@ -260,7 +326,7 @@ namespace SantaFeWaterSystem.Controllers
                 .OrderByDescending(s => s.CreatedAt)
                 .ToListAsync();
 
-            // ✅ Mark all seen replies as seen
+            // Mark all seen replies as seen
             foreach (var support in supports.Where(s => s.AdminReply != null && !s.IsReplySeen))
             {
                 support.IsReplySeen = true;
@@ -272,9 +338,11 @@ namespace SantaFeWaterSystem.Controllers
         }
 
 
-      
 
-        // -------------------- POST: Save Feedback --------------------
+
+        // ================== CREATE NEW SUPPORT TICKET ==================
+
+        // GET: Create Support Ticket
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> SubmitSupportFeedback(int id, string? emoji, string? note)
@@ -288,8 +356,10 @@ namespace SantaFeWaterSystem.Controllers
                 return Unauthorized();
 
             var consumer = await _context.Consumers.FirstOrDefaultAsync(c => c.UserId == userId);
-            if (support.ConsumerId != consumer.Id)
+            if (consumer == null || support.ConsumerId != consumer.Id)
+            {
                 return Forbid();
+            }
 
             // Update feedback
             support.SupportFeedbackEmoji = emoji;
@@ -303,12 +373,16 @@ namespace SantaFeWaterSystem.Controllers
         }
 
 
+
+        // ================== CREATE NEW SUPPORT TICKET ==================
+
+        // GET: Create Support Ticket
         [HttpGet]
         public async Task<IActionResult> GetUnseenRepliesCount()
         {
             var accountNumber = User.Identity?.Name;
             var consumer = await _context.Consumers
-                .FirstOrDefaultAsync(c => c.User.AccountNumber == accountNumber);
+               .FirstOrDefaultAsync(c => c.User != null && c.User.AccountNumber == accountNumber);
 
             if (consumer == null)
                 return Unauthorized();
@@ -319,7 +393,5 @@ namespace SantaFeWaterSystem.Controllers
 
             return Json(new { count });
         }
-
-
     }
 }

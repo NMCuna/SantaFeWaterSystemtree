@@ -124,6 +124,11 @@
                     {
                         <li><a class="dropdown-item" asp-controller="Backup" asp-action="Index">  <i class="bi bi-hdd-fill me-2"></i> Backup Management </a> </li>
                     }
+                    @if (User.IsInRole("Admin"))
+                    {
+                        <li><a class="dropdown-item" asp-controller="GeneralSettings" asp-action="Index"> <i class="bi bi-gear-fill me-2"></i> Settings </a></li>                                                                                                       
+                    }
+
                     @if (userPermissions.Any(p => new[] { "RegisterAdmin", "RegisterUser", "ManageQRCodes", "ManageRate" }.Contains(p)))
                     {
                         <li><hr class="dropdown-divider" /></li>

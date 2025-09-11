@@ -14,41 +14,50 @@ namespace SantaFeWaterSystem.Controllers
 {
     [Authorize(Roles = "User")]
     [RequirePrivacyAgreement]
-    public class UserActivityController : Controller
+    public class UserActivityController(ApplicationDbContext context) : Controller
     {
-        private readonly ApplicationDbContext _context;
+        private readonly ApplicationDbContext _context = context;
 
-        public UserActivityController(ApplicationDbContext context)
-        {
-            _context = context;
-        }
+
+
+
+
+        ///////////////////////////////////////
+        //      TOP BAR SUPPORT /USER       //
+        //////////////////////////////////////
+
+
+
+
+
+        // ================== INDEX (SHOW THE LIST OF NEW CREATED ACTIVITY) ==================
 
         // GET: /UserActivity
         public IActionResult Index(string? actionType, string? month, int page = 1)
         {
-            // ✅ Get current user's AccountNumber (stored in ClaimTypes.Name)
+            // Get current user's AccountNumber (stored in ClaimTypes.Name)
             var accountNumber = User.Identity?.Name;
             if (string.IsNullOrEmpty(accountNumber))
                 return Unauthorized();
 
-            // ✅ Query logs by AccountNumber
+            //  Query logs by AccountNumber
             var query = _context.AuditTrails
                 .Where(a => a.PerformedBy == accountNumber);
 
-            // ✅ Filter by action type
+            // Filter by action type
             if (!string.IsNullOrEmpty(actionType))
             {
                 query = query.Where(a => a.Action.Contains(actionType));
             }
 
-            // ✅ Filter by month
+            // Filter by month
             if (!string.IsNullOrEmpty(month) && DateTime.TryParse($"{month}-01", out var selectedMonth))
             {
                 var nextMonth = selectedMonth.AddMonths(1);
                 query = query.Where(a => a.Timestamp >= selectedMonth && a.Timestamp < nextMonth);
             }
 
-            // ✅ Paginate
+            // Paginate
             var logs = query
                 .OrderByDescending(a => a.Timestamp)
                 .ToPagedList(page, 5);
@@ -63,7 +72,9 @@ namespace SantaFeWaterSystem.Controllers
 
 
 
+        // ================== ARCHIVE OWN LOGS (MOVE TO ARCHIVE TABLE) ==================
 
+        // POST: /UserActivity/ArchiveOwnLogs
         [HttpPost]
         [Authorize(Roles = "User")]
         public async Task<IActionResult> ArchiveOwnLogs()
@@ -109,6 +120,11 @@ namespace SantaFeWaterSystem.Controllers
 
 
 
+
+
+        // ================== VIEW ARCHIVED LOGS ==================
+
+        // GET: /UserActivity/Archive
         [Authorize(Roles = "User")]
         [HttpGet]
         public IActionResult Archive(string? actionType, string? dateRange, int page = 1)
@@ -120,11 +136,11 @@ namespace SantaFeWaterSystem.Controllers
             var query = _context.AuditTrailArchives
                 .Where(a => a.PerformedBy == accountNumber);
 
-            // ✅ Filter by actionType
+            // Filter by actionType
             if (!string.IsNullOrEmpty(actionType))
                 query = query.Where(a => a.Action.Contains(actionType));
 
-            // ✅ Filter by date range
+            // Filter by date range
             if (!string.IsNullOrEmpty(dateRange))
             {
                 var dates = dateRange.Split(" to ");
@@ -149,6 +165,10 @@ namespace SantaFeWaterSystem.Controllers
 
 
 
+
+        // ================== BULK DELETE ARCHIVED LOGS ==================
+
+        // POST: /UserActivity/BulkArchiveDelete
         [HttpPost]
         public async Task<IActionResult> BulkArchiveDelete(List<int> selectedIds)
         {
@@ -169,6 +189,11 @@ namespace SantaFeWaterSystem.Controllers
         }
 
 
+
+
+        // ================== DELETE SINGLE ARCHIVED LOG ==================
+
+        // POST: /UserActivity/DeleteArchive/5
         [HttpPost]
         public IActionResult DeleteArchive(int id)
         {
@@ -180,6 +205,5 @@ namespace SantaFeWaterSystem.Controllers
             }
             return RedirectToAction("Archive");
         }
-
     }
 }

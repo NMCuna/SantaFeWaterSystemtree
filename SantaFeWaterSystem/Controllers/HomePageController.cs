@@ -10,23 +10,27 @@ using System.Threading.Tasks;
 namespace SantaFeWaterSystem.Controllers.Admin
 {
     [Authorize(Roles = "Admin,Staff")]
-    public class HomePageController : Controller
+    public class HomePageController(ApplicationDbContext context, AuditLogService audit) : Controller
     {
-        private readonly ApplicationDbContext _context;
-        protected readonly AuditLogService _audit;
+        private readonly ApplicationDbContext _context = context;
+        protected readonly AuditLogService _audit = audit;
 
-        public HomePageController(ApplicationDbContext context, AuditLogService audit)
-        {
-            _context = context;
-            _audit = audit;
-        }
 
+
+        //================== INDEX  SHOW THE NEW HOMEPAGE CREATE BY ADMIN ==================
+
+        // GET: HomePageContent
         public async Task<IActionResult> Index()
         {
             var content = await _context.HomePageContents.FirstOrDefaultAsync();
             return View(content);
         }
 
+
+
+        //================== CREATE NEW HOMEPAGE CONTENT ==================
+
+        // GET: HomePageContent/Create
         public IActionResult Create()
         {
             return View();
@@ -42,7 +46,7 @@ namespace SantaFeWaterSystem.Controllers.Admin
                 _context.HomePageContents.Add(model);
                 await _context.SaveChangesAsync();
 
-                // ✅ Audit trail
+                // Audit trail
                 var performedBy = User.Identity?.Name ?? "Unknown";
                 var details = $"New homepage content created. Title={model.Title}, Description={model.Subtitle}";
                 var phTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Asia/Manila");
@@ -63,6 +67,11 @@ namespace SantaFeWaterSystem.Controllers.Admin
         }
 
 
+
+
+        //================== EDIT HOMEPAGE CONTENT ==================
+
+        // GET: HomePageContent/Edit
         public async Task<IActionResult> Edit(int id)
         {
             var content = await _context.HomePageContents.FindAsync(id);
@@ -84,7 +93,7 @@ namespace SantaFeWaterSystem.Controllers.Admin
                 _context.Update(model);
                 await _context.SaveChangesAsync();
 
-                // ✅ Audit trail
+                // Audit trail
                 var performedBy = User.Identity?.Name ?? "Unknown";
                 var details = $"Homepage content updated. " +
                               $"Before: Title={originalContent.Title}, Description={originalContent.Subtitle}. " +
@@ -107,6 +116,11 @@ namespace SantaFeWaterSystem.Controllers.Admin
         }
 
 
+
+
+
+        //================== DELETE HOMEPAGE CONTENT ==================
+
         // GET: show confirmation
         public async Task<IActionResult> Delete(int id)
         {
@@ -126,7 +140,7 @@ namespace SantaFeWaterSystem.Controllers.Admin
             _context.HomePageContents.Remove(content);
             await _context.SaveChangesAsync();
 
-            // ✅ Audit trail
+            // Audit trail
             var performedBy = User.Identity?.Name ?? "Unknown";
             var details = $"Homepage content deleted. Title={content.Title}, Description={content.Subtitle}";
             var phTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Asia/Manila");
@@ -143,6 +157,5 @@ namespace SantaFeWaterSystem.Controllers.Admin
 
             return RedirectToAction(nameof(Index));
         }
-
     }
 }

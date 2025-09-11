@@ -13,6 +13,7 @@ namespace SantaFeWaterSystem.Services
         public static byte[] Generate(List<PaymentViewModel> payments, string searchTerm, string statusFilter)
         {
             var logoPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "logo.png");
+            var logoImage = QuestPDF.Infrastructure.Image.FromFile(logoPath);
 
             var document = Document.Create(container =>
             {
@@ -25,7 +26,7 @@ namespace SantaFeWaterSystem.Services
                     {
                         header.Item().Row(row =>
                         {
-                            row.ConstantItem(60).Image(logoPath, ImageScaling.FitHeight);
+                            row.ConstantItem(60).Image(logoImage).FitHeight();
                             row.RelativeItem().AlignRight().Text("Payment Report")
                                 .FontSize(20).Bold().FontColor(Colors.Blue.Medium);
                         });
@@ -78,7 +79,8 @@ namespace SantaFeWaterSystem.Services
                         foreach (var p in payments)
                         {
                             table.Cell().Padding(5).Text(p.FullName ?? "-");
-                            table.Cell().Padding(5).Text(p.BillingDate.ToShortDateString());
+                            table.Cell().Padding(5).Text(p.BillingDate.ToShortDateString() ?? "N/A");
+
                             table.Cell().Padding(5).Text($"₱{p.AmountPaid:N2}");
                             table.Cell().Padding(5).Text(p.PaymentMethod ?? "Cash");
                             table.Cell().Padding(5).Text(p.IsVerified ? "Verified" : "Pending");

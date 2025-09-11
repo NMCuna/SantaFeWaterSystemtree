@@ -9,16 +9,18 @@ using System.Linq;
 
 namespace SantaFeWaterSystem.Controllers
 {
-    [Authorize(Roles = "User")] // Only consumers
-    public class PrivacyController : Controller
+    [Authorize(Roles = "User")]
+    public class PrivacyController(ApplicationDbContext context) : Controller
     {
-        private readonly ApplicationDbContext _context;
+        private readonly ApplicationDbContext _context = context;
 
-        public PrivacyController(ApplicationDbContext context)
-        {
-            _context = context;
-        }
 
+
+
+
+        //================== AGREE POLICY VIEW ==================
+
+        // GET: Privacy/Agree
         [HttpGet]
         public async Task<IActionResult> Agree()
         {
@@ -71,6 +73,36 @@ namespace SantaFeWaterSystem.Controllers
                 _context.UserPrivacyAgreements.Add(agreement);
                 await _context.SaveChangesAsync();
             }
+
+            // ================== AUDIT TRAIL ==================
+            var performedBy = User.Identity?.Name ?? "Unknown";
+
+            // Optionally, get policy title and sections for details
+            var policy = await _context.PrivacyPolicies
+                .Include(p => p.Sections)
+                .FirstOrDefaultAsync(p => p.Version == policyVersion);
+
+            var sectionTitles = policy != null
+                ? string.Join(", ", policy.Sections.Select(s => s.SectionTitle))
+                : string.Empty;
+
+            var details = $"User agreed to Privacy Policy v{policyVersion}" +
+                          (policy != null ? $" - Title: {policy.Title}, Sections: {sectionTitles}" : "");
+
+            var phTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Asia/Manila");
+            var timestampPH = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, phTimeZone);
+
+            var audit = new AuditTrail
+            {
+                Action = "Agree Privacy Policy",
+                PerformedBy = performedBy,
+                Timestamp = timestampPH,
+                Details = details
+            };
+
+            _context.AuditTrails.Add(audit);
+            await _context.SaveChangesAsync();
+        
 
             // Redirect to Consumer Dashboard
             return RedirectToAction("Dashboard", "User");

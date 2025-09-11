@@ -19,23 +19,13 @@ using X.PagedList.Extensions;
 using SantaFeWaterSystem.Filters;
 
 
-
-
 namespace SantaFeWaterSystem.Controllers
 {
     [Authorize(Roles = "Admin,Staff,User")]
-    public class NotificationsController(
-        ApplicationDbContext context,
-        ISmsQueue smsQueue,
-        ISemaphoreSmsService smsService,       
-        PermissionService permissionService,
-        IWebHostEnvironment env,
-        IOptions<SemaphoreSettings> semaphoreOptions,
-        AuditLogService audit
-    ) : BaseController(permissionService, context, audit)
+    public class NotificationsController(ApplicationDbContext context, ISmsQueue smsQueue, ISemaphoreSmsService smsService, PermissionService permissionService,
+         IWebHostEnvironment env, IOptions<SemaphoreSettings> semaphoreOptions, AuditLogService audit) : BaseController(permissionService, context, audit)
     {
         private const int PageSize = 5;
-
         private readonly ISmsQueue _smsQueue = smsQueue;
         private readonly ISemaphoreSmsService _smsService = smsService;        
         private readonly IWebHostEnvironment _env = env;
@@ -43,8 +33,9 @@ namespace SantaFeWaterSystem.Controllers
 
 
 
+        //================== INDEX LIST OF NOTIFICATIONS ==================
 
-
+        // GET: Notifications List with search and pagination
         [Authorize(Roles = "Admin,Staff")]
         public IActionResult Index(string search, int pageNumber = 1)
         {
@@ -65,6 +56,10 @@ namespace SantaFeWaterSystem.Controllers
         }
 
 
+
+        //================== MARK AS READ ==================
+
+        // Mark as read via AJAX
         [Authorize(Roles = "User,Admin,Staff")]
         [HttpPost]
         public async Task<IActionResult> MarkAsRead([FromBody] int id)
@@ -82,6 +77,11 @@ namespace SantaFeWaterSystem.Controllers
             return Ok();
         }
 
+
+
+        //================== DELETE NOTIFICATION IN ADMIN ACTION==================
+
+        // Delete via AJAX
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteViaAjax([FromBody] int id)
@@ -95,6 +95,10 @@ namespace SantaFeWaterSystem.Controllers
         }
 
 
+
+        //================== CREATE NOTIFICATION ==================
+
+        // GET: Notification/Create
         [Authorize(Roles = "Admin,Staff")]
         // GET: Notification/Create
         public IActionResult Create()
@@ -112,7 +116,7 @@ namespace SantaFeWaterSystem.Controllers
 
             notification.CreatedAt = DateTime.Now;
 
-            // ✅ For broadcast: notify all consumers with linked users
+            // For broadcast: notify all consumers with linked users
             if (notification.SendToAll)
             {
                 var consumers = await _context.Consumers
@@ -186,7 +190,7 @@ namespace SantaFeWaterSystem.Controllers
             }
             else
             {
-                // ✅ Send to specific consumer only
+                // Send to specific consumer only
                 _context.Notifications.Add(notification);
 
                 var consumer = await _context.Consumers
@@ -251,7 +255,9 @@ namespace SantaFeWaterSystem.Controllers
 
 
 
+        //================== DELETE NOTIFICATION IN ADMIN ==================
 
+        // GET: Notification/Delete/5
         [Authorize(Roles = "Admin")]
         [HttpGet]
         public async Task<IActionResult> Delete(int id)
@@ -268,6 +274,9 @@ namespace SantaFeWaterSystem.Controllers
 
 
 
+        //================== ARCHIVE NOTIFICATION ==================
+
+        // Archive single notification
         [Authorize(Roles = "Admin,Staff")]
         [HttpPost]
         public async Task<IActionResult> Archive(int id)
@@ -282,6 +291,11 @@ namespace SantaFeWaterSystem.Controllers
             return RedirectToAction("Index");
         }
 
+
+
+        //================== UNARCHIVE NOTIFICATION ==================
+
+        // Unarchive single notification
         [Authorize(Roles = "Admin,Staff")]
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -301,7 +315,10 @@ namespace SantaFeWaterSystem.Controllers
         }
 
 
-        /////////ARCHRIVE NOTIFICATION///////////////////////////////
+
+        //================== VIEW ARCHIVED NOTIFICATIONS ==================
+
+        // View Archived Notifications with pagination
         [Authorize(Roles = "Admin,Staff")]
         public IActionResult Archived(int page = 1, int pageSize = 8)
         {
@@ -323,6 +340,10 @@ namespace SantaFeWaterSystem.Controllers
         }
 
 
+
+        //================== ARCHIVE SELECTED NOTIFICATIONS ==================
+
+        // Archive selected notifications
         [Authorize(Roles = "Admin,Staff")]
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -352,13 +373,7 @@ namespace SantaFeWaterSystem.Controllers
 
 
 
-
-
-
-
-
-
-        /////////////////////////////////////Use later if needed not yet use////////
+        //================== SEND SMS CONTROLLER ==================
 
         // GET: SendSms
         [Authorize(Roles = "Admin,Staff")]
@@ -525,8 +540,9 @@ namespace SantaFeWaterSystem.Controllers
 
 
 
-        //////////////////////////////SMS LOGS CONTROLLER/////////////////////////////
+        //================== SMS LOGS CONTROLLER LIST OF SMS SENT ==================
 
+        // GET: SmsLogs
         [Authorize(Roles = "Admin,Staff")]
         // View Active SMS Logs
         public async Task<IActionResult> SmsLogs(int? page)
@@ -553,6 +569,10 @@ namespace SantaFeWaterSystem.Controllers
 
             return View(logs);
         }
+
+
+
+        //================== ARCHIVED SMS LOGS CONTROLLER LIST OG ARCHIVE SMS SENT ==================
 
         // View Archived Logs with filtering
         [Authorize(Roles = "Admin,Staff")]
@@ -588,6 +608,9 @@ namespace SantaFeWaterSystem.Controllers
             return View(await query.ToPagedListAsync(pageNumber, pageSize));
         }
 
+
+
+        //================== ARCHIVE SELECTED SMS LOGS CONTROLLER ==================
         // Archive selected logs
         [Authorize(Roles = "Admin,Staff")]
         [HttpPost]
@@ -614,6 +637,10 @@ namespace SantaFeWaterSystem.Controllers
         }
 
 
+
+
+        //================== UNARCHIVE SMS LOGS CONTROLLER ==================
+
         // Unarchive single log
         [Authorize(Roles = "Admin,Staff")]
         [HttpPost]
@@ -633,8 +660,9 @@ namespace SantaFeWaterSystem.Controllers
 
 
 
+        //================== USER NOTIFICATIONS CONTROLLER LIST OF NOTIF IN USER  ==================
 
-        // Filter support
+        // View user notifications with filtering
         [Authorize(Roles = "User")]
         [RequirePrivacyAgreement]
         public async Task<IActionResult> UserNotification(string filter = "all")
@@ -666,6 +694,10 @@ namespace SantaFeWaterSystem.Controllers
             return View("UserNotification", notifications);
         }
 
+
+
+        //================== USER NOTIFICATIONS CONTROLLER MARK ALL AS READ IN USER  ==================
+
         // Mark all as read
         [Authorize(Roles = "User")]
         [RequirePrivacyAgreement]
@@ -692,6 +724,10 @@ namespace SantaFeWaterSystem.Controllers
         }
 
 
+
+        //================== USER NOTIFICATIONS CONTROLLER DELETE NOTIF IN USER  ==================
+
+        // Delete single notification
         [Authorize(Roles = "User")]
         [RequirePrivacyAgreement]
         [HttpPost] // <-- use POST instead
@@ -718,6 +754,9 @@ namespace SantaFeWaterSystem.Controllers
 
 
 
+        //================== USER NOTIFICATIONS CONTROLLER GET UNREAD COUNT IN USER  ==================
+
+        // Get unread count for badge
         [Authorize(Roles = "User")]
         [RequirePrivacyAgreement]
         [HttpGet]
@@ -737,6 +776,11 @@ namespace SantaFeWaterSystem.Controllers
             return Json(count);
         }
 
+
+
+        //================== USER NOTIFICATIONS CONTROLLER MARK AS READ VIA AJAX IN USER  ==================
+
+        // Mark single notification as read via AJAX    
         [Authorize(Roles = "User")]
         [RequirePrivacyAgreement]
         [HttpPost]
@@ -763,12 +807,6 @@ namespace SantaFeWaterSystem.Controllers
 
             return Ok();
         }
-
-
     }
-
-
-
-
 }
 

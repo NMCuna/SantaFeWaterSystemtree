@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using SantaFeWaterSystem.Models.ViewModels;
 
-namespace SantaFeWaterSystem.ViewModels
+namespace SantaFeWaterSystem.Models.ViewModels
 {
     public class PrivacyPolicySectionCreateViewModel
     {

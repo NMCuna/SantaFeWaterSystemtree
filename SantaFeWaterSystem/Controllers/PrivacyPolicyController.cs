@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SantaFeWaterSystem.Data;
 using SantaFeWaterSystem.Models;
+using SantaFeWaterSystem.Models.ViewModels;
 using SantaFeWaterSystem.Services;
 using SantaFeWaterSystem.ViewModels;
 using System;
@@ -10,19 +11,17 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace SantaFeWaterSystem.Controllers.Admin
+namespace SantaFeWaterSystem.Controllers
 {
     [Authorize(Roles = "Admin,Staff")]
-    public class PrivacyPolicyController : Controller
+    public class PrivacyPolicyController(ApplicationDbContext context, AuditLogService audit) : Controller
     {
-        private readonly ApplicationDbContext _context;
-        protected readonly AuditLogService _audit;
+        private readonly ApplicationDbContext _context = context;
+        protected readonly AuditLogService _audit = audit;
 
-        public PrivacyPolicyController(ApplicationDbContext context, AuditLogService audit)
-        {
-            _context = context;
-            _audit = audit;
-        }
+
+
+        //================== AGREE POLICY VIEW LIST ==================
 
         // Show the latest policy
         public async Task<IActionResult> Index()
@@ -34,6 +33,10 @@ namespace SantaFeWaterSystem.Controllers.Admin
 
             return View(policy);
         }
+
+
+
+        //================== AGREE POLICY CREATE ==================
 
         // GET: Show Create Form with one default empty section
         [HttpGet]
@@ -47,9 +50,9 @@ namespace SantaFeWaterSystem.Controllers.Admin
             var model = new CreatePrivacyPolicyViewModel
             {
                 Version = latestVersion + 1,
-                Sections = new List<PrivacyPolicySectionCreateViewModel>
+                Sections =
         {
-            new PrivacyPolicySectionCreateViewModel
+           new()
             {
                 SectionTitle = "",
                 Content = "",
@@ -95,7 +98,7 @@ namespace SantaFeWaterSystem.Controllers.Admin
             _context.PrivacyPolicies.Add(newPolicy);
             await _context.SaveChangesAsync();
 
-            // ✅ Audit trail
+            // Audit trail
             var performedBy = User.Identity?.Name ?? "Unknown";
             var sectionTitles = string.Join(", ", sections.Select(s => s.SectionTitle));
             var details = $"Created Privacy Policy v{newPolicy.Version} - Title: {newPolicy.Title}, Sections: {sectionTitles}";
@@ -117,6 +120,9 @@ namespace SantaFeWaterSystem.Controllers.Admin
         }
 
 
+
+        //================== AGREEMENT LIST ==================
+        // Paginated list of all user agreements
         public async Task<IActionResult> PrivacyAgreements(int page = 1, int pageSize = 10)
         {
             var totalAgreements = await _context.UserPrivacyAgreements.CountAsync();
