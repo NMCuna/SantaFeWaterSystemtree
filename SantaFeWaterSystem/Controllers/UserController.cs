@@ -23,12 +23,14 @@ namespace SantaFeWaterSystem.Controllers
 {
     [Authorize(Roles = "User")]
     [RequirePrivacyAgreement]
-    public class UserController(ApplicationDbContext context, IWebHostEnvironment environment, IPasswordHasher<User> passwordHasher, AuditLogService audit) : Controller
+    public class UserController(ApplicationDbContext context, IWebHostEnvironment environment, IPasswordHasher<User> passwordHasher, AuditLogService audit, PasswordPolicyService passwordPolicyService, IEmailSender emailSender) : Controller
     {
         private readonly ApplicationDbContext _context = context;
         private readonly IWebHostEnvironment _environment = environment;
         private readonly IPasswordHasher<User> _passwordHasher = passwordHasher;
         private readonly AuditLogService _audit = audit;
+        private readonly PasswordPolicyService _passwordPolicyService = passwordPolicyService;
+        private readonly IEmailSender _emailSender = emailSender;
 
 
 
@@ -675,6 +677,55 @@ namespace SantaFeWaterSystem.Controllers
             // Save new notification
             await _context.SaveChangesAsync();
 
+            // ================= EMAIL CONFIRMATION =================
+            if (!string.IsNullOrWhiteSpace(consumer.Email))
+            {
+                var emailSubject = $"Payment Submitted for Bill No: {bill.BillNo}";
+                var emailBody = $@"
+        <p>Hello <strong>{consumer.FullName}</strong>,</p>
+        <p>We have received your payment submission for your water bill.</p>
+        <p>
+            <strong>Bill No:</strong> {bill.BillNo}<br/>
+            <strong>Amount Paid:</strong> ₱{payment.AmountPaid:N2}<br/>
+            <strong>Method:</strong> {payment.Method}<br/>
+            <strong>Transaction ID:</strong> {payment.TransactionId}<br/>
+            <strong>Date Submitted:</strong> {payment.PaymentDate:MMMM d, yyyy hh:mm tt}
+        </p>
+        <p>Your payment is currently <strong>pending verification</strong> by our admin team. You will receive another email once it has been confirmed.</p>
+        <p>Thank you for your payment,<br/>Santa Fe Water System</p>";
+
+                try
+                {
+                    await _emailSender.SendEmailAsync(consumer.Email, emailSubject, emailBody);
+
+                    _context.EmailLogs.Add(new EmailLog
+                    {
+                        ConsumerId = consumer.Id,
+                        EmailAddress = consumer.Email,
+                        Subject = emailSubject,
+                        Message = emailBody,
+                        IsSuccess = true,
+                        SentAt = DateTime.Now
+                    });
+                }
+                catch (Exception ex)
+                {
+                    _context.EmailLogs.Add(new EmailLog
+                    {
+                        ConsumerId = consumer.Id,
+                        EmailAddress = consumer.Email,
+                        Subject = emailSubject,
+                        Message = emailBody,
+                        IsSuccess = false,
+                        SentAt = DateTime.Now,
+                        ResponseMessage = ex.Message
+                    });
+                }
+
+                await _context.SaveChangesAsync();
+            }
+
+
             // Store Transaction Info in TempData for Confirmation View
             TempData["TransactionId"] = model.TransactionId;
             TempData["AmountPaid"] = model.TotalAmount.ToString("F2"); // <- 🔧 Fixed here
@@ -1095,41 +1146,91 @@ namespace SantaFeWaterSystem.Controllers
         ///////////////////////////
 
 
-       
-        // ================== SHOW THE RESET PASSWORD VIEW ==================
 
-        // GET: /User/ResetPassword
+
+
+        // ================== SHOW THE RESET PASSWORD VIEW ==================
         [HttpGet]
         [Authorize(Roles = "User")]
-        public IActionResult ResetPassword()
+        public async Task<IActionResult> ResetPassword()
         {
+            // 🔹 Always get the latest password policy from DB
+            var policy = await _context.PasswordPolicies
+                .OrderByDescending(p => p.Id)
+                .FirstOrDefaultAsync();
+
+            if (policy == null)
+            {
+                // Fallback defaults
+                policy = new PasswordPolicy
+                {
+                    MinPasswordLength = 8,
+                    RequireComplexity = true,
+                    PasswordHistoryCount = 5,
+                    MaxPasswordAgeDays = 0,
+                    MinPasswordAgeDays = 1
+                };
+            }
+
+            // Pass policy to view
+            ViewBag.PasswordPolicy = policy;
+
             return View(new ResetPasswordViewModel());
         }
 
+        // ================== PROCESS PASSWORD RESET ==================
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "User")]
         public async Task<IActionResult> ResetPassword(ResetPasswordViewModel model)
         {
+            // Reload latest password policy for redisplay if validation fails
+            var policy = await _context.PasswordPolicies
+                .OrderByDescending(p => p.Id)
+                .FirstOrDefaultAsync();
+            ViewBag.PasswordPolicy = policy;
+
             if (!ModelState.IsValid)
             {
-                return View(model); // Return view with validation errors
+                TempData["Error"] = "❌ Please correct the errors below.";
+                return View(model);
             }
 
             var userId = User.FindFirstValue("UserId");
-            if (string.IsNullOrEmpty(userId)) return Unauthorized();
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized();
 
             var user = await _context.Users.FindAsync(int.Parse(userId));
-            if (user == null) return NotFound();
+            if (user == null)
+                return NotFound();
 
-            //  Hash the new password
+            // 🔹 Validate password against policy
+            var isValidPassword = await _passwordPolicyService.ValidatePasswordAsync(user.Id, model.NewPassword);
+            if (!isValidPassword)
+            {
+                ModelState.AddModelError(nameof(model.NewPassword),
+                    "Password must meet all requirements (length, complexity, history).");
+
+                TempData["Error"] = "❌ Change password failed — your new password does not meet the requirements.";
+                return View(model);
+            }
+
+            // 🔹 Hash and save password
             user.PasswordHash = _passwordHasher.HashPassword(user, model.NewPassword);
+
+            // 🔹 Save password history
+            await _passwordPolicyService.SavePasswordHistoryAsync(user.Id, user.PasswordHash);
+
             await _context.SaveChangesAsync();
 
-            //  Add audit log
+            // 🔹 Log the action
             await _audit.LogAsync("Reset Password", "User successfully reset their password.", user.AccountNumber);
 
-            TempData["Message"] = "Password changed successfully.";
+            TempData["Message"] = "✅ Password changed successfully.";
             return RedirectToAction("Profile", "User");
         }
+
+
+
     }
 }

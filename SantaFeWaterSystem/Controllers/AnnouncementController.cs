@@ -241,13 +241,12 @@ public class AnnouncementController : Controller
 
 
 
-    
-    // ================== DELETE COMMENT ==================
 
+    // ================== DELETE COMMENT ==================
     [Authorize(Roles = "Admin,Staff,User")]
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> DeleteComment([FromBody] int id)
+    public async Task<IActionResult> DeleteComment(int id)   // ❌ removed [FromBody]
     {
         var comment = await _context.FeedbackComments
             .FirstOrDefaultAsync(c => c.Id == id);
@@ -271,13 +270,11 @@ public class AnnouncementController : Controller
     }
 
 
-
-    // ================== DELETE FEEDBACK USER,ADMIN,STAFF==================
-
+    // ================== DELETE FEEDBACK USER,ADMIN,STAFF ==================
     [Authorize(Roles = "Admin,Staff,User")]
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> DeleteFeedback([FromBody] int id)
+    public async Task<IActionResult> DeleteFeedback(int id)   // ❌ removed [FromBody]
     {
         var feedback = await _context.Feedbacks
             .Include(f => f.Comments) // Ensure comments are loaded
@@ -307,7 +304,6 @@ public class AnnouncementController : Controller
 
         return Json(new { success = false, message = "You are not allowed to delete this feedback." });
     }
-
 
 
 

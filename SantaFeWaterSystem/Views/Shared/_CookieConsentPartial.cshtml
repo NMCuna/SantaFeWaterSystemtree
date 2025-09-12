@@ -1,0 +1,75 @@
+﻿@using Microsoft.AspNetCore.Http.Features
+@inject IHttpContextAccessor HttpContextAccessor
+
+@{
+    var consentFeature = HttpContextAccessor.HttpContext?.Features.Get<ITrackingConsentFeature>();
+    var showBanner = !(consentFeature?.CanTrack ?? false);
+    var consentCookie = consentFeature?.CreateConsentCookie();
+}
+
+@if (showBanner)
+{
+    <div id="cookieConsent" class="position-fixed bottom-0 start-0 w-100 bg-dark text-white shadow-lg p-3" style="z-index:1050;">
+        <div class="container text-center text-md-start">
+            <div class="row align-items-center">
+                <div class="col-12 col-md-8 mb-3 mb-md-0">
+                    <p class="mb-2 fw-bold">
+                        <i class="bi bi-cookie me-1"></i> This website uses cookies to ensure the best experience.
+                    </p>
+
+                    <div class="mb-2 small">
+                        <p class="mb-1"><i class="bi bi-check2-circle text-success me-1"></i> Keep you securely logged in while browsing.</p>
+                        <p class="mb-1"><i class="bi bi-check2-circle text-success me-1"></i> Remember your account preferences and settings.</p>
+                        <p class="mb-1"><i class="bi bi-check2-circle text-success me-1"></i> Help us improve the system through analytics.</p>
+                    </div>
+
+                    <p class="mb-0 small">
+                        By clicking <strong>"Accept"</strong>, you agree to our use of cookies.
+                        Read our
+                        <a href="@Url.Action("Privacy", "Home")" target="_blank" rel="noopener" class="text-info fw-bold">
+                            Privacy Policy
+                        </a>.
+                    </p>
+                </div>
+
+                <div class="col-12 col-md-4 text-center text-md-end">
+                    <!-- Accept Button -->
+                    <button type="button" class="btn btn-success btn-sm me-2"
+                            onclick="acceptCookies('@consentCookie')">
+                        <i class="bi bi-check-circle"></i> Accept
+                    </button>
+
+                    <!-- Decline Button -->
+                    <button type="button" class="btn btn-secondary btn-sm"
+                            onclick="declineCookies()">
+                        <i class="bi bi-x-circle"></i> Decline
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function acceptCookies(consentValue) {
+            // Save consent cookie for 1 year
+            const isHttps = window.location.protocol === "https:";
+            const expiry = new Date();
+            expiry.setFullYear(expiry.getFullYear() + 1); // +1 year
+            let cookie = consentValue + "; expires=" + expiry.toUTCString() + "; path=/; SameSite=Lax";
+            if (isHttps) cookie += "; Secure";
+            document.cookie = cookie;
+
+            document.getElementById('cookieConsent').style.display = 'none';
+        }
+
+        function declineCookies() {
+            // Save a "declined" session cookie (no expiry) → resets when browser closes
+            const isHttps = window.location.protocol === "https:";
+            let cookie = ".AspNet.Consent=no; path=/; SameSite=Lax";
+            if (isHttps) cookie += "; Secure";
+            document.cookie = cookie;
+
+            document.getElementById('cookieConsent').style.display = 'none';
+        }
+    </script>
+}

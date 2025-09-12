@@ -1,0 +1,68 @@
+﻿@model SantaFeWaterSystem.Models.LockoutPolicy
+@{
+    ViewData["Title"] = "Lockout Policy";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container mt-5">
+    <!-- Flex container: Heading left, button right -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="mb-0">
+            <i class="bi bi-shield-lock me-2"></i> Lockout Policy Settings
+        </h3>
+
+        <a asp-controller="GeneralSettings" asp-action="Security" class="btn btn-secondary">
+            <i class="bi bi-arrow-left-circle me-1"></i> Back to Security
+        </a>
+    </div>
+
+    <form asp-action="Index" method="post" class="mt-3">
+        <div class="mb-3">
+            <label class="form-label">Max Failed Attempts</label>
+            <input asp-for="MaxFailedAccessAttempts" class="form-control" />
+            <span asp-validation-for="MaxFailedAccessAttempts" class="text-danger"></span>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Lockout Duration (minutes)</label>
+            <input asp-for="LockoutMinutes" class="form-control" />
+            <span asp-validation-for="LockoutMinutes" class="text-danger"></span>
+        </div>
+        <button type="submit" class="btn btn-primary">
+            <i class="bi bi-save me-1"></i> Save Policy
+        </button>
+    </form>
+</div>
+
+<!-- ✅ Success Modal -->
+<div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="successModalLabel">
+                    <i class="bi bi-check-circle-fill me-2"></i> Success
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                @TempData["Success"]
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-success" data-bs-dismiss="modal">OK</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        // Show modal if TempData has a message
+        document.addEventListener("DOMContentLoaded", function () {
+            var hasMessage = "@TempData["Success"]" !== "";
+            if (hasMessage) {
+                var modal = new bootstrap.Modal(document.getElementById('successModal'));
+                modal.show();
+            }
+        });
+    </script>
+}

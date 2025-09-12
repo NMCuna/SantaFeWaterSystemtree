@@ -1,0 +1,37 @@
+﻿@model SantaFeWaterSystem.Models.PublicInquiry
+@{
+    ViewData["Title"] = "Inquiry Details";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+
+<h2>Inquiry Details</h2>
+
+<dl class="row">
+    <dt class="col-sm-3">Submitted</dt>
+    <dd class="col-sm-9">@Model.CreatedAt.ToLocalTime()</dd>
+
+    <dt class="col-sm-3">Name</dt>
+    <dd class="col-sm-9">@Model.FirstName @Model.LastName</dd>
+
+    <dt class="col-sm-3">Email</dt>
+    <dd class="col-sm-9">@Model.Email</dd>
+
+    <dt class="col-sm-3">Phone</dt>
+    <dd class="col-sm-9">@Model.PhoneNumber</dd>
+
+    <dt class="col-sm-3">Purpose</dt>
+    <dd class="col-sm-9">@Model.Purpose</dd>
+
+    <dt class="col-sm-3">Description</dt>
+    <dd class="col-sm-9" style="white-space:pre-wrap">@Model.Description</dd>
+
+    <dt class="col-sm-3">Status</dt>
+    <dd class="col-sm-9">@Model.Status</dd>
+</dl>
+
+@if (Model.Status == "New")
+{
+    <a asp-action="Reply" asp-route-id="@Model.Id" class="btn btn-primary">Reply</a>
+}
+<a asp-action="Index" class="btn btn-secondary">Back</a>

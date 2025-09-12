@@ -123,7 +123,7 @@
                      class="rounded-circle border border-light"
                      style="width: 36px; height: 36px; object-fit: cover; cursor: pointer;" />
             </a>
-          
+
             <span class="text-white small fw-medium">Hello, @fullName</span>
             <span class="badge @statusClass ms-2">@consumerStatus</span>
 
@@ -323,6 +323,9 @@
         @RenderBody()
         @RenderSection("Scripts", required: false)
     </main>
+
+    <!-- ✅ Cookie Consent Banner (moved near footer) -->
+    <partial name="_CookieConsentPartial" />
 
     <!-- Scripts -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -582,7 +585,7 @@
     </form>
 
 
-    
+
 
 </body>
 </html>

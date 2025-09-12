@@ -50,4 +50,18 @@ body {
     color: white;
 }
 
+#cookieConsent {
+    z-index: 9999;
+    animation: slideUp 0.5s ease-in-out;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(100%);
+    }
+
+    to {
+        transform: translateY(0);
+    }
+}
 

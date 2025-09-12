@@ -1,33 +1,35 @@
 ﻿using System.Net;
 using System.Net.Mail;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Options;
-using SantaFeWaterSystem.Settings;
+using SantaFeWaterSystem.Data;
+using Microsoft.EntityFrameworkCore;
 
 public class SmtpEmailSender : IEmailSender
 {
-    private readonly EmailSettings _emailSettings;
+    private readonly ApplicationDbContext _context;
 
-    public SmtpEmailSender(IOptions<EmailSettings> emailSettings)
+    public SmtpEmailSender(ApplicationDbContext context)
     {
-        _emailSettings = emailSettings.Value;
+        _context = context;
     }
 
     public async Task SendEmailAsync(string toEmail, string subject, string htmlMessage)
     {
+        var settings = await _context.EmailSettings.FirstOrDefaultAsync();
+        if (settings == null)
+            throw new Exception("Email settings not configured.");
+
         var mail = new MailMessage
         {
-            From = new MailAddress(_emailSettings.SenderEmail, _emailSettings.SenderName),
+            From = new MailAddress(settings.SenderEmail, settings.SenderName),
             Subject = subject,
             Body = htmlMessage,
             IsBodyHtml = true
         };
-
         mail.To.Add(toEmail);
 
-        using var smtp = new SmtpClient(_emailSettings.SmtpServer, _emailSettings.SmtpPort)
+        using var smtp = new SmtpClient(settings.SmtpServer, settings.SmtpPort)
         {
-            Credentials = new NetworkCredential(_emailSettings.SenderEmail, _emailSettings.SenderPassword),
+            Credentials = new NetworkCredential(settings.SenderEmail, settings.SenderPassword),
             EnableSsl = true
         };
 

@@ -1,0 +1,74 @@
+﻿@model SantaFeWaterSystem.Models.AdminAccessSetting
+@{
+    ViewData["Title"] = "Edit Admin Token";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container mt-4">
+    <h2 class="mb-3"><i class="bi bi-shield-lock"></i> Edit Admin Login Token</h2>
+
+    <!-- 🔥 Warning Alert -->
+    <div class="alert alert-warning" role="alert">
+        <strong>Important:</strong> Changing this token will affect access to the Admin Login page. 
+        Make sure to <strong>copy or screenshot</strong> the new token, as you will not be able to access the Admin Login without it.
+    </div>
+
+    <form asp-action="EditToken" method="post" id="editTokenForm">
+        <input type="hidden" asp-for="Id" />
+        <div class="form-group mb-3">
+            <label for="LoginViewToken" class="form-label">Login Token</label>
+            <div class="input-group">
+                <input asp-for="LoginViewToken" id="LoginViewToken" class="form-control" />
+                <button type="button" class="btn btn-outline-secondary" onclick="copyToken()">
+                    <i class="bi bi-clipboard"></i> Copy
+                </button>
+            </div>
+            <span asp-validation-for="LoginViewToken" class="text-danger"></span>
+        </div>
+
+        <button type="button" class="btn btn-primary" onclick="confirmSave()">Save</button>
+        <a asp-action="Index" class="btn btn-secondary">Back</a>
+    </form>
+</div>
+
+<!-- 🔥 Confirmation Modal -->
+<div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="confirmModalLabel">Confirm Token Change</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to change this token? If you forget or lose this token, 
+                you will not be able to access the Admin Login.</p>
+                <p class="fw-bold text-danger">Make sure to copy or screenshot the token before proceeding.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" onclick="submitForm()">Yes, Change Token</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function copyToken() {
+            var tokenInput = document.getElementById("LoginViewToken");
+            tokenInput.select();
+            tokenInput.setSelectionRange(0, 99999); // For mobile
+            document.execCommand("copy");
+            alert("Token copied to clipboard!");
+        }
+
+        function confirmSave() {
+            var myModal = new bootstrap.Modal(document.getElementById('confirmModal'));
+            myModal.show();
+        }
+
+        function submitForm() {
+            document.getElementById("editTokenForm").submit();
+        }
+    </script>
+}

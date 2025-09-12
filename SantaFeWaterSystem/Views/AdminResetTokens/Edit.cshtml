@@ -1,0 +1,74 @@
+﻿@model SantaFeWaterSystem.Models.AdminResetToken
+@{
+    ViewData["Title"] = $"Edit Token for {Model.Day}";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container mt-4">
+    <h2><i class="bi bi-shield-lock"></i> Edit Token for @Model.Day</h2>
+
+    <div class="alert alert-danger">
+        <strong>Warning:</strong> Changing this token will affect emergency password resets.
+        Make sure to copy or screenshot the token after saving.
+    </div>
+
+    <form asp-action="Edit" method="post" id="editTokenForm">
+        <input type="hidden" asp-for="Id" />
+        <input type="hidden" asp-for="Day" /> <!-- ✅ Add this hidden field -->
+
+        <div class="form-group mb-3">
+            <label for="Token" class="form-label">Token</label>
+            <div class="input-group">
+                <input asp-for="Token" id="Token" class="form-control" />
+                <button type="button" class="btn btn-outline-secondary" onclick="copyToken()">
+                    <i class="bi bi-clipboard"></i> Copy
+                </button>
+            </div>
+            <span asp-validation-for="Token" class="text-danger"></span>
+        </div>
+
+        <button type="button" class="btn btn-primary" onclick="confirmSave()">Save</button>
+        <a asp-action="Index" class="btn btn-secondary">Back</a>
+    </form>
+</div>
+
+<!-- Confirmation Modal -->
+<div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="confirmModalLabel">Confirm Token Change</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to change this token?</p>
+                <p class="fw-bold text-danger">If forgotten, emergency password resets will fail. Copy or screenshot it!</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" onclick="submitForm()">Yes, Change Token</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function copyToken() {
+            var tokenInput = document.getElementById("Token");
+            tokenInput.select();
+            tokenInput.setSelectionRange(0, 99999);
+            document.execCommand("copy");
+            alert("Token copied to clipboard!");
+        }
+
+        function confirmSave() {
+            var myModal = new bootstrap.Modal(document.getElementById('confirmModal'));
+            myModal.show();
+        }
+
+        function submitForm() {
+            document.getElementById("editTokenForm").submit();
+        }
+    </script>
+}

@@ -1,0 +1,122 @@
+﻿@model SantaFeWaterSystem.Models.PublicInquiry
+@{
+    ViewData["Title"] = "Inquiry";
+}
+
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-10 col-lg-8">
+            <div class="card shadow-lg border-0 rounded-3">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="mb-0">
+                        <i class="bi bi-chat-left-text me-2"></i> Send an Inquiry
+                    </h2>
+                </div>
+                <div class="card-body p-4">
+
+                    <!-- Success Alert handled by SweetAlert2 -->
+                    @if (TempData["SuccessMessage"] != null)
+                    {
+                        <input type="hidden" id="successMessage" value="@TempData["SuccessMessage"]" />
+                    }
+
+                    <form id="inquiryForm" asp-action="Create" method="post" novalidate>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="FirstName">
+                                    <i class="bi bi-person-fill me-1 text-secondary"></i> First Name
+                                </label>
+                                <input asp-for="FirstName" class="form-control" />
+                                <span asp-validation-for="FirstName" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="LastName">
+                                    <i class="bi bi-person-fill me-1 text-secondary"></i> Last Name
+                                </label>
+                                <input asp-for="LastName" class="form-control" />
+                                <span asp-validation-for="LastName" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Email">
+                                    <i class="bi bi-envelope-fill me-1 text-secondary"></i> Email
+                                </label>
+                                <input asp-for="Email" class="form-control" />
+                                <span asp-validation-for="Email" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="PhoneNumber">
+                                    <i class="bi bi-telephone-fill me-1 text-secondary"></i> Phone Number
+                                </label>
+                                <input asp-for="PhoneNumber" class="form-control" />
+                                <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Purpose">
+                                <i class="bi bi-flag-fill me-1 text-secondary"></i> Purpose
+                            </label>
+                            <input asp-for="Purpose" class="form-control" />
+                            <span asp-validation-for="Purpose" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Description">
+                                <i class="bi bi-card-text me-1 text-secondary"></i> Description
+                            </label>
+                            <textarea asp-for="Description" class="form-control" rows="4"></textarea>
+                            <span asp-validation-for="Description" class="text-danger"></span>
+                        </div>
+
+                        <!-- Privacy consent -->
+                        <div class="form-check mb-3">
+                            <input asp-for="IsAgreed" class="form-check-input" id="IsAgreed" />
+                            <label class="form-check-label" for="IsAgreed">
+                                <i class="bi bi-shield-lock-fill text-primary me-1"></i>
+                                I agree to the use or processing of my personal information.
+                                <a href="@Url.Action("Privacy", "Home")" target="_blank" rel="noopener">
+                                    Privacy Policy
+                                </a>
+                            </label>
+                        </div>
+
+                        <button type="submit" id="submitBtn" class="btn btn-primary w-100" disabled>
+                            <i class="bi bi-send-fill me-1"></i> Send Inquiry
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        const agreed = document.getElementById("IsAgreed");
+        const submitBtn = document.getElementById("submitBtn");
+
+        // Enable/disable submit button based on checkbox
+        agreed.addEventListener("change", function () {
+            submitBtn.disabled = !this.checked;
+        });
+
+        // Handle Success Message
+        const successMessage = document.getElementById("successMessage");
+        if (successMessage) {
+            Swal.fire({
+                icon: 'success',
+                title: 'Inquiry Sent',
+                text: successMessage.value,
+                confirmButtonColor: '#0d6efd'
+            });
+        }
+    </script>
+}

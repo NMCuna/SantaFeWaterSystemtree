@@ -9,7 +9,7 @@
                      (Model.UserId == currentUserId.Value || User.IsInRole("Admin") || User.IsInRole("Staff"));
 }
 
-<div class="feedback-comment mb-3" data-feedback-id="@Model.Id">
+<div class="feedback-comment mb-3 border rounded p-2" data-feedback-id="@Model.Id">
     <small>
         <strong>@Model.User?.Username</strong>
         @if (Model.User?.Id == announcementAdminId)
@@ -31,30 +31,41 @@
     }
 
     <div class="mt-2 d-flex gap-2">
-        <button type="button" class="btn btn-sm @(liked ? "btn-primary" : "btn-outline-primary") feedback-like"
-                data-feedback-id="@Model.Id" data-liked="@liked.ToString().ToLower()">
-            <i class="bi bi-hand-thumbs-up"></i> Like (<span class="like-count">@likeCount</span>)
+        <!-- LIKE button -->
+        <button type="button"
+                class="btn btn-sm @(liked ? "btn-primary" : "btn-outline-primary") feedback-like"
+                data-feedback-id="@Model.Id"
+                data-liked="@liked.ToString().ToLower()">
+            <i class="bi bi-hand-thumbs-up"></i>
+            Like (<span class="like-count">@likeCount</span>)
         </button>
 
+        <!-- DELETE button -->
         @if (canDelete)
         {
-            <button type="button" class="btn btn-sm btn-danger delete-feedback"
-                    data-feedback-id="@Model.Id">
+            <button type="button"
+                    class="btn btn-sm btn-danger delete-feedback"
+                    data-feedback-id="@Model.Id"
+                    title="Delete feedback">
                 <i class="bi bi-trash"></i> Delete
             </button>
         }
     </div>
 
+    <!-- COMMENTS under feedback -->
     <div class="mt-2 feedback-comments">
         @foreach (var c in Model.Comments ?? Enumerable.Empty<SantaFeWaterSystem.Models.FeedbackComment>())
         {
             @await Html.PartialAsync("_FeedbackCommentItem", c)
         }
 
+        <!-- ADD COMMENT FORM -->
         <form class="mt-2 d-flex flex-column flex-sm-row gap-2 add-comment-form">
             <input type="hidden" name="feedbackId" value="@Model.Id" />
             <input type="text" name="content" class="form-control" placeholder="Add a comment..." required />
-            <button type="submit" class="btn btn-sm btn-primary"><i class="bi bi-reply-fill"></i> Comment</button>
+            <button type="submit" class="btn btn-sm btn-primary">
+                <i class="bi bi-reply-fill"></i> Comment
+            </button>
         </form>
     </div>
 </div>

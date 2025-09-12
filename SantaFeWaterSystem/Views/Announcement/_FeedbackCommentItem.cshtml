@@ -9,7 +9,7 @@
      data-comment-id="@Model.Id">
     <small>
         <strong>@Model.User?.Username</strong>
-        @if (Model.User?.Id == Model.Feedback.Announcement?.Admin?.Id)
+        @if (Model.User?.Id == Model.Feedback?.Announcement?.Admin?.Id)
         {
             <span class="badge bg-danger ms-1">Admin</span>
         }
@@ -19,14 +19,16 @@
         }
         : @Model.Content
         <span class="text-muted ms-1" style="font-size:0.8em;">
-            @(Model.CommentedAt.HasValue? Model.CommentedAt.Value.ToLocalTime().ToString("g") : "")
+            @(Model.CommentedAt?.ToLocalTime().ToString("g") ?? "")
         </span>
     </small>
 
     @if (canDelete)
     {
-        <button type="button" class="btn btn-sm btn-outline-danger delete-comment"
-                data-comment-id="@Model.Id" title="Delete comment">
+        <button type="button"
+                class="btn btn-sm btn-outline-danger delete-comment"
+                data-comment-id="@Model.Id"
+                title="Delete comment">
             <i class="bi bi-trash"></i>
         </button>
     }

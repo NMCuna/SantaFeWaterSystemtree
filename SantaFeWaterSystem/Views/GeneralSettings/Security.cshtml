@@ -1,0 +1,113 @@
+﻿@using System.Security.Claims
+@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
+@inject SantaFeWaterSystem.Data.ApplicationDbContext _context
+
+@{
+    ViewData["Title"] = "Security Settings";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    var user = HttpContextAccessor.HttpContext?.User;
+    var userName = ViewBag.FullName ?? user?.Identity?.Name ?? "User";
+    var isAdmin = user?.IsInRole("Admin") ?? false;
+    var isStaff = user?.IsInRole("Staff") ?? false;
+    var userId = user?.FindFirst("UserId")?.Value ?? "0";
+
+    var userPermissions = user?.Claims
+        .Where(c => c.Type == "Permission")
+        .Select(c => c.Value)
+        .ToList() ?? new List<string>();
+
+    var branding = _context.SystemBrandings.FirstOrDefault();
+    var logoPath = branding?.LogoPath ?? "/images/logo.png";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2><i class="bi bi-shield-lock me-2"></i> Security Settings</h2>
+        <a asp-controller="GeneralSettings" asp-action="Index" class="btn btn-secondary">
+            <i class="bi bi-arrow-left-circle me-1"></i> Back to General Settings
+        </a>
+    </div>
+
+    <div class="row g-4 mt-4">
+
+        @* Account Policy Card *@
+        @if (userPermissions.Contains("ManageAccountPolicy") || isAdmin)
+        {
+            <div class="col-md-4">
+                <a asp-controller="Admin" asp-action="ManageUsers" class="text-decoration-none">
+                    <div class="card shadow-sm border-0 h-100 text-center p-3 setting-card">
+                        <div class="card-body">
+                            <i class="bi bi-person-badge fs-1 text-primary"></i>
+                            <h5 class="mt-3">Manage Account</h5>
+                            <p class="text-muted small">Manage account access rules.</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        }
+
+        @* Password Policy Card *@
+        @if (userPermissions.Contains("ManagePasswordPolicy") || isAdmin)
+        {
+            <div class="col-md-4">
+                <a asp-controller="PasswordPolicy" asp-action="Index" class="text-decoration-none">
+                    <div class="card shadow-sm border-0 h-100 text-center p-3 setting-card">
+                        <div class="card-body">
+                            <i class="bi bi-key fs-1 text-success"></i>
+                            <h5 class="mt-3">Password Policy</h5>
+                            <p class="text-muted small">Configure password security settings.</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        }
+
+        @* Lockout Policy Card *@
+        @if (userPermissions.Contains("ManageLockoutPolicy") || isAdmin)
+        {
+            <div class="col-md-4">
+                <a asp-controller="LockoutPolicy" asp-action="Index" class="text-decoration-none">
+                    <div class="card shadow-sm border-0 h-100 text-center p-3 setting-card">
+                        <div class="card-body">
+                            <i class="bi bi-lock fs-1 text-danger"></i>
+                            <h5 class="mt-3">Lockout Policy</h5>
+                            <p class="text-muted small">Set lockout thresholds and durations.</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        }
+
+        @* 🔥 Manage Login Token Card *@
+        @if (isAdmin)
+        {
+            <div class="col-md-4">
+                <a asp-controller="AdminSettings" asp-action="Index" class="text-decoration-none">
+                    <div class="card shadow-sm border-0 h-100 text-center p-3 setting-card">
+                        <div class="card-body">
+                            <i class="bi bi-shield-lock fs-1 text-warning"></i>
+                            <h5 class="mt-3">Manage Login Token</h5>
+                            <p class="text-muted small">View and update the Admin Login token.</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        }
+
+        @* 🔥 Manage Daily Emergency Reset Tokens Card *@
+        @if (isAdmin)
+        {
+            <div class="col-md-4">
+                <a asp-controller="AdminResetTokens" asp-action="Index" class="text-decoration-none">
+                    <div class="card shadow-sm border-0 h-100 text-center p-3 setting-card">
+                        <div class="card-body">
+                            <i class="bi bi-clock-history fs-1 text-info"></i>
+                            <h5 class="mt-3">Manage Emergency Reset Tokens</h5>
+                            <p class="text-muted small">View and update daily emergency reset tokens.</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        }
+    </div>
+</div>

@@ -45,7 +45,7 @@ namespace SantaFeWaterSystem.Models
 
         public ICollection<Notification>? Notifications { get; set; }
         public ICollection<Billing> Billings { get; set; } = new List<Billing>();
-
+        public ICollection<EmailLog> EmailLogs { get; set; }
 
     }
 }

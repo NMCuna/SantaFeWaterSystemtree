@@ -1,0 +1,29 @@
+﻿@model SantaFeWaterSystem.Models.PublicInquiry
+@{
+    ViewData["Title"] = "Reply to Inquiry";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<h2>Reply to Inquiry</h2>
+
+<div class="mb-3">
+    <strong>To:</strong> @Model.FirstName @Model.LastName &lt;@Model.Email&gt;<br />
+    <strong>Purpose:</strong> @Model.Purpose
+</div>
+
+<div class="mb-3">
+    <label class="form-label">Original Message</label>
+    <div class="form-control" style="white-space:pre-wrap; height:auto; min-height:120px;" readonly>
+        @Model.Description
+    </div>
+</div>
+
+<form asp-action="Reply" method="post">
+    <input type="hidden" name="id" value="@Model.Id" />
+    <div class="mb-3">
+        <label class="form-label">Response</label>
+        <textarea name="response" class="form-control" rows="6" required></textarea>
+    </div>
+    <button type="submit" class="btn btn-primary">Send Email</button>
+    <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+</form>

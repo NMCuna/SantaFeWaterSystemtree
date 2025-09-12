@@ -36,8 +36,14 @@ namespace SantaFeWaterSystem.Data
         public DbSet<BackupLog> BackupLogs { get; set; }
         public DbSet<Backup> Backups { get; set; }
         public DbSet<VisitorLog> VisitorLogs => Set<VisitorLog>();
-
-
+        public DbSet<EmailSettings> EmailSettings { get; set; }
+        public DbSet<EmailLog> EmailLogs { get; set; }
+        public DbSet<PublicInquiry> PublicInquiries { get; set; }
+        public DbSet<LockoutPolicy> LockoutPolicies { get; set; }
+        public DbSet<PasswordPolicy> PasswordPolicies { get; set; }
+        public DbSet<PasswordHistory> PasswordHistories { get; set; }
+        public DbSet<AdminAccessSetting> AdminAccessSettings { get; set; }
+        public DbSet<AdminResetToken> AdminResetTokens { get; set; }
 
 
 
@@ -205,9 +211,43 @@ namespace SantaFeWaterSystem.Data
     new Permission { Id = 33, Name = "ManageContact", Description = "Permission to manage contact information" },
     new Permission { Id = 34, Name = "ManageHome", Description = "Permission to manage homepage content (create, edit, delete)" },
     new Permission { Id = 35, Name = "ManageSystemName", Description = "Permission to manage system name and branding" },
-    new Permission { Id = 36, Name = "ManageCommunity", Description = "Permission to manage community posts, announcements, and feedback" }
-);
-        }
+    new Permission { Id = 36, Name = "ManageCommunity", Description = "Permission to manage community posts, announcements, and feedback" },
+    new Permission { Id = 37, Name = "BackupManagement", Description = "Permission to manage system backups" },
+    new Permission { Id = 38, Name = "GeneralSettings", Description = "Permission to access and modify general system settings" },
+    new Permission { Id = 39, Name = "ManageInquiries", Description = "Permission to view and respond to user inquiries" },
+    new Permission { Id = 40, Name = "ViewAuditLogs", Description = "Permission to view system audit logs" },
+    new Permission { Id = 41, Name = "ViewSmsLogs", Description = "Permission to view SMS communication logs" },
+    new Permission { Id = 42, Name = "ViewEmailLogs", Description = "Permission to view email communication logs" },
+    new Permission { Id = 43, Name = "ManageAccountPolicy", Description = "Can manage account policies" },
+    new Permission { Id = 44, Name = "ManagePasswordPolicy", Description = "Can manage password policies" },
+    new Permission { Id = 45, Name = "ManageLockoutPolicy", Description = "Can manage lockout policies" },
+    new Permission { Id = 46, Name = "ManageEmailSettings", Description = "Permission to manage email settings and SMTP configuration" }
 
+
+
+);
+
+            // Seed the single default token record (Id = 1)
+            modelBuilder.Entity<AdminAccessSetting>().HasData(
+                new AdminAccessSetting
+                {
+                    Id = 1,
+                    LoginViewToken = "wako-kabalo-ganiiiii"
+                }
+            );
+
+
+
+            // Seed default tokens for the week
+            modelBuilder.Entity<AdminResetToken>().HasData(
+                new AdminResetToken { Id = 1, Day = "Monday", Token = "TokenMon" },
+                new AdminResetToken { Id = 2, Day = "Tuesday", Token = "TokenTue" },
+                new AdminResetToken { Id = 3, Day = "Wednesday", Token = "TokenWed" },
+                new AdminResetToken { Id = 4, Day = "Thursday", Token = "TokenThu" },
+                new AdminResetToken { Id = 5, Day = "Friday", Token = "TokenFri" },
+                new AdminResetToken { Id = 6, Day = "Saturday", Token = "TokenSat" },
+                new AdminResetToken { Id = 7, Day = "Sunday", Token = "TokenSun" }
+            );
+        }
     }
 }

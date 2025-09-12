@@ -1,0 +1,40 @@
+﻿@model SantaFeWaterSystem.Models.EmailLog
+
+@{
+    ViewData["Title"] = "Email Log Details";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<h2>Email Log Details</h2>
+
+<div>
+    <h4>EmailLog</h4>
+    <hr />
+    <dl class="row">
+        <dt class="col-sm-3">Consumer</dt>
+        <dd class="col-sm-9">@Model.Consumer?.FullName</dd>
+
+        <dt class="col-sm-3">Email</dt>
+        <dd class="col-sm-9">@Model.EmailAddress</dd>
+
+        <dt class="col-sm-3">Subject</dt>
+        <dd class="col-sm-9">@Model.Subject</dd>
+
+        <dt class="col-sm-3">Message</dt>
+        <dd class="col-sm-9">@Html.Raw(Model.Message)</dd>
+
+        <dt class="col-sm-3">Sent At</dt>
+        <dd class="col-sm-9">@Model.SentAt.ToString("g")</dd>
+
+        <dt class="col-sm-3">Status</dt>
+        <dd class="col-sm-9">
+            @(Model.IsSuccess ? "Success" : "Failed")
+        </dd>
+
+        <dt class="col-sm-3">Response</dt>
+        <dd class="col-sm-9">@Model.ResponseMessage</dd>
+    </dl>
+</div>
+<div>
+    <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+</div>

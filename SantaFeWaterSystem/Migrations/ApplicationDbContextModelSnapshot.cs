@@ -22,6 +22,98 @@ namespace SantaFeWaterSystem.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("SantaFeWaterSystem.Models.AdminAccessSetting", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("LoginViewToken")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("AdminAccessSettings");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            LoginViewToken = "wako-kabalo-ganiiiii"
+                        });
+                });
+
+            modelBuilder.Entity("SantaFeWaterSystem.Models.AdminResetToken", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Day")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<string>("Token")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("AdminResetTokens");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Day = "Monday",
+                            Token = "TokenMon"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Day = "Tuesday",
+                            Token = "TokenTue"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Day = "Wednesday",
+                            Token = "TokenWed"
+                        },
+                        new
+                        {
+                            Id = 4,
+                            Day = "Thursday",
+                            Token = "TokenThu"
+                        },
+                        new
+                        {
+                            Id = 5,
+                            Day = "Friday",
+                            Token = "TokenFri"
+                        },
+                        new
+                        {
+                            Id = 6,
+                            Day = "Saturday",
+                            Token = "TokenSat"
+                        },
+                        new
+                        {
+                            Id = 7,
+                            Day = "Sunday",
+                            Token = "TokenSun"
+                        });
+                });
+
             modelBuilder.Entity("SantaFeWaterSystem.Models.Announcement", b =>
                 {
                     b.Property<int>("Id")
@@ -404,6 +496,74 @@ namespace SantaFeWaterSystem.Migrations
                     b.ToTable("Disconnections");
                 });
 
+            modelBuilder.Entity("SantaFeWaterSystem.Models.EmailLog", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ConsumerId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("EmailAddress")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsSuccess")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Message")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ResponseMessage")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("SentAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Subject")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ConsumerId");
+
+                    b.ToTable("EmailLogs");
+                });
+
+            modelBuilder.Entity("SantaFeWaterSystem.Models.EmailSettings", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("SenderEmail")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SenderName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SenderPassword")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("SmtpPort")
+                        .HasColumnType("int");
+
+                    b.Property<string>("SmtpServer")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("EmailSettings");
+                });
+
             modelBuilder.Entity("SantaFeWaterSystem.Models.Feedback", b =>
                 {
                     b.Property<int>("Id")
@@ -579,6 +739,28 @@ namespace SantaFeWaterSystem.Migrations
                     b.ToTable("HomePageContents");
                 });
 
+            modelBuilder.Entity("SantaFeWaterSystem.Models.LockoutPolicy", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("LastUpdated")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("LockoutMinutes")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MaxFailedAccessAttempts")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("LockoutPolicies");
+                });
+
             modelBuilder.Entity("SantaFeWaterSystem.Models.Notification", b =>
                 {
                     b.Property<int>("Id")
@@ -615,6 +797,59 @@ namespace SantaFeWaterSystem.Migrations
                     b.HasIndex("ConsumerId");
 
                     b.ToTable("Notifications");
+                });
+
+            modelBuilder.Entity("SantaFeWaterSystem.Models.PasswordHistory", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("ChangedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("PasswordHash")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("PasswordHistories");
+                });
+
+            modelBuilder.Entity("SantaFeWaterSystem.Models.PasswordPolicy", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("MaxPasswordAgeDays")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MinPasswordAgeDays")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MinPasswordLength")
+                        .HasColumnType("int");
+
+                    b.Property<int>("PasswordHistoryCount")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("RequireComplexity")
+                        .HasColumnType("bit");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("PasswordPolicies");
                 });
 
             modelBuilder.Entity("SantaFeWaterSystem.Models.Payment", b =>
@@ -901,6 +1136,66 @@ namespace SantaFeWaterSystem.Migrations
                             Id = 36,
                             Description = "Permission to manage community posts, announcements, and feedback",
                             Name = "ManageCommunity"
+                        },
+                        new
+                        {
+                            Id = 37,
+                            Description = "Permission to manage system backups",
+                            Name = "BackupManagement"
+                        },
+                        new
+                        {
+                            Id = 38,
+                            Description = "Permission to access and modify general system settings",
+                            Name = "GeneralSettings"
+                        },
+                        new
+                        {
+                            Id = 39,
+                            Description = "Permission to view and respond to user inquiries",
+                            Name = "ManageInquiries"
+                        },
+                        new
+                        {
+                            Id = 40,
+                            Description = "Permission to view system audit logs",
+                            Name = "ViewAuditLogs"
+                        },
+                        new
+                        {
+                            Id = 41,
+                            Description = "Permission to view SMS communication logs",
+                            Name = "ViewSmsLogs"
+                        },
+                        new
+                        {
+                            Id = 42,
+                            Description = "Permission to view email communication logs",
+                            Name = "ViewEmailLogs"
+                        },
+                        new
+                        {
+                            Id = 43,
+                            Description = "Can manage account policies",
+                            Name = "ManageAccountPolicy"
+                        },
+                        new
+                        {
+                            Id = 44,
+                            Description = "Can manage password policies",
+                            Name = "ManagePasswordPolicy"
+                        },
+                        new
+                        {
+                            Id = 45,
+                            Description = "Can manage lockout policies",
+                            Name = "ManageLockoutPolicy"
+                        },
+                        new
+                        {
+                            Id = 46,
+                            Description = "Permission to manage email settings and SMTP configuration",
+                            Name = "ManageEmailSettings"
                         });
                 });
 
@@ -972,6 +1267,63 @@ namespace SantaFeWaterSystem.Migrations
                     b.HasIndex("PrivacyPolicyId");
 
                     b.ToTable("PrivacyPolicySections");
+                });
+
+            modelBuilder.Entity("SantaFeWaterSystem.Models.PublicInquiry", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AdminResponse")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FirstName")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<bool>("IsAgreed")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("LastName")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("PhoneNumber")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Purpose")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime?>("RepliedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("PublicInquiries");
                 });
 
             modelBuilder.Entity("SantaFeWaterSystem.Models.Rate", b =>
@@ -1386,6 +1738,17 @@ namespace SantaFeWaterSystem.Migrations
                     b.Navigation("Consumer");
                 });
 
+            modelBuilder.Entity("SantaFeWaterSystem.Models.EmailLog", b =>
+                {
+                    b.HasOne("SantaFeWaterSystem.Models.Consumer", "Consumer")
+                        .WithMany("EmailLogs")
+                        .HasForeignKey("ConsumerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Consumer");
+                });
+
             modelBuilder.Entity("SantaFeWaterSystem.Models.Feedback", b =>
                 {
                     b.HasOne("SantaFeWaterSystem.Models.Announcement", "Announcement")
@@ -1440,6 +1803,17 @@ namespace SantaFeWaterSystem.Migrations
                         .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("Consumer");
+                });
+
+            modelBuilder.Entity("SantaFeWaterSystem.Models.PasswordHistory", b =>
+                {
+                    b.HasOne("SantaFeWaterSystem.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("SantaFeWaterSystem.Models.Payment", b =>
@@ -1552,6 +1926,8 @@ namespace SantaFeWaterSystem.Migrations
             modelBuilder.Entity("SantaFeWaterSystem.Models.Consumer", b =>
                 {
                     b.Navigation("Billings");
+
+                    b.Navigation("EmailLogs");
 
                     b.Navigation("Notifications");
                 });

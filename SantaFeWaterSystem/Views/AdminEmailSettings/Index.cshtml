@@ -1,0 +1,20 @@
+﻿@model SantaFeWaterSystem.Models.EmailSettings
+@{
+    ViewData["Title"] = "Email Settings";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<h2>Email Settings</h2>
+<p>
+    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">Edit</a>
+    <a asp-controller="GeneralSettings" asp-action="Policies" class="btn btn-secondary">
+        <i class="bi bi-arrow-left-circle me-1"></i> Back to Policies
+    </a>
+</p>
+
+<table class="table">
+    <tr><th>SMTP Server</th><td>@Model.SmtpServer</td></tr>
+    <tr><th>SMTP Port</th><td>@Model.SmtpPort</td></tr>
+    <tr><th>Sender Name</th><td>@Model.SenderName</td></tr>
+    <tr><th>Sender Email</th><td>@Model.SenderEmail</td></tr>
+</table>

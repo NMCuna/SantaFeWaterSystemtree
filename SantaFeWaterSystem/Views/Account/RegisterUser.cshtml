@@ -1,111 +1,64 @@
-﻿@model SantaFeWaterSystem.Models.UserRegisterViewModel
+﻿@model SantaFeWaterSystem.ViewModels.UserRegisterViewModel
 
 @{
     ViewData["Title"] = "Register User";
-    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    Layout = "_AccountLayout";
 }
 
-<div class="container py-5">
-    <div class="row justify-content-center">
-        <div class="col-lg-6 col-md-8 col-sm-10">
-            <div class="card shadow-lg border-0 rounded-4">
-                <div class="card-body p-4">
-                    <h3 class="text-center text-primary mb-4">
-                        <i class="fas fa-user-plus me-2"></i> Register New User
-                    </h3>
+<div class="container mt-4">
+    <div class="card shadow-sm">
+        <div class="card-header bg-success text-white">
+            <h5 class="mb-0">Register New User</h5>
+        </div>
+        <div class="card-body">
+            <form asp-action="RegisterUser" method="post">
+                <div asp-validation-summary="All" class="text-danger mb-3"></div>
 
-                    @if (ViewBag.Error != null)
-                    {
-                        <div class="alert alert-danger">@ViewBag.Error</div>
-                    }
-
-                    @if (ViewBag.Success != null)
-                    {
-                        <div class="alert alert-success">@ViewBag.Success</div>
-                    }
-
-                    <form method="post" asp-action="RegisterUser" asp-controller="Account" autocomplete="off" novalidate>
-                        <div class="mb-3">
-                            <label asp-for="Username" class="form-label"></label>
-                            <div class="input-group">
-                                <span class="input-group-text"><i class="fas fa-user"></i></span>
-                                <input asp-for="Username" class="form-control" />
-                            </div>
-                            <span asp-validation-for="Username" class="text-danger"></span>
-                        </div>
-
-                        <div class="mb-3">
-                            <label asp-for="AccountNumber" class="form-label"></label>
-                            <div class="input-group">
-                                <span class="input-group-text"><i class="fas fa-id-card"></i></span>
-                                <input asp-for="AccountNumber" class="form-control" />
-                            </div>
-                            <span asp-validation-for="AccountNumber" class="text-danger"></span>
-                        </div>
-
-                        <div class="mb-4">
-                            <label asp-for="Password" class="form-label"></label>
-                            <div class="input-group position-relative">
-                                <span class="input-group-text"><i class="fas fa-lock"></i></span>
-                                <input asp-for="Password" type="password" class="form-control" />
-                                <i class="fas fa-eye toggle-password" toggle="#Password"></i>
-                            </div>
-                            <span asp-validation-for="Password" class="text-danger"></span>
-                        </div>
-
-                        <div class="d-grid">
-                            <button type="submit" class="btn btn-primary shadow-sm">
-                                <i class="fas fa-check-circle me-1"></i> Register
-                            </button>
-                        </div>
-                    </form>
+                <!-- Account Number -->
+                <div class="mb-3">
+                    <label asp-for="AccountNumber" class="form-label"></label>
+                    <input asp-for="AccountNumber" class="form-control" />
+                    <span asp-validation-for="AccountNumber" class="text-danger"></span>
                 </div>
-            </div>
+
+                <!-- Username -->
+                <div class="mb-3">
+                    <label asp-for="Username" class="form-label"></label>
+                    <input asp-for="Username" class="form-control" />
+                    <span asp-validation-for="Username" class="text-danger"></span>
+                </div>
+
+                <!-- Password -->
+                <div class="mb-3">
+                    <label asp-for="Password" class="form-label"></label>
+                    <input asp-for="Password" class="form-control" id="PasswordField" />
+                    <div class="form-check mt-2">
+                        <input class="form-check-input" type="checkbox" id="showPassword">
+                        <label class="form-check-label" for="showPassword">
+                            Show Password
+                        </label>
+                    </div>
+                    <span asp-validation-for="Password" class="text-danger"></span>
+
+                    <!-- ✅ Dynamically load password requirements -->
+                    @await Html.PartialAsync("_PasswordRequirements", (SantaFeWaterSystem.Models.PasswordPolicy)ViewBag.PasswordPolicy)
+                </div>
+
+                <button type="submit" class="btn btn-success">Register</button>
+                <a asp-controller="Admin" asp-action="Dashboard" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-1"></i> Cancel
+                </a>
+            </form>
         </div>
     </div>
 </div>
 
-@section Styles {
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha512" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <style>
-        .toggle-password {
-            position: absolute;
-            top: 50%;
-            right: 15px;
-            transform: translateY(-50%);
-            cursor: pointer;
-            color: #6c757d;
-        }
-
-            .toggle-password:hover {
-                color: #0d6efd;
-            }
-    </style>
-}
-
 @section Scripts {
-    <partial name="_ValidationScriptsPartial" /><a href="c:\users\joa\source\repos\santafewatersystem\santafewatersystem\views\account\registeruser.cshtml">c:\users\joa\source\repos\santafewatersystem\santafewatersystem\views\account\registeruser.cshtml</a>
-
+    <partial name="_ValidationScriptsPartial" />
     <script>
-        setTimeout(() => {
-            const alert = document.querySelector(".alert-dismissible");
-            if (alert) {
-                alert.classList.remove("show");
-                alert.classList.add("fade");
-            }
-        }, 4000);
-
-        document.addEventListener('DOMContentLoaded', () => {
-            const toggle = document.querySelector('.toggle-password');
-            if (toggle) {
-                toggle.addEventListener('click', function () {
-                    const target = document.querySelector(this.getAttribute('toggle'));
-                    const type = target.getAttribute('type') === 'password' ? 'text' : 'password';
-                    target.setAttribute('type', type);
-                    this.classList.toggle('fa-eye');
-                    this.classList.toggle('fa-eye-slash');
-                });
-            }
+        document.getElementById('showPassword').addEventListener('change', function () {
+            const passwordField = document.getElementById('PasswordField');
+            passwordField.type = this.checked ? 'text' : 'password';
         });
     </script>
 }

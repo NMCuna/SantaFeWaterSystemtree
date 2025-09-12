@@ -50,9 +50,15 @@
 
 <h2><i class="bi bi-palette"></i> Manage System Branding</h2>
 
-<a asp-action="Create" class="btn btn-primary mb-3">
-    <i class="bi bi-plus-circle"></i> Add Branding
-</a>
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <a asp-action="Create" class="btn btn-primary">
+        <i class="bi bi-plus-circle"></i> Add Branding
+    </a>
+
+    <a asp-controller="GeneralSettings" asp-action="System" class="btn btn-secondary">
+        <i class="bi bi-arrow-left-circle me-1"></i> Back to System
+    </a>
+</div>
 
 @if (!Model.Any())
 {

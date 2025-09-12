@@ -10,24 +10,20 @@ using SantaFeWaterSystem.Models;
 using SantaFeWaterSystem.Services;
 using SantaFeWaterSystem.Settings;
 using System.Globalization;
-
-// ==== ADDED FOR VISITOR TRACKER / SIGNALR ====
 using Microsoft.AspNetCore.HttpOverrides;
 using SantaFeWaterSystem.Hubs;
-// =============================================
+
 
 QuestPDF.Settings.License = LicenseType.Community;
 
 var builder = WebApplication.CreateBuilder(args);
-builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
 
+builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 builder.Services.AddScoped<PermissionService>();
 builder.Services.AddScoped<BillingService>();
 builder.Services.AddScoped<PdfService>();
-
 builder.Services.AddTransient<IEmailSender, SmtpEmailSender>();
-
 builder.Services.Configure<SemaphoreSettings>(
     builder.Configuration.GetSection("SemaphoreSettings")
 );
@@ -51,6 +47,10 @@ builder.Services.AddHostedService<InMemorySmsQueue>();
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<AuditLogService>();
+builder.Services.AddScoped<LockoutService>();
+builder.Services.AddScoped<PasswordPolicyService>();
+
+
 
 // Logging
 builder.Logging.ClearProviders();
@@ -60,23 +60,27 @@ builder.Logging.AddDebug();
 
 Console.WriteLine("Environment: " + builder.Environment.EnvironmentName); // Should print "Development"
 
-
-builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
-builder.Services.AddTransient<IEmailSender, SmtpEmailSender>();
-
 // Hangfire configuration
 builder.Services.AddHangfire(config =>
     config.SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
           .UseSimpleAssemblyNameTypeSerializer()
           .UseRecommendedSerializerSettings()
           .UseSqlServerStorage(builder.Configuration.GetConnectionString("DefaultConnection")));
-
 builder.Services.AddHangfireServer();
 
 
 // Register database context
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// ==== ADD THIS: Cookie Policy Setup ====
+builder.Services.Configure<CookiePolicyOptions>(options =>
+{
+    options.CheckConsentNeeded = context => true; // Ask for consent
+    options.MinimumSameSitePolicy = SameSiteMode.None;
+});
+// ======================================
+
 
 // ==== ADDED FOR VISITOR TRACKER / SIGNALR ====
 // Trust forwarded headers (useful if behind proxy / cloudflare / nginx). We add the configuration so the real client IP is available.
@@ -142,6 +146,21 @@ using (var scope = app.Services.CreateScope())
         db.Users.Add(adminUser);
         db.SaveChanges();
     }
+
+
+    // Seed default email settings if not exists
+    if (!db.EmailSettings.Any())
+    {
+        db.EmailSettings.Add(new EmailSettings
+        {
+            SmtpServer = "smtp.gmail.com",
+            SmtpPort = 587,
+            SenderName = "Santa Fe Water System",
+            SenderEmail = "your@email.com",
+            SenderPassword = "app-password"
+        });
+        db.SaveChanges();
+    }
 }
 
 if (!app.Environment.IsDevelopment())
@@ -160,6 +179,11 @@ app.UseForwardedHeaders();
 app.UseStaticFiles();
 
 app.UseRouting();
+
+// ==== ADD THIS: Enable Cookie Policy ====
+app.UseCookiePolicy(); // Must be before Authentication
+// =======================================
+
 // Hangfire Dashboard
 app.UseHangfireDashboard("/hangfire"); // Only admin should access this
 

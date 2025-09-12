@@ -21,7 +21,6 @@
 @section Styles {
     <link rel="stylesheet" href="~/css/community-feed.css" />
     <style>
-        /* ✅ Make images always scale nicely */
         .card img {
             width: 100%;
             height: auto;
@@ -47,16 +46,13 @@
     }
 </div>
 
-<!-- ✅ Full-width responsive wrapper -->
 <div class="container-fluid px-3 px-md-5">
     <div class="row justify-content-center">
         <div class="col-12 col-lg-10 col-xl-8">
-            <!-- ✅ Wide on desktop, full on mobile -->
             @foreach (var post in Model ?? Enumerable.Empty<SantaFeWaterSystem.Models.Announcement>())
             {
                 <div class="card shadow-sm mb-3" data-announcement-id="@post.Id">
                     <div class="card-body">
-                        <!-- Header -->
                         <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap">
                             <h5>
                                 <i class="bi bi-megaphone-fill text-primary"></i> @post.Title
@@ -75,14 +71,12 @@
                             </small>
                         </div>
 
-                        <!-- Content -->
                         <p>@post.Content</p>
                         @if (!string.IsNullOrEmpty(post.ImagePath))
                         {
                             <img src="@post.ImagePath" class="img-fluid rounded mb-2" />
                         }
 
-                        <!-- Admin Actions -->
                         @if (User.IsInRole("Admin") || User.IsInRole("Staff"))
                         {
                             <div class="mb-2">
@@ -90,6 +84,7 @@
                                     <i class="bi bi-pencil-square"></i> Edit
                                 </a>
                                 <form asp-action="DeleteAnnouncement" method="post" class="d-inline">
+                                    @Html.AntiForgeryToken()
                                     <input type="hidden" name="id" value="@post.Id" />
                                     <button type="submit" class="btn btn-sm btn-danger mb-1"
                                             onclick="return confirm('Are you sure you want to delete this announcement?');">
@@ -105,6 +100,7 @@
                         <div class="add-feedback-box mb-3 p-2 border rounded bg-light">
                             <form asp-action="AddFeedback" method="post" enctype="multipart/form-data"
                                   class="d-flex flex-column gap-2 add-feedback-form">
+                                @Html.AntiForgeryToken()
                                 <input type="hidden" name="announcementId" value="@post.Id" />
                                 <textarea name="comment" class="form-control rounded-pill px-3"
                                       rows="1" placeholder="Write a feedback..."></textarea>
@@ -122,13 +118,15 @@
                         <div class="feedback-list" data-announcement-id="@post.Id">
                             @foreach (var f in post.Feedbacks ?? Enumerable.Empty<SantaFeWaterSystem.Models.Feedback>())
                             {
-                                @await Html.PartialAsync("_FeedbackItem", f, vd)
+                                <!-- Each feedback item wrapper -->
+                                <div class="feedback-item border rounded p-2 mb-2" data-feedback-id="@f.Id">
+                                    @await Html.PartialAsync("_FeedbackItem", f, vd)
+                                </div>
                             }
                         </div>
                     </div>
                 </div>
             }
-
         </div>
     </div>
 </div>
@@ -136,101 +134,95 @@
 @section Scripts {
     <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
     <script>
-        $(document).ready(function () {
+        $(function () {
+            // Helper: get antiforgery token
+            function getToken() {
+                return $("input[name='__RequestVerificationToken']").val();
+            }
 
-            // LIKE / UNLIKE
-            $(document).on('click', '.feedback-like', function () {
+            // LIKE / UNLIKE FEEDBACK
+            $(document).on("click", ".feedback-like", function () {
                 var btn = $(this);
-                var feedbackId = btn.data('feedback-id');
+                var feedbackId = btn.data("feedback-id");
 
-                $.post('@Url.Action("ToggleFeedbackLike", "Announcement")', { feedbackId: feedbackId })
+                $.post('@Url.Action("ToggleFeedbackLike", "Announcement")',
+                       { feedbackId, __RequestVerificationToken: getToken() })
                     .done(function (data) {
                         if (data.success) {
-                            btn.find('.like-count').text(data.likeCount);
-                            if (data.liked) {
-                                btn.removeClass('btn-outline-primary').addClass('btn-primary');
-                            } else {
-                                btn.removeClass('btn-primary').addClass('btn-outline-primary');
-                            }
+                            btn.find(".like-count").text(data.likeCount);
+                            btn.toggleClass("btn-outline-primary btn-primary", data.liked);
                         } else {
                             alert(data.message || "Unable to update like status.");
                         }
                     })
-                    .fail(function () {
-                        alert("Error: Could not update like status.");
-                    });
+                    .fail(() => alert("Error: Could not update like status."));
             });
 
-            // ADD COMMENT
-            $(document).on('submit', '.add-comment-form', function (e) {
-                e.preventDefault();
-                var form = $(this);
-                var feedbackId = form.find('input[name="feedbackId"]').val();
-                var content = form.find('input[name="content"]').val();
-                if (!content) return;
-
-                $.post('@Url.Action("AddFeedbackComment", "Announcement")',
-                       { feedbackId: feedbackId, content: content })
-                    .done(function (commentHtml) {
-                        form.closest('.feedback-comments').prepend(commentHtml);
-                        form[0].reset();
-                    })
-                    .fail(function () {
-                        alert("Error: Could not add comment.");
-                    });
-            });
-
-            // ADD FEEDBACK
-            $(document).on('submit', '.add-feedback-form', function (e) {
+            // ADD FEEDBACK (with optional image)
+            $(document).on("submit", ".add-feedback-form", function (e) {
                 e.preventDefault();
                 var form = $(this);
                 var formData = new FormData(this);
-                var feedbackList = form.closest('.card').find('.feedback-list');
+                formData.append("__RequestVerificationToken", getToken());
+                var feedbackList = form.closest(".card").find(".feedback-list");
 
                 $.ajax({
                     url: '@Url.Action("AddFeedback", "Announcement")',
-                    type: 'POST',
+                    type: "POST",
                     data: formData,
                     contentType: false,
-                    processData: false,
-                    success: function (feedbackHtml) {
-                        feedbackList.prepend(feedbackHtml);
-                        form[0].reset();
-                    },
-                    error: function () {
-                        alert("Error: Could not submit feedback.");
-                    }
-                });
+                    processData: false
+                })
+                .done(function (feedbackHtml) {
+                    feedbackList.prepend(feedbackHtml);
+                    form[0].reset();
+                })
+                .fail(() => alert("Error: Could not submit feedback."));
             });
 
-            // DELETE FEEDBACK / COMMENT
+            // ADD COMMENT
+            $(document).on("submit", ".add-comment-form", function (e) {
+                e.preventDefault();
+                var form = $(this);
+                var feedbackId = form.find("input[name='feedbackId']").val();
+                var content = form.find("input[name='content']").val();
+                if (!content) return;
+
+                $.post('@Url.Action("AddFeedbackComment", "Announcement")',
+                       { feedbackId, content, __RequestVerificationToken: getToken() })
+                    .done(function (commentHtml) {
+                        form.closest(".feedback-comments").prepend(commentHtml);
+                        form[0].reset();
+                    })
+                    .fail(() => alert("Error: Could not add comment."));
+            });
+
+            // DELETE FEEDBACK OR COMMENT
             $(document).on("click", ".delete-feedback, .delete-comment", function () {
                 var btn = $(this);
                 var isFeedback = btn.hasClass("delete-feedback");
                 var id = btn.data(isFeedback ? "feedback-id" : "comment-id");
-                var url = isFeedback ? "/Announcement/DeleteFeedback" : "/Announcement/DeleteComment";
+                var url = isFeedback
+                    ? '@Url.Action("DeleteFeedback", "Announcement")'
+                    : '@Url.Action("DeleteComment", "Announcement")';
                 var selector = isFeedback ? `[data-feedback-id='${id}']` : `[data-comment-id='${id}']`;
 
                 if (!confirm(`Are you sure you want to delete this ${isFeedback ? "feedback" : "comment"}?`)) return;
 
-                fetch(url, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "RequestVerificationToken": $("input[name='__RequestVerificationToken']").val()
-                    },
-                    body: JSON.stringify(id)
+                $.ajax({
+                    url: url,
+                    type: "POST",
+                    data: { id: id },
+                    headers: { "RequestVerificationToken": getToken() }
                 })
-                .then(res => res.json())
-                .then(data => {
+                .done(function (data) {
                     if (data.success) {
-                        var elem = document.querySelector(selector);
-                        if (elem) elem.remove();
+                        $(selector).remove();
                     } else {
                         alert(data.message || `Failed to delete ${isFeedback ? "feedback" : "comment"}.`);
                     }
                 })
-                .catch(() => alert(`Error deleting ${isFeedback ? "feedback" : "comment"}.`));
+                .fail(() => alert(`Error deleting ${isFeedback ? "feedback" : "comment"}.`));
             });
         });
     </script>

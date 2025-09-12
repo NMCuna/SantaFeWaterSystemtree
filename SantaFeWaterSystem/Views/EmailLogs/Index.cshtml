@@ -1,0 +1,45 @@
+﻿@model IEnumerable<SantaFeWaterSystem.Models.EmailLog>
+
+@{
+    ViewData["Title"] = "Email Logs";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<h2>Email Logs</h2>
+
+<table class="table table-bordered table-striped">
+    <thead class="thead-dark">
+        <tr>
+            <th>Consumer</th>
+            <th>Email</th>
+            <th>Subject</th>
+            <th>Sent At</th>
+            <th>Status</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.Consumer?.FullName</td>
+                <td>@item.EmailAddress</td>
+                <td>@item.Subject</td>
+                <td>@item.SentAt.ToString("g")</td>
+                <td>
+                    @if (item.IsSuccess)
+                    {
+                        <span class="text-success">Success</span>
+                    }
+                    else
+                    {
+                        <span class="text-danger">Failed</span>
+                    }
+                </td>
+                <td>
+                    <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-info btn-sm">View</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

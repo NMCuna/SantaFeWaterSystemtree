@@ -1,19 +1,17 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Text.RegularExpressions;
 
 namespace SantaFeWaterSystem.ViewModels
 {
     public class ResetPasswordViewModel
     {
-        [Required(ErrorMessage = "Please enter a new password.")]
-        [MinLength(6, ErrorMessage = "Password must be at least 6 characters long.")]
+        [Required(ErrorMessage = "New Password is required.")]
         [DataType(DataType.Password)]
-        [Display(Name = "New Password")]
         public string NewPassword { get; set; }
 
-        [Required(ErrorMessage = "Please confirm your new password.")]
-        [Compare("NewPassword", ErrorMessage = "Passwords do not match.")]
+        [Required(ErrorMessage = "Confirm Password is required.")]
         [DataType(DataType.Password)]
-        [Display(Name = "Confirm Password")]
+        [Compare("NewPassword", ErrorMessage = "Passwords do not match.")]
         public string ConfirmPassword { get; set; }
     }
 }

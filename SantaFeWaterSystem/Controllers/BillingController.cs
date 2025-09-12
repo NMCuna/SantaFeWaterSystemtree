@@ -31,13 +31,15 @@ namespace SantaFeWaterSystem.Controllers
         IOptions<SemaphoreSettings> semaphoreOptions,
         IWebHostEnvironment env,
         ISmsQueue smsQueue,
-        AuditLogService audit
+        AuditLogService audit,
+          IEmailSender emailSender
     ) : BaseController(permissionService, context, audit)
     {
         private readonly ISemaphoreSmsService _smsService = smsService;        
         private readonly SemaphoreSettings _semaphoreSettings = semaphoreOptions.Value;
         private readonly IWebHostEnvironment _env = env;
         private readonly ISmsQueue _smsQueue = smsQueue;
+        private readonly IEmailSender _emailSender = emailSender;
 
 
 
@@ -135,11 +137,16 @@ namespace SantaFeWaterSystem.Controllers
 
 
         // ================== NOTIFY BUTTON CAN BE USE IF USER IS OVERDUE ==================
-
         [Authorize(Roles = "Admin,Staff")]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Notify(int id)
+        public async Task<IActionResult> Notify(
+            int id,
+            int page = 1,
+            string searchTerm = null,
+            string statusFilter = null,
+            int? selectedMonth = null,
+            int? selectedYear = null)
         {
             var billing = await _context.Billings
                 .Include(b => b.Consumer)
@@ -150,6 +157,7 @@ namespace SantaFeWaterSystem.Controllers
             {
                 bool isOverdue = DateTime.Now.Date > billing.DueDate.Date;
 
+                // Create In-App Notification
                 var notif = new Notification
                 {
                     ConsumerId = billing.ConsumerId,
@@ -159,10 +167,9 @@ namespace SantaFeWaterSystem.Controllers
                         : $"Hello {billing.Consumer.FirstName}, your water bill (Bill No: {billing.BillNo}) dated {billing.BillingDate:yyyy-MM-dd} is due on {billing.DueDate:yyyy-MM-dd}. Amount due: ₱{billing.TotalAmount:N2}. Please settle it promptly to avoid disconnection.",
                     CreatedAt = DateTime.Now
                 };
-
                 _context.Notifications.Add(notif);
 
-                // Push Notification
+                // 🔔 Push Notification
                 var user = billing.Consumer.User;
                 if (user != null)
                 {
@@ -213,15 +220,60 @@ namespace SantaFeWaterSystem.Controllers
                     }
                 }
 
-                // Audit log
-                var audit = new AuditTrail
+                // 📧 Email Notification
+                if (!string.IsNullOrWhiteSpace(billing.Consumer.Email))
+                {
+                    var emailSubject = isOverdue
+                        ? $"[Overdue] Water Bill (Bill No: {billing.BillNo}) - Due {billing.DueDate:MMMM d}"
+                        : $"Water Bill (Bill No: {billing.BillNo}) - Due {billing.DueDate:MMMM d}";
+
+                    var emailBody = $@"
+                <p>Hello <strong>{billing.Consumer.FullName}</strong>,</p>
+                <p>Your water bill for <strong>{billing.BillingDate:MMMM yyyy}</strong> is {(isOverdue ? "<span style='color:red;'>OVERDUE</span>" : "now available")}.</p>
+                <p><strong>Bill No:</strong> {billing.BillNo}<br/>
+                <strong>Billing Date:</strong> {billing.BillingDate:MMMM d, yyyy}<br/>
+                <strong>Amount Due:</strong> ₱{billing.TotalAmount:N2}<br/>
+                <strong>Due Date:</strong> {billing.DueDate:MMMM d, yyyy}</p>
+                <p>Please settle {(isOverdue ? "immediately" : "promptly")} to avoid penalties or disconnection.</p>
+                <p>Thank you,<br/>Santa Fe Water System</p>";
+
+                    try
+                    {
+                        await _emailSender.SendEmailAsync(billing.Consumer.Email, emailSubject, emailBody);
+
+                        _context.EmailLogs.Add(new EmailLog
+                        {
+                            ConsumerId = billing.Consumer.Id,
+                            EmailAddress = billing.Consumer.Email,
+                            Subject = emailSubject,
+                            Message = emailBody,
+                            IsSuccess = true,
+                            SentAt = DateTime.Now
+                        });
+                    }
+                    catch (Exception ex)
+                    {
+                        _context.EmailLogs.Add(new EmailLog
+                        {
+                            ConsumerId = billing.Consumer.Id,
+                            EmailAddress = billing.Consumer.Email,
+                            Subject = emailSubject,
+                            Message = emailBody,
+                            IsSuccess = false,
+                            SentAt = DateTime.Now,
+                            ResponseMessage = ex.Message
+                        });
+                    }
+                }
+
+                // 📝 Audit Log
+                _context.AuditTrails.Add(new AuditTrail
                 {
                     Action = "Notify",
                     PerformedBy = GetCurrentUsername(),
-                    Details = $"Sent disconnection notice to Consumer ID {id}.",
+                    Details = $"Sent {(isOverdue ? "overdue" : "billing")} notice to Consumer ID {billing.ConsumerId}.",
                     Timestamp = DateTime.Now
-                };
-                _context.AuditTrails.Add(audit);
+                });
 
                 await _context.SaveChangesAsync();
 
@@ -232,8 +284,17 @@ namespace SantaFeWaterSystem.Controllers
                 TempData["Error"] = $"❌ Billing ID {id} not found.";
             }
 
-            return RedirectToAction("Index");
+            // Redirect back to same page & filters
+            return RedirectToAction("Index", new
+            {
+                page,
+                searchTerm,
+                statusFilter,
+                selectedMonth,
+                selectedYear
+            });
         }
+
 
 
 
@@ -565,6 +626,7 @@ namespace SantaFeWaterSystem.Controllers
                 }
 
                 await _context.SaveChangesAsync();
+
                 //  Send SMS
                 if (!string.IsNullOrWhiteSpace(consumer.ContactNumber))
                 {
@@ -592,7 +654,52 @@ namespace SantaFeWaterSystem.Controllers
                 await _context.SaveChangesAsync();
             }
 
-            TempData["SuccessMessage"] = "✅ Billing successfully created and notification sent.";
+                // Send Email if Consumer has registered email
+                if (!string.IsNullOrWhiteSpace(consumer.Email))
+                {
+                    var emailSubject = $"Your Water Bill (Bill No: {billing.BillNo}) - Due {billing.DueDate:MMMM d}";
+                    var emailBody = $@"
+                               <p>Hello <strong>{consumer.FullName}</strong>,</p>
+                               <p>Your water bill for <strong>{billing.BillingDate:MMMM yyyy}</strong> is now available.</p>
+                               <p><strong>Bill No:</strong> {billing.BillNo}<br/>
+                               <strong>Billing Date:</strong> {billing.BillingDate:MMMM d, yyyy}<br/>
+                               <strong>Amount Due:</strong> ₱{billing.TotalAmount:N2}<br/>
+                               <strong>Due Date:</strong> {billing.DueDate:MMMM d, yyyy}</p>
+                               <p>Please settle it promptly to avoid penalties or disconnection.</p>
+                               <p>Thank you,<br/>Santa Fe Water System</p>";
+                    try
+                    {
+                        await _emailSender.SendEmailAsync(consumer.Email, emailSubject, emailBody);
+
+                        _context.EmailLogs.Add(new EmailLog
+                        {
+                            ConsumerId = consumer.Id,
+                            EmailAddress = consumer.Email,
+                            Subject = emailSubject,
+                            Message = emailBody,
+                            IsSuccess = true,
+                            SentAt = DateTime.Now
+                        });
+                    }
+                    catch (Exception ex)
+                    {
+                        _context.EmailLogs.Add(new EmailLog
+                        {
+                            ConsumerId = consumer.Id,
+                            EmailAddress = consumer.Email,
+                            Subject = emailSubject,
+                            Message = emailBody,
+                            IsSuccess = false,
+                            SentAt = DateTime.Now,
+                            ResponseMessage = ex.Message
+                        });
+                    }
+
+                    await _context.SaveChangesAsync();
+                }
+
+
+                TempData["SuccessMessage"] = "✅ Billing successfully created and notification sent.";
                 return RedirectToAction(nameof(Index));
             }
 
@@ -888,7 +995,7 @@ namespace SantaFeWaterSystem.Controllers
                     isSuccess = true;
                     response = "Queued for sending.";
                     sentCount++;
-                }
+                } 
 
                 // Log to database
                 _context.SmsLogs.Add(new SmsLog

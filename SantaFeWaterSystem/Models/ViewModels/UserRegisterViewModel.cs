@@ -1,17 +1,17 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace SantaFeWaterSystem.Models
+namespace SantaFeWaterSystem.ViewModels
 {
     public class UserRegisterViewModel
     {
-        [Required]
-        public string AccountNumber { get; set; }
+        [Required(ErrorMessage = "Account number is required.")]
+        public string? AccountNumber { get; set; }
 
-        [Required]
-        public string Username { get; set; } // ✅ Added Username
+        [Required(ErrorMessage = "Username is required.")]
+        public string? Username { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "Password is required.")]
         [DataType(DataType.Password)]
-        public string Password { get; set; }
+        public string? Password { get; set; }
     }
 }

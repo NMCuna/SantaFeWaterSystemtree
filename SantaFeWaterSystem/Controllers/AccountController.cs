@@ -1,17 +1,18 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using SantaFeWaterSystem.Models;
-using SantaFeWaterSystem.Data;
-using BCrypt.Net;
+﻿using BCrypt.Net;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using System.Security.Claims;
-using OtpNet;
-using QRCoder;
-using Microsoft.EntityFrameworkCore;
-using SantaFeWaterSystem.Models.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using OtpNet;
+using QRCoder;
+using SantaFeWaterSystem.Data;
+using SantaFeWaterSystem.Models;
+using SantaFeWaterSystem.Models.ViewModels;
 using SantaFeWaterSystem.Services;
+using SantaFeWaterSystem.ViewModels;
+using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -22,7 +23,9 @@ public class AccountController(
     IPasswordHasher<User> passwordHasher,
     IEmailSender emailSender,
     AuditLogService audit,
-    IConfiguration configuration
+    IConfiguration configuration,
+    LockoutService lockout,
+    PasswordPolicyService passwordPolicyService 
 ) : Controller
 {
     private readonly ApplicationDbContext _context = context;
@@ -30,118 +33,143 @@ public class AccountController(
     private readonly IEmailSender _emailSender = emailSender;
     private readonly AuditLogService _audit = audit;
     private readonly IConfiguration _configuration = configuration;
+    private readonly LockoutService _lockout = lockout;
+    private readonly PasswordPolicyService _passwordPolicyService = passwordPolicyService;
 
 
 
     //////////////////////////////////
     //      ADMIN/STAFF LOGIN     ////
     //////////////////////////////////
-    
+
     // ================== AdminLogin/ ADMIN AND STAFF CAN USE BUT BY PERMISSION ==================
 
     [HttpGet]
-        public IActionResult AdminLogin(string token)
-        {
-            // Load token from config file
-            var requiredToken = _configuration["AdminAccess:LoginViewToken"];
+    public async Task<IActionResult> AdminLogin(string token)
+    {
+        // Get the token from the database
+        var setting = await _context.AdminAccessSettings.FirstOrDefaultAsync();
+        var requiredToken = setting?.LoginViewToken;
 
-            // Validate the token from query string
-            if (string.IsNullOrEmpty(token) || token != requiredToken)
-            {
-                TempData["Error"] = "Unauthorized access.";
-                return RedirectToAction("AccessDenied", "Account"); // Or return Unauthorized();
-            }
-
-            return View(new AdminLoginViewModel());
-        }
-        public IActionResult AccessDenied()
+        // Validate the token
+        if (string.IsNullOrEmpty(token) || token != requiredToken)
         {
-            return View(); // Show an error message or redirect elsewhere
+            TempData["Error"] = "Unauthorized access.";
+            return RedirectToAction("AccessDenied", "Account");
         }
+
+        return View(new AdminLoginViewModel());
+    }
+
+    public IActionResult AccessDenied()
+    {
+        return View(); // Show an error message or redirect elsewhere
+    }
+
 
 
     [HttpPost]
-        public async Task<IActionResult> AdminLogin(AdminLoginViewModel model)
+    public async Task<IActionResult> AdminLogin(AdminLoginViewModel model, [FromServices] LockoutService lockoutService)
+    {
+        if (!ModelState.IsValid)
+            return View(model);
+
+        var user = await _context.Users
+            .FirstOrDefaultAsync(u => u.Username == model.Username && (u.Role == "Admin" || u.Role == "Staff"));
+
+        if (user == null)
         {
-            if (!ModelState.IsValid)
-                return View(model);
-
-            var user = await _context.Users
-                .FirstOrDefaultAsync(u => u.Username == model.Username && (u.Role == "Admin" || u.Role == "Staff"));
-
-            if (user == null)
-            {
-                await _audit.LogAsync("Failed Login", $"Unknown user attempted login with username: {model.Username}", model.Username);
-                ModelState.AddModelError("", "Invalid username or password.");
-                return View(model);
-            }
-
-        if (user.LockoutEnd.HasValue && user.LockoutEnd > DateTime.UtcNow)
-        {
-            var phTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Singapore Standard Time");
-            var unlockTimePH = TimeZoneInfo.ConvertTimeFromUtc(user.LockoutEnd.Value, phTimeZone);
-
-            ViewBag.UnlockTime = unlockTimePH.ToString("yyyy-MM-ddTHH:mm:ss"); // JS-friendly ISO format //
-            ViewBag.UnlockTimeDisplay = unlockTimePH.ToString("f"); // e.g., Monday, July 15, 2025 8:45 PM //
-            ViewBag.Role = user.Role; // Pass role to view //
-
-            await _audit.LogAsync("Locked Out", $"Login attempt while locked out - Role: {user.Role}, Username: {user.Username}", user.Username);
-
-            return View("TemporaryLocked", user); // Show lockout page //
-        }
-
-
-        // Password validation (Identity or BCrypt)
-        bool passwordValid = !string.IsNullOrEmpty(user?.PasswordHash) &&
-            (
-                _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, model.Password) == PasswordVerificationResult.Success
-                || BCrypt.Net.BCrypt.Verify(model.Password, user.PasswordHash)
-            );
-
-        // Invalid password
-        if (!passwordValid)
-        {
-            if (user == null) return View(model); // safety fallback
-
-            user.AccessFailedCount++;
-
-            if (user.AccessFailedCount >= 5)
-            {
-                user.LockoutEnd = DateTime.UtcNow.AddMinutes(15);
-                await _audit.LogAsync("Account Locked", $"User {user.Username} locked out after 5 failed attempts.", user.Username);
-                ModelState.AddModelError("", "Account locked due to too many failed attempts. Try again after 15 minutes.");
-            }
-            else
-            {
-                await _audit.LogAsync("Failed Login", $"Invalid password attempt for user: {user.Username}", user.Username);
-                ModelState.AddModelError("", "Invalid username or password.");
-            }
-
-            _context.Users.Update(user);
-            await _context.SaveChangesAsync();
+            await _audit.LogAsync("Failed Login", $"Unknown user attempted login with username: {model.Username}", model.Username);
+            ModelState.AddModelError("", "Invalid username or password.");
             return View(model);
         }
 
-        //  Valid password → reset failed count & lockout
-        if (user == null) return View(model); // safety fallback
-        user.AccessFailedCount = 0;
-        user.LockoutEnd = null;
-        _context.Users.Update(user);
-        await _context.SaveChangesAsync();
+        // Check if user already locked
+        if (lockoutService.IsCurrentlyLocked(user))
+        {
+            var phTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Singapore Standard Time");
+            var unlockTimePH = TimeZoneInfo.ConvertTimeFromUtc(user.LockoutEnd!.Value, phTimeZone);
+
+            // 🔹 Fetch lockout policy dynamically
+            var policy = await _context.LockoutPolicies.FirstOrDefaultAsync();
+            ViewBag.MaxAttempts = policy?.MaxFailedAccessAttempts ?? 5;
+            ViewBag.LockoutMinutes = policy?.LockoutMinutes ?? 15;
+
+            ViewBag.UnlockTime = unlockTimePH.ToString("yyyy-MM-ddTHH:mm:ss");
+            ViewBag.UnlockTimeDisplay = unlockTimePH.ToString("f");
+            ViewBag.Role = user.Role;
+
+            await _audit.LogAsync("Locked Out",
+                $"Login attempt while locked out - Role: {user.Role}, Username: {user.Username}",
+                user.Username);
+
+            return View("TemporaryLocked", user);
+        }
+
+
+        // Password validation
+        bool passwordValid = false;
+
+        if (!string.IsNullOrEmpty(user?.PasswordHash))
+        {
+            var hash = user.PasswordHash;
+
+            if (hash.StartsWith("$2a$") || hash.StartsWith("$2b$") || hash.StartsWith("$2y$"))
+            {
+                // BCrypt hash
+                try
+                {
+                    passwordValid = BCrypt.Net.BCrypt.Verify(model.Password, hash);
+                }
+                catch
+                {
+                    passwordValid = false; // invalid salt / hash → treat as wrong password
+                }
+            }
+            else
+            {
+                // Identity PBKDF2 hash
+                var result = _passwordHasher.VerifyHashedPassword(user, hash, model.Password);
+                passwordValid = result == PasswordVerificationResult.Success;
+            }
+        }
+
+
+        if (!passwordValid)
+        {
+            var (isLocked, message) = await lockoutService.ApplyFailedAttemptAsync(user);
+
+            ModelState.AddModelError("", message);
+
+            if (isLocked)
+                await _audit.LogAsync("Account Locked", $"User {user.Username} locked out.", user.Username);
+            else
+                await _audit.LogAsync("Failed Login", $"Invalid password attempt for user: {user.Username}", user.Username);
+
+            return View(model);
+        }
+
+        // Valid password → reset failed count & lockout
+        await lockoutService.ResetLockoutAsync(user);
 
         // Store user ID in session for 2FA
         HttpContext.Session.SetInt32("2FA_UserId", user.Id);
         HttpContext.Session.SetString("2FA_Expiry", DateTime.UtcNow.AddMinutes(5).ToString("o"));
 
-        // Log successful login
         await _audit.LogAsync("Login Success", $"User {user.Username} passed login and redirected to 2FA.", user.Username);
 
-        // Redirect to 2FA setup or verification
         if (!user.IsMfaEnabled)
             return RedirectToAction("Setup2FAAdmin", "Account");
 
         return RedirectToAction("Verify2FAAdmin", "Account");
     }
+
+
+
+
+
+
+
 
 
 
@@ -152,138 +180,164 @@ public class AccountController(
 
     // ================== RegisterAdmin/ FOR ADMIN ONLY ,CAN CREATE ADMIN AND STAFF ==================
 
-    [Authorize(Roles = "Admin")]
+    // ✅ GET: Register Admin
     [HttpGet]
-        public IActionResult RegisterAdmin() => View();
+    public async Task<IActionResult> RegisterAdmin()
+    {
+        ViewBag.PasswordPolicy = await _context.PasswordPolicies.FirstOrDefaultAsync();
+        return View(new RegisterAdminViewModel());
+    }
 
-
-    [Authorize(Roles = "Admin")]
+    // ✅ POST: Register Admin
     [HttpPost]
-        public IActionResult RegisterAdmin(string fullname, string username, string password, string role)
-        {
-            // Basic validation
-            if (string.IsNullOrWhiteSpace(fullname) ||
-                string.IsNullOrWhiteSpace(username) ||
-                string.IsNullOrWhiteSpace(password) ||
-                string.IsNullOrWhiteSpace(role))
-            {
-                ViewBag.Error = "Please fill in all required fields.";
-                return View();
-            }
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> RegisterAdmin(RegisterAdminViewModel model)
+    {
+        ViewBag.PasswordPolicy = await _context.PasswordPolicies.FirstOrDefaultAsync();
 
-            // Normalize username for consistent check
-            var normalizedUsername = username.Trim().ToLower();
+        if (!ModelState.IsValid)
+            return View(model);
 
-        // Check if username exists (case-insensitive)
-        bool usernameExists = _context.Users.Any(u => u.Username != null && u.Username.Equals(normalizedUsername, StringComparison.OrdinalIgnoreCase));
+        var normalizedUsername = model.Username!.Trim().ToLower();
+        bool usernameExists = await _context.Users
+            .AnyAsync(u => u.Username != null && u.Username.ToLower() == normalizedUsername);
+
         if (usernameExists)
-            {
-                ViewBag.Error = "Username already exists.";
-                return View();
-            }
-
-            var user = new User
-            {
-                FullName = fullname.Trim(),
-                Username = username.Trim(),
-                PasswordHash = BCrypt.Net.BCrypt.HashPassword(password),
-                Role = role.Trim()
-            };
-
-            _context.Users.Add(user);
-            _context.SaveChanges();
-
-            // Log audit trail //
-            var performedBy = User.Identity?.Name ?? "Unknown";
-            var details = $"New user registered. Username: {user.Username}, Role: {user.Role}";
-
-            var audit = new AuditTrail
-            {
-                Action = "Register Admin/Staff",
-                PerformedBy = performedBy,
-                Timestamp = DateTime.Now,
-                Details = details
-            };
-
-            _context.AuditTrails.Add(audit);
-            _context.SaveChanges();
-
-            TempData["Message"] = "Admin/Staff registered successfully.";
-            return RedirectToAction("ManageUsers", "Admin", new { roleFilter = "Admin" });
+        {
+            ModelState.AddModelError("Username", "Username already exists.");
+            return View(model);
         }
 
+        // 🔹 Validate password with policy
+        var isValidPassword = await _passwordPolicyService.ValidatePasswordAsync(0, model.Password!);
+        if (!isValidPassword)
+        {
+            ModelState.AddModelError("Password", "Password does not meet security policy requirements.");
+            return View(model);
+        }
 
+        // 🔹 Hash password
+        var hashedPassword = BCrypt.Net.BCrypt.HashPassword(model.Password);
+
+        var user = new User
+        {
+            FullName = model.FullName!.Trim(),
+            Username = model.Username!.Trim(),
+            PasswordHash = hashedPassword,
+            Role = model.Role!.Trim(),
+        };
+
+        _context.Users.Add(user);
+        await _context.SaveChangesAsync();
+
+        // 🔹 Save password history
+        await _passwordPolicyService.SavePasswordHistoryAsync(user.Id, hashedPassword);
+
+        // 🔹 Audit log
+        var audit = new AuditTrail
+        {
+            Action = "Register Admin/Staff",
+            PerformedBy = User.Identity?.Name ?? "Unknown",
+            Timestamp = DateTime.UtcNow,
+            Details = $"New user registered. Username: {user.Username}, Role: {user.Role}"
+        };
+
+        _context.AuditTrails.Add(audit);
+        await _context.SaveChangesAsync();
+
+        TempData["Message"] = "Admin/Staff registered successfully.";
+        return RedirectToAction("ManageUsers", "Admin", new { roleFilter = "Admin" });
+    }
+
+
+
+
+
+
+
+    /////////////////////////////////////
+    /////      USER  REGISTER       ////
+    ///////////////////////////////////
 
     // ================== RegisterUser/ACTION FOR ADMIN,STAFF TO CREATE USER ==================
-    
+
     [Authorize(Roles = "Admin,Staff")]
     [HttpGet]
-        public IActionResult RegisterUser()
-        {
-            return View(new UserRegisterViewModel());
-        }
-
+    public async Task<IActionResult> RegisterUser()
+    {
+        ViewBag.PasswordPolicy = await _context.PasswordPolicies.FirstOrDefaultAsync();
+        return View(new UserRegisterViewModel());
+    }
 
     [Authorize(Roles = "Admin,Staff")]
     [HttpPost]
-        public async Task<IActionResult> RegisterUser(UserRegisterViewModel model)
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> RegisterUser(UserRegisterViewModel model)
+    {
+        ViewBag.PasswordPolicy = await _context.PasswordPolicies.FirstOrDefaultAsync();
+
+        if (!ModelState.IsValid)
+            return View(model);
+
+        // 🔹 Check if Account Number exists
+        bool accountExists = await _context.Users.AnyAsync(u => u.AccountNumber == model.AccountNumber);
+        if (accountExists)
         {
-            if (!ModelState.IsValid)
-            {
-                ViewBag.Error = "All fields are required.";
-                return View(model);
-            }
-
-            if (await _context.Users.AnyAsync(u => u.AccountNumber == model.AccountNumber))
-            {
-                ViewBag.Error = "Account number already exists.";
-                return View(model);
-            }
-
-            if (await _context.Users.AnyAsync(u => u.Username == model.Username))
-            {
-                ViewBag.Error = "Username already exists.";
-                return View(model);
-            }
-
-            var user = new User
-            {
-                AccountNumber = model.AccountNumber,
-                Username = model.Username,
-                Role = "User",
-                PasswordHash = BCrypt.Net.BCrypt.HashPassword(model.Password),
-                AccessFailedCount = 0,
-                IsMfaEnabled = false
-            };
-
-            _context.Users.Add(user);
-            await _context.SaveChangesAsync();
-
-            // Log audit trail //
-            var performedBy = User.Identity?.Name ?? "Unknown";
-            var audit = new AuditTrail
-            {
-                Action = "Register User",
-                PerformedBy = performedBy,
-                Timestamp = DateTime.Now,
-                Details = $"Registered new user with username '{user.Username}' and account number '{user.AccountNumber}'."
-            };
-            _context.AuditTrails.Add(audit);
-            await _context.SaveChangesAsync();
-
-            TempData["Message"] = "User registered successfully!";
-            return RedirectToAction("ManageUsers", "Admin", new { roleFilter = "User" });
+            ModelState.AddModelError("AccountNumber", "Account number already exists.");
+            return View(model);
         }
 
+        // 🔹 Check if Username exists
+        bool usernameExists = await _context.Users.AnyAsync(u => u.Username == model.Username);
+        if (usernameExists)
+        {
+            ModelState.AddModelError("Username", "Username already exists.");
+            return View(model);
+        }
 
+        // 🔹 Validate password
+        bool isValidPassword = await _passwordPolicyService.ValidatePasswordAsync(0, model.Password!);
+        if (!isValidPassword)
+        {
+            ModelState.AddModelError("Password", "Password does not meet security policy requirements.");
+            return View(model);
+        }
 
+        // 🔹 Hash password
+        var hashedPassword = BCrypt.Net.BCrypt.HashPassword(model.Password);
 
+        // 🔹 Create User
+        var user = new User
+        {
+            AccountNumber = model.AccountNumber!.Trim(),
+            Username = model.Username!.Trim(),
+            Role = "User",
+            PasswordHash = hashedPassword,
+            AccessFailedCount = 0,
+            IsMfaEnabled = false,
+        };
 
+        _context.Users.Add(user);
+        await _context.SaveChangesAsync();
 
+        // 🔹 Save password history
+        await _passwordPolicyService.SavePasswordHistoryAsync(user.Id, hashedPassword);
 
+        // 🔹 Audit Log
+        var performedBy = User.Identity?.Name ?? "Unknown";
+        var audit = new AuditTrail
+        {
+            Action = "Register User",
+            PerformedBy = performedBy,
+            Timestamp = DateTime.UtcNow,
+            Details = $"Registered new user '{user.Username}' (Account: {user.AccountNumber})."
+        };
+        _context.AuditTrails.Add(audit);
+        await _context.SaveChangesAsync();
 
-
-
+        TempData["Message"] = "User registered successfully!";
+        return RedirectToAction("ManageUsers", "Admin", new { roleFilter = "User" });
+    }
 
 
 
@@ -302,115 +356,103 @@ public class AccountController(
         }
 
 
-        // POST: /Account/UserLogin
-        [HttpPost]
-        public async Task<IActionResult> UserLogin(UserLoginViewModel model)
+    // POST: /Account/UserLogin
+    [HttpPost]
+    public async Task<IActionResult> UserLogin(UserLoginViewModel model, [FromServices] LockoutService lockoutService)
+    {
+        if (!ModelState.IsValid)
+            return View(model);
+
+        var user = await _context.Users
+            .FirstOrDefaultAsync(u => u.AccountNumber == model.AccountNumber && u.Role == "User");
+
+        if (user == null)
         {
-            if (!ModelState.IsValid)
-                return View(model);
+            ModelState.AddModelError("", "Invalid account number or password.");
+            await _audit.LogAsync("Failed Login", "Failed login attempt: account not found or incorrect role.", model.AccountNumber ?? "Unknown");
+            return View(model);
+        }
 
-            var user = await _context.Users
-                .FirstOrDefaultAsync(u => u.AccountNumber == model.AccountNumber && u.Role == "User");
-
-            if (user == null)
-            {
-                ModelState.AddModelError("", "Invalid account number or password.");
-                await _audit.LogAsync("Failed Login", "Failed login attempt: account not found or incorrect role.", model.AccountNumber ?? "Unknown");
-                return View(model);
-            }
-       //lockuser//
+        // ✅ Check if admin locked the account
         if (user.IsLocked)
         {
-           
             await _audit.LogAsync("Login Blocked", "Login blocked due to admin-locked account.", user.AccountNumber);
-            return View("AccountLocked", user); // pass the user to a custom view
-
+            return View("AccountLocked", user);
         }
-        // Lockout: 5 failed login attempts //
-        if (user.LockoutEnd.HasValue && user.LockoutEnd > DateTime.UtcNow)
+
+        // ✅ Check lockout from failed attempts
+        if (lockoutService.IsCurrentlyLocked(user))
         {
             var phTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Singapore Standard Time");
-            var unlockTimePH = TimeZoneInfo.ConvertTimeFromUtc(user.LockoutEnd.Value, phTimeZone);
+            var unlockTimePH = TimeZoneInfo.ConvertTimeFromUtc(user.LockoutEnd!.Value, phTimeZone);
 
-            ViewBag.UnlockTime = unlockTimePH.ToString("yyyy-MM-ddTHH:mm:ss"); // For countdown timer (JS)
-            ViewBag.UnlockTimeDisplay = unlockTimePH.ToString("f"); // Human-readable (e.g. July 16, 2025 8:00 PM)
-            ViewBag.Role = user.Role; //  Pass user role to view //
+            // 🔹 Fetch lockout policy dynamically
+            var policy = await _context.LockoutPolicies.FirstOrDefaultAsync();
+            ViewBag.MaxAttempts = policy?.MaxFailedAccessAttempts ?? 5;
+            ViewBag.LockoutMinutes = policy?.LockoutMinutes ?? 15;
 
-            await _audit.LogAsync("Locked Out", $"Login attempt blocked due to lockout. Try again at {unlockTimePH:f} (PH time).", user.AccountNumber);
+            ViewBag.UnlockTime = unlockTimePH.ToString("yyyy-MM-ddTHH:mm:ss");
+            ViewBag.UnlockTimeDisplay = unlockTimePH.ToString("f");
+            ViewBag.Role = user.Role;
 
-            return View("TemporaryLocked", user); //  View handles display + countdown //
+            await _audit.LogAsync("Locked Out",
+                $"Login attempt blocked due to lockout. Try again at {unlockTimePH:f} (PH time).",
+                user.AccountNumber);
+
+            return View("TemporaryLocked", user);
         }
 
-
+        // ✅ Validate password
         bool passwordValid;
-            try
-            {
-                var result = _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, model.Password);
-                passwordValid = result == PasswordVerificationResult.Success;
-            }
-            catch
-            {
-                passwordValid = BCrypt.Net.BCrypt.Verify(model.Password, user.PasswordHash);
-            }
+        try
+        {
+            passwordValid = _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, model.Password)
+                            == PasswordVerificationResult.Success;
+        }
+        catch
+        {
+            passwordValid = BCrypt.Net.BCrypt.Verify(model.Password, user.PasswordHash);
+        }
 
-            if (!passwordValid)
-            {
-                user.AccessFailedCount++;
+        if (!passwordValid)
+        {
+            var (isLocked, message) = await lockoutService.ApplyFailedAttemptAsync(user);
+            ModelState.AddModelError("", message);
 
-                string detail = $"Failed login for user {user.AccountNumber}. Attempt #{user.AccessFailedCount}.";
+            await _audit.LogAsync(isLocked ? "Account Locked" : "Failed Login",
+                $"Failed login for user {user.AccountNumber}. Attempts: {user.AccessFailedCount}. {message}",
+                user.AccountNumber);
 
-                if (user.AccessFailedCount >= 5)
-                {
-                    user.LockoutEnd = DateTime.UtcNow.AddMinutes(15);
-                    detail += " Account locked for 15 minutes.";
-                    ModelState.AddModelError("", "Account locked due to too many failed attempts. Try again after 15 minutes.");
-                }
-                else
-                {
-                    ModelState.AddModelError("", "Invalid account number or password.");
-                }
+            return View(model);
+        }
 
-                _context.Users.Update(user);
-                await _context.SaveChangesAsync();
+        // ✅ Success → reset lockout
+        await lockoutService.ResetLockoutAsync(user);
 
-                await _audit.LogAsync("Failed Login", detail, user.AccountNumber);
-                return View(model);
-            }
+        if (user.IsMfaEnabled)
+        {
+            HttpContext.Session.SetInt32("2FA_UserId", user.Id);
+            await _audit.LogAsync("2FA Login Initiated", "User login passed password check. Redirected to 2FA.", user.AccountNumber);
+            return RedirectToAction("Verify2FAUser");
+        }
 
-            //  Reset failed count //
-            user.AccessFailedCount = 0;
-            user.LockoutEnd = null;
-            _context.Users.Update(user);
-            await _context.SaveChangesAsync();
-
-            if (user.IsMfaEnabled)
-            {
-                HttpContext.Session.SetInt32("2FA_UserId", user.Id);
-                await _audit.LogAsync("2FA Login Initiated", "User login passed password check. Redirected to 2FA.", user.AccountNumber);
-                return RedirectToAction("Verify2FAUser");
-            }
-
-            //  Sign in //
-            var claims = new List<Claim>
+        // ✅ Sign in user
+        var claims = new List<Claim>
     {
         new Claim(ClaimTypes.Name, user.AccountNumber ?? user.Username ?? ""),
         new Claim(ClaimTypes.Role, user.Role),
         new Claim("UserId", user.Id.ToString())
     };
 
-            var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-            var principal = new ClaimsPrincipal(identity);
-            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
+        var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+        var principal = new ClaimsPrincipal(identity);
+        await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
 
-        var consumer = await _context.Consumers
-       .FirstOrDefaultAsync(c => c.UserId == user.Id);
-
+        // ✅ Privacy check
+        var consumer = await _context.Consumers.FirstOrDefaultAsync(c => c.UserId == user.Id);
         if (consumer != null)
         {
-            var latestPolicy = await _context.PrivacyPolicies
-                .OrderByDescending(p => p.Version)
-                .FirstOrDefaultAsync();
-
+            var latestPolicy = await _context.PrivacyPolicies.OrderByDescending(p => p.Version).FirstOrDefaultAsync();
             if (latestPolicy != null)
             {
                 var agreement = await _context.UserPrivacyAgreements
@@ -427,8 +469,10 @@ public class AccountController(
         }
 
         await _audit.LogAsync("Login Success", "User logged in successfully.", user.AccountNumber);
-            return RedirectToAction("Dashboard", "User");
-        }
+        return RedirectToAction("Dashboard", "User");
+    }
+
+
 
 
 
@@ -469,12 +513,13 @@ public class AccountController(
 
 
 
+
     /////////////////////////////////////////////////
     ///// CONSUMER RESET PASS/ IN  MANAGE USER  /////
     ////////////////////////////////////////////////
 
 
-    // ================== ResetPassword/ADMIN ACTION TO RESET USER PASS IF USER SAID SO ==================
+    // ================== ResetPassword/ADMIN ACTION TO RESET USER PASS ==================
     [Authorize(Roles = "Admin,Staff")]
     [HttpGet]
     public IActionResult ResetPassword(int id, int page = 1, string? roleFilter = null, string? searchTerm = null)
@@ -483,7 +528,11 @@ public class AccountController(
         if (user == null)
             return NotFound();
 
-        // keep navigation info for POST and View
+        // Load password policy
+        var passwordPolicy = _context.PasswordPolicies.FirstOrDefault();
+        ViewBag.PasswordPolicy = passwordPolicy;
+
+        // Keep navigation info
         ViewBag.Page = page;
         ViewBag.RoleFilter = roleFilter;
         ViewBag.SearchTerm = searchTerm;
@@ -491,8 +540,6 @@ public class AccountController(
         return View("ResetPassword", user);
     }
 
-
-    // POST: AdminAction/ResetPassword
     [Authorize(Roles = "Admin,Staff")]
     [HttpPost]
     [ValidateAntiForgeryToken]
@@ -500,70 +547,79 @@ public class AccountController(
         int id, string NewPassword, string ConfirmPassword,
         int page = 1, string? roleFilter = null, string? searchTerm = null)
     {
-        if (NewPassword != ConfirmPassword)
+        if (string.IsNullOrWhiteSpace(NewPassword) || string.IsNullOrWhiteSpace(ConfirmPassword))
+        {
+            ModelState.AddModelError(string.Empty, "Both password fields are required.");
+        }
+        else if (NewPassword != ConfirmPassword)
         {
             ModelState.AddModelError(string.Empty, "Passwords do not match.");
-            var user = await _context.Users.FindAsync(id);
-            if (user == null)
-                return NotFound();
+        }
 
-            // keep navigation info in case of validation failure
+        var user = await _context.Users.FindAsync(id);
+        if (user == null)
+            return NotFound();
+
+        // Always load password policy for redisplay
+        var passwordPolicy = _context.PasswordPolicies.FirstOrDefault();
+        ViewBag.PasswordPolicy = passwordPolicy;
+
+        if (!ModelState.IsValid)
+        {
             ViewBag.Page = page;
             ViewBag.RoleFilter = roleFilter;
             ViewBag.SearchTerm = searchTerm;
-
             return View(user);
         }
 
-        var userToReset = await _context.Users.FindAsync(id);
-        if (userToReset == null)
-            return NotFound();
+        // ✅ Enforce password policy
+        var isValidPassword = await _passwordPolicyService.ValidatePasswordAsync(user.Id, NewPassword);
+        if (!isValidPassword)
+        {
+            ModelState.AddModelError(string.Empty, "Password does not meet security policy requirements.");
+            ViewBag.Page = page;
+            ViewBag.RoleFilter = roleFilter;
+            ViewBag.SearchTerm = searchTerm;
+            return View(user);
+        }
 
-        // Hash the new password
-        userToReset.PasswordHash = _passwordHasher.HashPassword(userToReset, NewPassword);
+        // ✅ Hash new password
+        var hashedPassword = _passwordHasher.HashPassword(user, NewPassword);
+        user.PasswordHash = hashedPassword;
+
+        // ✅ Save password history
+        await _passwordPolicyService.SavePasswordHistoryAsync(user.Id, hashedPassword);
 
         await _context.SaveChangesAsync();
 
-        // Add AuditTrail
+        // ✅ Audit log
         _context.AuditTrails.Add(new AuditTrail
         {
-            Action = "Reset Password",
+            Action = "Reset Password (Admin)",
             PerformedBy = User.Identity?.Name ?? "Unknown",
-            Timestamp = DateTime.Now,
-            Details = $"Password for user '{GetUserIdentifier(userToReset)}' was reset."
+            Timestamp = DateTime.UtcNow,
+            Details = $"Password for user '{GetUserIdentifier(user)}' was reset by an admin."
         });
 
         await _context.SaveChangesAsync();
 
-        TempData["Message"] = $"Password for {GetUserIdentifier(userToReset)} has been reset successfully.";
+        TempData["Message"] = $"Password for {GetUserIdentifier(user)} has been reset successfully.";
 
-        // Redirect back to same tab, page, and search term
         return RedirectToAction("ManageUsers", "Admin", new
         {
-            roleFilter = roleFilter ?? userToReset.Role, // fallback to role
-            page = page,
-            searchTerm = searchTerm
+            roleFilter = roleFilter ?? user.Role,
+            page,
+            searchTerm
         });
     }
 
-
-    // Utility: get identifier string for message
     private string GetUserIdentifier(User user)
-        {
-            if (user.Role == "User")
-                return user.AccountNumber ?? "Unknown Account Number";
-            else
-                return user.Username ?? "Unknown Username";
-        }
+    {
+        return user.Role == "User"
+            ? user.AccountNumber ?? "Unknown Account Number"
+            : user.Username ?? "Unknown Username";
+    }
 
-        // Hash password (replace with your real hashing)
-        private string HashPassword(string password)
-        {
-            using var sha256 = SHA256.Create();
-            var bytes = Encoding.UTF8.GetBytes(password);
-            var hash = sha256.ComputeHash(bytes);
-            return Convert.ToBase64String(hash);
-        }
 
 
 
@@ -681,25 +737,11 @@ public class AccountController(
         }
 
 
-    // ================== ResetPasswordUser/LINK IN GMAIL ==================
-    [HttpGet]
-        public async Task<IActionResult> ResetPasswordUser(string token)
-        {
-            if (string.IsNullOrEmpty(token))
-                return BadRequest("A token must be supplied for password reset.");
 
-            // Find the user by token and check expiry
-            var user = await _context.Users
-                .FirstOrDefaultAsync(u => u.PasswordResetToken == token && u.PasswordResetExpiry > DateTime.UtcNow);
 
-            if (user == null)
-            {
-                return View("ResetPasswordUserInvalid"); // Create this view to show invalid or expired token
-            }
 
-            var model = new ResetPasswordUserViewModel { Token = token };
-            return View(model);
-        }
+
+
 
 
 
@@ -709,45 +751,84 @@ public class AccountController(
     ////////////////////////////////////////////////////////
 
 
-    // ================== ResetPasswordUser ==================
-    [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ResetPasswordUser(ResetPasswordUserViewModel model)
+    // ================== Reset Password via Email Token ==================
+    [HttpGet]
+    public async Task<IActionResult> ResetPasswordUser(string token)
+    {
+        if (string.IsNullOrEmpty(token))
+            return BadRequest("A token must be supplied for password reset.");
+
+        var user = await _context.Users
+            .FirstOrDefaultAsync(u => u.PasswordResetToken == token && u.PasswordResetExpiry > DateTime.UtcNow);
+
+        if (user == null)
         {
-            if (!ModelState.IsValid)
-                return View(model);
-
-            var user = await _context.Users
-                .FirstOrDefaultAsync(u => u.PasswordResetToken == model.Token && u.PasswordResetExpiry > DateTime.UtcNow);
-
-            if (user == null)
-            {
-                ModelState.AddModelError(string.Empty, "Invalid or expired token.");
-                return View(model);
-            }
-
-            // Hash the new password
-            user.PasswordHash = _passwordHasher.HashPassword(user, model.NewPassword);
-
-            // Clear token and expiry
-            user.PasswordResetToken = null;
-            user.PasswordResetExpiry = null;
-
-            await _context.SaveChangesAsync();
-
-            //  Add Audit Trail
-            _context.AuditTrails.Add(new AuditTrail
-            {
-                Action = "Reset Password (User)",
-                PerformedBy = user.Username ?? $"UserId:{user.Id}",
-                Timestamp = DateTime.Now,
-                Details = $"Password reset successfully via token-based recovery."
-            });
-
-            await _context.SaveChangesAsync();
-
-            return RedirectToAction(nameof(ResetPasswordUserConfirmation));
+            return View("ResetPasswordUserInvalid"); // Show a user-friendly error
         }
+
+        // ✅ Load password policy for display
+        var passwordPolicy = await _context.PasswordPolicies.FirstOrDefaultAsync();
+        ViewBag.PasswordPolicy = passwordPolicy;
+
+        var model = new ResetPasswordUserViewModel { Token = token };
+        return View(model);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ResetPasswordUser(ResetPasswordUserViewModel model)
+    {
+        // ✅ Always load password policy
+        var passwordPolicy = await _context.PasswordPolicies.FirstOrDefaultAsync();
+        ViewBag.PasswordPolicy = passwordPolicy;
+
+        if (!ModelState.IsValid)
+            return View(model);
+
+        var user = await _context.Users
+            .FirstOrDefaultAsync(u => u.PasswordResetToken == model.Token && u.PasswordResetExpiry > DateTime.UtcNow);
+
+        if (user == null)
+        {
+            ModelState.AddModelError(string.Empty, "Invalid or expired password reset link.");
+            return View(model);
+        }
+
+        // ✅ Check password policy
+        var isValidPassword = await _passwordPolicyService.ValidatePasswordAsync(user.Id, model.NewPassword);
+        if (!isValidPassword)
+        {
+            ModelState.AddModelError(string.Empty, "Password does not meet security policy requirements.");
+            return View(model);
+        }
+
+        // ✅ Hash and save password
+        var hashedPassword = _passwordHasher.HashPassword(user, model.NewPassword);
+        user.PasswordHash = hashedPassword;
+
+        // ✅ Save password history
+        await _passwordPolicyService.SavePasswordHistoryAsync(user.Id, hashedPassword);
+
+        // ✅ Clear reset token
+        user.PasswordResetToken = null;
+        user.PasswordResetExpiry = null;
+
+        await _context.SaveChangesAsync();
+
+        // ✅ Audit trail
+        _context.AuditTrails.Add(new AuditTrail
+        {
+            Action = "Reset Password (User)",
+            PerformedBy = user.Username ?? $"UserId:{user.Id}",
+            Timestamp = DateTime.UtcNow,
+            Details = "Password reset successfully via email token link."
+        });
+
+        await _context.SaveChangesAsync();
+
+        return RedirectToAction(nameof(ResetPasswordUserConfirmation));
+    }
+
 
 
     // ================== ResetPasswordUserConfirmation ==================
@@ -777,6 +858,9 @@ public class AccountController(
             _context.AuditTrails.Add(audit);
             await _context.SaveChangesAsync();
         }
+
+
+
 
 
 
@@ -900,7 +984,9 @@ public class AccountController(
             "EditConsumer", "DeleteConsumer","ViewBilling", "EditBilling", "DeleteBilling", 
             "NotifyBilling", "ViewPenaltyLog", "ViewPayment", "EditPayment", "DeletePayment", 
             "VerifyPayment", "ManagePrivacyPolicy","ManageContact","ManageHome","ManageSystemName",
-            "ManageCommunity"
+            "ManageCommunity","BackupManagement","GeneralSettings","ManageInquiries", "ViewAuditLogs",
+            "ViewSmsLogs","ViewEmailLogs", "ManageLockoutPolicy", "ManagePasswordPolicy","ManageAccountPolicy",
+            "ManageEmailSettings"
         };
 
                 foreach (var permission in adminPermissions)
@@ -1110,34 +1196,35 @@ public class AccountController(
     // ================== MySecretEmergenceResetPasswordforAdmin ==================
     [HttpGet]
     [AllowAnonymous]
-    public IActionResult MySecretEmergenceResetPasswordforAdmin(string token)
+    public async Task<IActionResult> MySecretEmergenceResetPasswordforAdmin(string token)
     {
         var now = DateTime.Now.TimeOfDay;
-        var start = new TimeSpan(12, 0, 0); // 12 PM
-        var end = new TimeSpan(17, 0, 0);   // 5 PM
+        var start = new TimeSpan(12, 0, 0);
+        var end = new TimeSpan(17, 0, 0);
 
         ViewBag.CurrentTime = DateTime.Now.ToString("hh:mm tt");
 
         var today = DateTime.Today.DayOfWeek.ToString();
-        var expectedToken = _configuration[$"AdminResetTokens:{today}"];
+
+        var expectedToken = await _context.AdminResetTokens
+            .Where(t => t.Day == today)
+            .Select(t => t.Token)
+            .FirstOrDefaultAsync();
 
         Console.WriteLine($"[DEBUG] Today: {today}, Expected Token: {expectedToken}, Provided: {token}");
 
-        // Token must be valid
         if (string.IsNullOrWhiteSpace(token) || token != expectedToken)
         {
             TempData["Error"] = "⛔ Invalid or missing token. Please contact the developer.";
             return RedirectToAction("AccessDenied", "Account");
         }
 
-        // If time is outside the allowed range, show a warning (but allow the page)
         if (now < start || now > end)
         {
             ViewBag.TimeWarning = "⏰ This page is only available between 12:00 PM and 5:00 PM.";
         }
 
-        ViewBag.Token = token;
-        TempData["ValidToken"] = token; // Save token across GET → POST
+        ViewBag.Token = token; // <-- pass token to form
         return View();
     }
 
@@ -1145,54 +1232,57 @@ public class AccountController(
 
     // POST: Handle Reset Password
     [HttpPost]
-        [AllowAnonymous]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> MySecretEmergenceResetPasswordforAdmin(string NewPassword, string ConfirmPassword)
+    [AllowAnonymous]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> MySecretEmergenceResetPasswordforAdmin(string token, string NewPassword, string ConfirmPassword)
+    {
+        var today = DateTime.Today.DayOfWeek.ToString();
+
+        var expectedToken = await _context.AdminResetTokens
+            .Where(t => t.Day == today)
+            .Select(t => t.Token)
+            .FirstOrDefaultAsync();
+
+        // ✅ Validate token from form
+        if (string.IsNullOrWhiteSpace(token) || token != expectedToken)
         {
-            //token validation (recheck)
-            string token = TempData["ValidToken"] as string; // from GET
-            var today = DateTime.Today.DayOfWeek.ToString();
-            var expectedToken = _configuration[$"AdminResetTokens:{today}"];
+            TempData["Error"] = "⛔ Token expired or invalid. Please request a new one.";
+            return RedirectToAction("MySecretEmergenceResetPasswordforAdmin");
+        }
 
-            if (string.IsNullOrWhiteSpace(token) || token != expectedToken)
-            {
-                TempData["Error"] = "⛔ Token expired or invalid. Please request a new one.";
-                return RedirectToAction("MySecretEmergenceResetPasswordforAdmin");
-            }
-
-            if (NewPassword != ConfirmPassword)
-            {
-                TempData["Error"] = "❌ Passwords do not match.";
+        if (NewPassword != ConfirmPassword)
+        {
+            TempData["Error"] = "❌ Passwords do not match.";
             return RedirectToAction("MySecretEmergenceResetPasswordforAdmin", new { token });
         }
 
         var admin = await _context.Users.FirstOrDefaultAsync(u => u.Role == "Admin");
 
-            if (admin == null)
-            {
-                TempData["Error"] = "❌ Admin not found.";
+        if (admin == null)
+        {
+            TempData["Error"] = "❌ Admin not found.";
             return RedirectToAction("MySecretEmergenceResetPasswordforAdmin", new { token });
         }
 
-        // Update password securely
         admin.PasswordHash = BCrypt.Net.BCrypt.HashPassword(NewPassword);
-            admin.PasswordResetToken = null;
-            admin.PasswordResetExpiry = null;
-            admin.AccessFailedCount = 0;
-            admin.LockoutEnd = null;
+        admin.PasswordResetToken = null;
+        admin.PasswordResetExpiry = null;
+        admin.AccessFailedCount = 0;
+        admin.LockoutEnd = null;
 
-            _context.AuditTrails.Add(new AuditTrail
-            {
-                PerformedBy = "EmergencyResetAccess",
-                Action = "Admin Password Reset",
-                Timestamp = DateTime.Now,
-                Details = $"Admin password reset for user '{admin.Username}' via emergency token at {DateTime.Now:yyyy-MM-dd HH:mm}"
-            });
+        _context.AuditTrails.Add(new AuditTrail
+        {
+            PerformedBy = "EmergencyResetAccess",
+            Action = "Admin Password Reset",
+            Timestamp = DateTime.Now,
+            Details = $"Admin password reset for user '{admin.Username}' via emergency token at {DateTime.Now:yyyy-MM-dd HH:mm}"
+        });
 
-            await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync();
 
-            TempData["Success"] = "✅ Password reset successfully!";
-            return View();
-        }
-
+        TempData["Success"] = "✅ Password reset successfully!";
+        return RedirectToAction("MySecretEmergenceResetPasswordforAdmin", new { token });
     }
+
+
+}

@@ -1,0 +1,54 @@
+﻿@model IEnumerable<SantaFeWaterSystem.Models.PublicInquiry>
+@{
+    ViewData["Title"] = "All Inquiries";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+
+<h2>All Inquiries</h2>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+}
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Date</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Purpose</th>
+            <th>Status</th>
+            <th style="width:160px;">Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var i in Model)
+        {
+            <tr>
+                <td>@i.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
+                <td>@i.FirstName @i.LastName</td>
+                <td>@i.Email</td>
+                <td>@i.Purpose</td>
+                <td>
+                    @if (i.Status == "New")
+                    {
+                        <span class="badge bg-warning text-dark">New</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-success">Replied</span>
+                    }
+                </td>
+                <td>
+                    <a asp-action="Details" asp-route-id="@i.Id" class="btn btn-sm btn-info">View</a>
+                    @if (i.Status == "New")
+                    {
+                        <a asp-action="Reply" asp-route-id="@i.Id" class="btn btn-sm btn-primary">Reply</a>
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

@@ -16,6 +16,8 @@
                 <div class="card-body text-center">
                     <p class="text-muted">
                         Your account has been <strong>temporarily locked</strong> due to multiple failed login attempts.
+                        <br />
+                        (Limit: <strong>@ViewBag.MaxAttempts</strong> attempts → Lockout: <strong>@ViewBag.LockoutMinutes</strong> minutes)
                     </p>
 
                     @if (!string.IsNullOrEmpty(Model.AccountNumber))
@@ -35,7 +37,6 @@
                         <span id="countdownTimer" class="text-danger fs-5"></span>
                     </div>
 
-                    <!-- ✅ Redirects to Home page now -->
                     <a asp-action="Index"
                        asp-controller="Home"
                        class="btn btn-outline-secondary mt-3">

@@ -218,6 +218,11 @@
                     {
                         <form asp-action="Notify" asp-route-id="@bill.Id" method="post" class="d-inline">
                             @Html.AntiForgeryToken()
+                            <input type="hidden" name="page" value="@Model.PageNumber" />
+                            <input type="hidden" name="searchTerm" value="@ViewBag.CurrentSearchTerm" />
+                            <input type="hidden" name="statusFilter" value="@ViewBag.CurrentStatusFilter" />
+                            <input type="hidden" name="selectedMonth" value="@ViewBag.SelectedMonth" />
+                            <input type="hidden" name="selectedYear" value="@ViewBag.SelectedYear" />
                             <button type="submit" class="btn btn-sm btn-outline-secondary" title="Send Notification">
                                 <i class="bi bi-bell"></i> Notify
                             </button>

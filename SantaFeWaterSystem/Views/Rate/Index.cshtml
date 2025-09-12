@@ -46,9 +46,15 @@
             <h2 class="title-header">
                 <i class="bi bi-cash-coin me-1"></i> @ViewData["Title"]
             </h2>
-            <a asp-action="Create" class="btn btn-primary">
-                <i class="bi bi-plus-circle me-1"></i> Add New Rate
-            </a>
+            <div class="d-flex gap-2">
+                <a asp-action="Create" class="btn btn-primary">
+                    <i class="bi bi-plus-circle me-1"></i> Add New Rate
+                </a>
+
+                <a asp-controller="GeneralSettings" asp-action="System" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left-circle me-1"></i> Back to System
+                </a>
+            </div>
         </div>
 
         @if (!Model.Any())

@@ -14,11 +14,13 @@ namespace SantaFeWaterSystem.Controllers
 {
     [Authorize(Roles = "Admin,Staff")]
     public class PaymentsController(ApplicationDbContext context, IWebHostEnvironment env, BillingService billingService, PdfService pdfService,
-        PermissionService permissionService, AuditLogService audit) : BaseController(permissionService, context, audit)
+        PermissionService permissionService, AuditLogService audit, IEmailSender emailSender) : BaseController(permissionService, context, audit)
     {
         private readonly IWebHostEnvironment _env = env;
         private readonly BillingService _billingService = billingService;
         private readonly PdfService _pdfService = pdfService;
+        private readonly IEmailSender _emailSender = emailSender;
+
 
 
 
@@ -748,6 +750,54 @@ namespace SantaFeWaterSystem.Controllers
                 PerformedBy = User.Identity?.Name ?? "Admin",
                 Timestamp = DateTime.Now
             });
+
+            // ================= EMAIL CONFIRMATION =================
+            if (!string.IsNullOrWhiteSpace(consumer?.Email))
+            {
+                var emailSubject = $"Payment Verified - Bill No: {billing?.BillNo}";
+                var emailBody = $@"
+<p>Hello <strong>{consumer?.FullName}</strong>,</p>
+<p>Your payment has been successfully <strong>verified</strong> by our team. 
+It has been marked as <strong>Paid</strong> in your account, and you can view the updated status by logging in to the Santa Fe Water System Website.</p>
+<p>
+    <strong>Bill No:</strong> {billing?.BillNo}<br/>
+    <strong>Amount Paid:</strong> ₱{payment.AmountPaid:N2}<br/>
+    <strong>Payment Method:</strong> {payment.Method}<br/>
+    <strong>Transaction ID:</strong> {payment.TransactionId}<br/>
+    <strong>Date Verified:</strong> {DateTime.Now:MMMM d, yyyy hh:mm tt}
+</p>
+<p>Thank you for your payment.<br/>Santa Fe Water System</p>";
+
+
+                try
+                {
+                    await _emailSender.SendEmailAsync(consumer.Email, emailSubject, emailBody);
+
+                    _context.EmailLogs.Add(new EmailLog
+                    {
+                        ConsumerId = consumer.Id,
+                        EmailAddress = consumer.Email,
+                        Subject = emailSubject,
+                        Message = emailBody,
+                        IsSuccess = true,
+                        SentAt = DateTime.Now
+                    });
+                }
+                catch (Exception ex)
+                {
+                    _context.EmailLogs.Add(new EmailLog
+                    {
+                        ConsumerId = consumer.Id,
+                        EmailAddress = consumer.Email,
+                        Subject = emailSubject,
+                        Message = emailBody,
+                        IsSuccess = false,
+                        SentAt = DateTime.Now,
+                        ResponseMessage = ex.Message
+                    });
+                }
+            }
+
 
             await _context.SaveChangesAsync();
 
