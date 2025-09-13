@@ -1,54 +1,138 @@
-﻿@model IEnumerable<SantaFeWaterSystem.Models.PublicInquiry>
+﻿@model IPagedList<SantaFeWaterSystem.Models.PublicInquiry>
+@using X.PagedList.Mvc.Core
+
 @{
     ViewData["Title"] = "All Inquiries";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
+
+    var searchTerm = ViewBag.SearchTerm as string;
+    var selectedMonth = ViewBag.SelectedMonth as int?;
+    var selectedYear = ViewBag.SelectedYear as int?;
 }
 
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2><i class="bi bi-chat-square-text me-2"></i>All Inquiries</h2>
+</div>
 
-<h2>All Inquiries</h2>
+<form method="get" class="row g-2 mb-3">
+    <div class="col-md-4">
+        <input type="text" name="searchTerm" class="form-control" placeholder="Search name, email, purpose..." value="@searchTerm" />
+    </div>
+    <div class="col-md-3">
+        <select name="selectedMonth" class="form-select">
+            <option value="">All Months</option>
+            @for (int m = 1; m <= 12; m++)
+            {
+                var monthName = System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(m);
+                <option value="@m" selected="@(selectedMonth == m ? "selected" : null)">@monthName</option>
+            }
+        </select>
+    </div>
+    <div class="col-md-3">
+        <select name="selectedYear" class="form-select">
+            <option value="">All Years</option>
+            @for (int y = DateTime.Now.Year; y >= DateTime.Now.Year - 5; y--)
+            {
+                <option value="@y" selected="@(selectedYear == y ? "selected" : null)">@y</option>
+            }
+        </select>
+    </div>
+    <div class="col-md-auto">
+        <button type="submit" class="btn btn-outline-primary">
+            <i class="bi bi-funnel-fill me-1"></i> Filter
+        </button>
+    </div>
+</form>
 
 @if (TempData["SuccessMessage"] != null)
 {
     <div class="alert alert-success">@TempData["SuccessMessage"]</div>
 }
 
-<table class="table table-striped">
-    <thead>
+<table class="table table-striped table-bordered">
+    <thead class="table-light">
         <tr>
-            <th>Date</th>
-            <th>Name</th>
-            <th>Email</th>
-            <th>Purpose</th>
-            <th>Status</th>
-            <th style="width:160px;">Actions</th>
+            <th><i class="bi bi-calendar-event me-1"></i> Date</th>
+            <th><i class="bi bi-person-fill me-1"></i> Name</th>
+            <th><i class="bi bi-envelope-fill me-1"></i> Email</th>
+            <th><i class="bi bi-info-circle-fill me-1"></i> Purpose</th>
+            <th><i class="bi bi-patch-check-fill me-1"></i> Status</th>
+            <th><i class="bi bi-tools me-1"></i> Actions</th>
         </tr>
     </thead>
     <tbody>
-        @foreach (var i in Model)
+        @if (Model.Any())
+        {
+            foreach (var i in Model)
+            {
+                <tr>
+                    <td>@i.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
+                    <td>@i.FirstName @i.LastName</td>
+                    <td>@i.Email</td>
+                    <td>@i.Purpose</td>
+                    <td>
+                        @if (i.Status == "New")
+                        {
+                            <span class="badge bg-warning text-dark"><i class="bi bi-exclamation-circle-fill me-1"></i>New</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-success"><i class="bi bi-check-circle-fill me-1"></i>Replied</span>
+                        }
+                    </td>
+                    <td>
+                        <a asp-action="Details" asp-route-id="@i.Id"
+                           asp-route-searchTerm="@ViewBag.SearchTerm"
+                           asp-route-selectedMonth="@ViewBag.SelectedMonth"
+                           asp-route-selectedYear="@ViewBag.SelectedYear"
+                           asp-route-page="@ViewBag.CurrentPage"
+                           class="btn btn-sm btn-info">
+                            <i class="bi bi-eye-fill me-1"></i> View
+                        </a>
+
+                        @if (i.Status == "New")
+                        {
+                            <a asp-action="Reply" asp-route-id="@i.Id"
+                               asp-route-searchTerm="@ViewBag.SearchTerm"
+                               asp-route-selectedMonth="@ViewBag.SelectedMonth"
+                               asp-route-selectedYear="@ViewBag.SelectedYear"
+                               asp-route-page="@ViewBag.CurrentPage"
+                               class="btn btn-sm btn-primary">
+                                <i class="bi bi-reply-fill me-1"></i> Reply
+                            </a>
+                        }
+                    </td>
+                </tr>
+            }
+        }
+        else
         {
             <tr>
-                <td>@i.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
-                <td>@i.FirstName @i.LastName</td>
-                <td>@i.Email</td>
-                <td>@i.Purpose</td>
-                <td>
-                    @if (i.Status == "New")
-                    {
-                        <span class="badge bg-warning text-dark">New</span>
-                    }
-                    else
-                    {
-                        <span class="badge bg-success">Replied</span>
-                    }
-                </td>
-                <td>
-                    <a asp-action="Details" asp-route-id="@i.Id" class="btn btn-sm btn-info">View</a>
-                    @if (i.Status == "New")
-                    {
-                        <a asp-action="Reply" asp-route-id="@i.Id" class="btn btn-sm btn-primary">Reply</a>
-                    }
-                </td>
+                <td colspan="6" class="text-center text-muted"><i class="bi bi-inbox-fill me-1"></i> No inquiries found.</td>
             </tr>
         }
     </tbody>
 </table>
+
+@if (Model.PageCount > 1)
+{
+    <div class="d-flex justify-content-center mt-3">
+        @Html.PagedListPager(Model, page => Url.Action("Index", new
+        {
+            page,
+        searchTerm = searchTerm,
+        selectedMonth = selectedMonth,
+        selectedYear = selectedYear
+        }),
+        new PagedListRenderOptions
+        {
+            DisplayLinkToPreviousPage = PagedListDisplayMode.Always,
+            DisplayLinkToNextPage = PagedListDisplayMode.Always,
+            DisplayLinkToFirstPage = PagedListDisplayMode.Always,
+            DisplayLinkToLastPage = PagedListDisplayMode.Always,
+            MaximumPageNumbersToDisplay = 5,
+            LiElementClasses = new[] { "page-item" },
+            PageClasses = new[] { "page-link" }
+        })
+</div>
+}

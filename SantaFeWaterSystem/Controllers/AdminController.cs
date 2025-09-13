@@ -843,9 +843,10 @@ public class AdminController(PermissionService permissionService, ApplicationDbC
 
 
 
-    // ================== EditConsumer ==================
 
-    // GET: EditConsumer
+
+
+    // ================== GET: EditConsumer ==================
     [Authorize(Roles = "Admin,Staff")]
     [HttpGet]
     public async Task<IActionResult> EditConsumer(int id, int page = 1)
@@ -854,77 +855,142 @@ public class AdminController(PermissionService permissionService, ApplicationDbC
         if (consumer == null)
             return NotFound();
 
-        ViewBag.Users = new SelectList(_context.Users, "Id", "AccountNumber", consumer.UserId);
+        var vm = new EditConsumerViewModel
+        {
+            Id = consumer.Id,
+            FirstName = consumer.FirstName,
+            LastName = consumer.LastName,
+            MiddleName = consumer.MiddleName,
+            AccountType = consumer.AccountType,
+            Email = consumer.Email,
+            HomeAddress = consumer.HomeAddress,
+            MeterAddress = consumer.MeterAddress,
+            MeterNo = consumer.MeterNo,
+            ContactNumber = consumer.ContactNumber,
+            Status = consumer.Status,
+            UserId = consumer.UserId
+        };
 
-        //  Updated to use enum values
-        var types = Enum.GetNames(typeof(ConsumerType));
-        ViewBag.AccountTypes = new SelectList(types, consumer.AccountType);
+        // Users already linked to other consumers (exclude current consumer)
+        var linkedUserIds = _context.Consumers
+            .Where(c => c.UserId != null && c.Id != consumer.Id)
+            .Select(c => c.UserId);
+
+        // Available users = all regular users except linked ones
+        var availableUsers = await _context.Users
+            .Where(u => !linkedUserIds.Contains(u.Id) && u.Role == "User") 
+            .OrderBy(u => u.Username)
+            .ToListAsync();
+
+        // Build SelectList using Username
+        var userSelectList = availableUsers
+            .Select(u => new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem
+            {
+                Value = u.Id.ToString(),
+                Text = u.Username,
+                Selected = u.Id == consumer.UserId
+            })
+            .ToList();
+
+        ViewBag.Users = userSelectList;
+
+        ViewBag.AccountTypes = new SelectList(Enum.GetValues(typeof(ConsumerType)), consumer.AccountType);
         ViewBag.CurrentPage = page;
 
-        return View(consumer);
+        return View(vm);
     }
 
 
-    // POST: EditConsumer
+
+    // ================== POST: EditConsumer ==================
     [Authorize(Roles = "Admin,Staff")]
     [HttpPost]
-    public async Task<IActionResult> EditConsumer(Consumer consumer, int page = 1)
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> EditConsumer(EditConsumerViewModel model, int page = 1)
     {
         if (!ModelState.IsValid)
         {
-            ViewBag.Users = new SelectList(_context.Users, "Id", "AccountNumber", consumer.UserId);
+            // Re-populate dropdowns
+            var linkedUserIds = _context.Consumers
+                .Where(c => c.UserId != null && c.Id != model.Id)
+                .Select(c => c.UserId);
 
-            // Updated to use enum values
-            var types = Enum.GetNames(typeof(ConsumerType));
-            ViewBag.AccountTypes = new SelectList(types, consumer.AccountType);
+            var availableUsers = await _context.Users
+                .Where(u => !linkedUserIds.Contains(u.Id))
+                .ToListAsync();
+
+            ViewBag.Users = new SelectList(availableUsers, "Id", "AccountNumber", model.UserId);
+            ViewBag.AccountTypes = new SelectList(Enum.GetValues(typeof(ConsumerType)), model.AccountType);
             ViewBag.CurrentPage = page;
-
-            return View(consumer);
+            return View(model);
         }
 
-        var existing = await _context.Consumers
-            .Include(c => c.User)
-            .FirstOrDefaultAsync(c => c.Id == consumer.Id);
+        // Safety check: Ensure selected UserId is not already linked to another consumer
+        if (model.UserId != null)
+        {
+            bool userAlreadyLinked = await _context.Consumers
+                .AnyAsync(c => c.UserId == model.UserId && c.Id != model.Id);
 
-        if (existing == null)
-            return NotFound();
+            if (userAlreadyLinked)
+            {
+                ModelState.AddModelError("UserId", "⚠ This user is already linked to another consumer.");
 
-        // Store old values for audit trail
-        var oldValues = $"Name: {existing.LastName}, {existing.FirstName} {existing.MiddleName}, " +
-                        $"Email: {existing.Email}, Address: {existing.HomeAddress}, " +
-                        $"MeterNo: {existing.MeterNo}, Type: {existing.AccountType}, UserId: {existing.UserId}, Status: { existing.Status}";
+                // Re-populate dropdowns
+                var linkedUserIds = _context.Consumers
+                    .Where(c => c.UserId != null && c.Id != model.Id)
+                    .Select(c => c.UserId);
 
-        // Update properties
-        existing.FirstName = consumer.FirstName;
-        existing.LastName = consumer.LastName;
-        existing.MiddleName = consumer.MiddleName;
-        existing.AccountType = consumer.AccountType;
-        existing.Email = consumer.Email;
-        existing.HomeAddress = consumer.HomeAddress;
-        existing.MeterAddress = consumer.MeterAddress;
-        existing.MeterNo = consumer.MeterNo;
-        existing.ContactNumber = consumer.ContactNumber;
-        existing.Status = consumer.Status;
-        existing.UserId = consumer.UserId;
+                var availableUsers = await _context.Users
+                    .Where(u => !linkedUserIds.Contains(u.Id))
+                    .ToListAsync();
 
-        _context.Consumers.Update(existing);
+                ViewBag.Users = new SelectList(availableUsers, "Id", "AccountNumber", model.UserId);
+                ViewBag.AccountTypes = new SelectList(Enum.GetValues(typeof(ConsumerType)), model.AccountType);
+                ViewBag.CurrentPage = page;
 
-        // Add audit trail entry
+                return View(model);
+            }
+        }
+
+        var consumer = await _context.Consumers.FirstOrDefaultAsync(c => c.Id == model.Id);
+        if (consumer == null) return NotFound();
+
+        // Store old values for audit
+        var oldValues = $"Name: {consumer.LastName}, {consumer.FirstName} {consumer.MiddleName}, " +
+                        $"Email: {consumer.Email}, Address: {consumer.HomeAddress}, " +
+                        $"MeterNo: {consumer.MeterNo}, Type: {consumer.AccountType}, UserId: {consumer.UserId}, Status: {consumer.Status}";
+
+        // Update
+        consumer.FirstName = model.FirstName;
+        consumer.LastName = model.LastName;
+        consumer.MiddleName = model.MiddleName;
+        consumer.AccountType = model.AccountType;
+        consumer.Email = model.Email;
+        consumer.HomeAddress = model.HomeAddress;
+        consumer.MeterAddress = model.MeterAddress;
+        consumer.MeterNo = model.MeterNo;
+        consumer.ContactNumber = model.ContactNumber;
+        consumer.Status = model.Status;
+        consumer.UserId = model.UserId;
+
+        // Add audit trail
         _context.AuditTrails.Add(new AuditTrail
         {
             PerformedBy = User.Identity?.Name ?? "Unknown",
             Action = "Edited Consumer",
             Timestamp = DateTime.Now,
-            Details = $"Updated Consumer ID: {consumer.Id}\n" +
-                      $"Old: {oldValues}\n" +
-                      $"New: Name: {consumer.LastName}, {consumer.FirstName} {consumer.MiddleName}, " +
+            Details = $"Updated Consumer ID: {consumer.Id}\nOld: {oldValues}\nNew: " +
+                      $"Name: {consumer.LastName}, {consumer.FirstName} {consumer.MiddleName}, " +
                       $"Email: {consumer.Email}, Address: {consumer.HomeAddress}, " +
                       $"MeterNo: {consumer.MeterNo}, Type: {consumer.AccountType}, UserId: {consumer.UserId}, Status: {consumer.Status}"
         });
 
         await _context.SaveChangesAsync();
+
+        TempData["SuccessMessage"] = "✅ Consumer updated successfully!";
         return RedirectToAction("Consumers", new { page });
     }
+
 
 
 

@@ -1,4 +1,4 @@
-﻿@model SantaFeWaterSystem.Models.Consumer
+﻿@model SantaFeWaterSystem.ViewModels.EditConsumerViewModel
 @{
     ViewData["Title"] = "Edit Consumer";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
@@ -57,7 +57,6 @@
     <form asp-action="EditConsumer" method="post" class="mt-4">
         <input type="hidden" asp-for="Id" />
         <input type="hidden" name="page" value="@ViewBag.CurrentPage" />
-
 
         <div class="row g-3">
             <div class="col-md-4 form-floating-icon" title="Last Name">
@@ -118,8 +117,8 @@
 
             <div class="col-md-6 form-floating-icon" title="Status">
                 <select asp-for="Status" class="form-select">
-                    <option value="Active">Active</option>
-                    <option value="Disconnected">Disconnected</option>
+                    <option value="Active" selected="@Model.Status == " Active"">Active</option>
+                    <option value="Disconnected" selected="@Model.Status == " Disconnected"">Disconnected</option>
                 </select>
                 <i class="bi bi-toggle-on"></i>
                 <span asp-validation-for="Status" class="text-danger small"></span>
@@ -134,7 +133,7 @@
             </div>
         </div>
 
-        <div class="mt-4">
+        <div class="mt-4 d-flex gap-2">
             <button type="submit" class="btn btn-primary"><i class="bi bi-check-circle"></i> Update</button>
             <a asp-action="Consumers" asp-route-page="@ViewBag.CurrentPage" class="btn btn-secondary"><i class="bi bi-arrow-left-circle"></i> Cancel</a>
         </div>

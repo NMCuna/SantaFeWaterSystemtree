@@ -31,28 +31,70 @@ namespace SantaFeWaterSystem.Controllers
         private readonly IWebHostEnvironment _env = env;
         private readonly SemaphoreSettings _semaphoreSettings = semaphoreOptions.Value;
 
-
-
         //================== INDEX LIST OF NOTIFICATIONS ==================
 
-        // GET: Notifications List with search and pagination
+        // GET: Notifications List with search, month/year filter, and pagination
         [Authorize(Roles = "Admin,Staff")]
-        public IActionResult Index(string search, int pageNumber = 1)
+        public async Task<IActionResult> Index(string searchTerm, int? selectedMonth, int? selectedYear, int page = 1)
         {
             int pageSize = 7;
+
             var query = _context.Notifications
                 .Include(n => n.Consumer)
-                .Where(n => !n.IsArchived);
+                .Where(n => !n.IsArchived)
+                .AsQueryable();
 
-            if (!string.IsNullOrEmpty(search))
-                query = query.Where(n => n.Title.Contains(search) || n.Message.Contains(search));
+            // Search filter
+            if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
+                query = query.Where(n =>
+                    n.Title.Contains(searchTerm) ||
+                    n.Message.Contains(searchTerm) ||
+                    n.Consumer.FirstName.Contains(searchTerm) ||
+                    n.Consumer.LastName.Contains(searchTerm));
+            }
 
-            var ordered = query.OrderByDescending(n => n.CreatedAt);
-            var total = ordered.Count();
-            var items = ordered.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
+            // Month & Year filter
+            if (selectedMonth.HasValue && selectedYear.HasValue)
+            {
+                query = query.Where(n =>
+                    n.CreatedAt.Month == selectedMonth.Value &&
+                    n.CreatedAt.Year == selectedYear.Value);
+            }
+            else if (selectedMonth.HasValue)
+            {
+                query = query.Where(n => n.CreatedAt.Month == selectedMonth.Value);
+            }
+            else if (selectedYear.HasValue)
+            {
+                query = query.Where(n => n.CreatedAt.Year == selectedYear.Value);
+            }
+            else
+            {
+                // Default to current month/year if no filters are applied
+                query = query.Where(n =>
+                    n.CreatedAt.Month == DateTime.Now.Month &&
+                    n.CreatedAt.Year == DateTime.Now.Year);
+            }
 
-            var paged = new StaticPagedList<Notification>(items, pageNumber, pageSize, total);
-            return View(paged);
+            // Order by latest first
+            query = query.OrderByDescending(n => n.CreatedAt);
+
+            // Pagination using StaticPagedList
+            var totalCount = await query.CountAsync();
+            var notifications = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            var pagedList = new StaticPagedList<Notification>(notifications, page, pageSize, totalCount);
+
+            // Pass current filters to ViewBag for the view
+            ViewBag.CurrentSearchTerm = searchTerm;
+            ViewBag.SelectedMonth = selectedMonth;
+            ViewBag.SelectedYear = selectedYear;
+
+            return View(pagedList);
         }
 
 
@@ -260,17 +302,19 @@ namespace SantaFeWaterSystem.Controllers
         // GET: Notification/Delete/5
         [Authorize(Roles = "Admin")]
         [HttpGet]
-        public async Task<IActionResult> Delete(int id)
+        public async Task<IActionResult> Delete(int id, string searchTerm, int? selectedMonth, int? selectedYear, int page = 1)
         {
             var notification = await _context.Notifications.FindAsync(id);
-            if (notification == null)
-                return NotFound();
+            if (notification == null) return NotFound();
 
             _context.Notifications.Remove(notification);
             await _context.SaveChangesAsync();
+            TempData["Success"] = "Notification deleted.";
 
-            return RedirectToAction("Index");
+            // Redirect back with current filters and page
+            return RedirectToAction("Index", new { searchTerm, selectedMonth, selectedYear, page });
         }
+
 
 
 
@@ -279,17 +323,20 @@ namespace SantaFeWaterSystem.Controllers
         // Archive single notification
         [Authorize(Roles = "Admin,Staff")]
         [HttpPost]
-        public async Task<IActionResult> Archive(int id)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Archive(int id, string searchTerm, int? selectedMonth, int? selectedYear, int page = 1)
         {
             var notification = await _context.Notifications.FindAsync(id);
-            if (notification == null)
-                return NotFound();
+            if (notification == null) return NotFound();
 
             notification.IsArchived = true;
             await _context.SaveChangesAsync();
+            TempData["Success"] = "Notification archived.";
 
-            return RedirectToAction("Index");
+            // Redirect back with current filters and page
+            return RedirectToAction("Index", new { searchTerm, selectedMonth, selectedYear, page });
         }
+
 
 
 
@@ -299,45 +346,84 @@ namespace SantaFeWaterSystem.Controllers
         [Authorize(Roles = "Admin,Staff")]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Unarchive(int id)
+        public async Task<IActionResult> Unarchive(
+            int id,
+            string searchTerm,
+            int? selectedMonth,
+            int? selectedYear,
+            int page = 1
+        )
         {
             var notification = await _context.Notifications.FindAsync(id);
             if (notification == null)
-            {
                 return NotFound();
-            }
 
             notification.IsArchived = false;
             await _context.SaveChangesAsync();
 
             TempData["Success"] = "Notification successfully unarchived.";
-            return RedirectToAction("Archived"); // redirect back to archived view
+
+            // Redirect back to Archived view with filters & page preserved
+            return RedirectToAction("Archived", new
+            {
+                page,
+                searchTerm,
+                selectedMonth,
+                selectedYear
+            });
         }
+
 
 
 
         //================== VIEW ARCHIVED NOTIFICATIONS ==================
-
-        // View Archived Notifications with pagination
+        // View Archived Notifications with search, filters, and pagination
         [Authorize(Roles = "Admin,Staff")]
-        public IActionResult Archived(int page = 1, int pageSize = 8)
+        public IActionResult Archived(
+    string searchTerm,
+    int? selectedMonth,
+    int? selectedYear,
+    int page = 1,
+    int pageSize = 8
+)
         {
-            var totalArchived = _context.Notifications.Count(n => n.IsArchived);
-
-            var archived = _context.Notifications
+            var query = _context.Notifications
                 .Include(n => n.Consumer)
                 .Where(n => n.IsArchived)
-                .OrderByDescending(n => n.CreatedAt)
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .ToList();
+                .AsQueryable();
+
+            // Apply search filter
+            if (!string.IsNullOrEmpty(searchTerm))
+                query = query.Where(n => n.Title.Contains(searchTerm) || n.Message.Contains(searchTerm));
+
+            // Apply month/year filters
+            if (selectedMonth.HasValue)
+                query = query.Where(n => n.CreatedAt.Month == selectedMonth.Value);
+
+            if (selectedYear.HasValue)
+                query = query.Where(n => n.CreatedAt.Year == selectedYear.Value);
+
+            // Order by latest first
+            query = query.OrderByDescending(n => n.CreatedAt);
+
+            // Convert to IPagedList
+            var pagedArchived = query.ToPagedList(page, pageSize);
 
             ViewBag.CurrentPage = page;
             ViewBag.PageSize = pageSize;
-            ViewBag.TotalPages = (int)Math.Ceiling((double)totalArchived / pageSize);
+            ViewBag.TotalPages = pagedArchived.PageCount;
+            ViewBag.SearchTerm = searchTerm;
+            ViewBag.SelectedMonth = selectedMonth;
+            ViewBag.SelectedYear = selectedYear;
 
-            return View("Archived", archived);
+            return View("Archived", pagedArchived);
         }
+
+
+
+
+
+
 
 
 
@@ -347,10 +433,16 @@ namespace SantaFeWaterSystem.Controllers
         [Authorize(Roles = "Admin,Staff")]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ArchiveSelectedByAdmin(string selectedIds)
+        public async Task<IActionResult> ArchiveSelectedByAdmin(
+            string selectedIds,
+            string search,          // current search filter
+            int? selectedMonth,     // current month filter
+            int? selectedYear,      // current year filter
+            int? page               // current page number
+        )
         {
             if (string.IsNullOrEmpty(selectedIds))
-                return RedirectToAction("Index");
+                return RedirectToAction("Index", new { search, selectedMonth, selectedYear, page });
 
             var ids = selectedIds.Split(',').Select(int.Parse).ToList();
 
@@ -364,8 +456,11 @@ namespace SantaFeWaterSystem.Controllers
             }
 
             await _context.SaveChangesAsync();
+
             TempData["Success"] = $"{notifications.Count} notifications archived.";
-            return RedirectToAction("Index");
+
+            // Redirect back with current filters and page preserved
+            return RedirectToAction("Index", new { search, selectedMonth, selectedYear, page });
         }
 
 
@@ -543,21 +638,43 @@ namespace SantaFeWaterSystem.Controllers
         //================== SMS LOGS CONTROLLER LIST OF SMS SENT ==================
 
         // GET: SmsLogs
+        // GET: SmsLogs
         [Authorize(Roles = "Admin,Staff")]
-        // View Active SMS Logs
-        public async Task<IActionResult> SmsLogs(int? page)
+        public async Task<IActionResult> SmsLogs(
+            string? searchTerm,
+            int? selectedMonth,
+            int? selectedYear,
+            int page = 1,
+            int pageSize = 8
+        )
         {
-            int pageSize = 9;
-            int pageNumber = page ?? 1;
-
-            var logs = await _context.SmsLogs
+            var query = _context.SmsLogs
                 .Include(l => l.Consumer)
                 .Where(l => !l.IsArchived)
-                .OrderByDescending(l => l.SentAt)
+                .AsQueryable();
+
+            if (!string.IsNullOrEmpty(searchTerm))
+            {
+                query = query.Where(l =>
+                    l.Message!.Contains(searchTerm) ||
+                    l.ContactNumber!.Contains(searchTerm) ||
+                    l.Consumer!.FullName!.Contains(searchTerm)
+                );
+            }
+
+            if (selectedMonth.HasValue)
+                query = query.Where(l => l.SentAt.Month == selectedMonth.Value);
+
+            if (selectedYear.HasValue)
+                query = query.Where(l => l.SentAt.Year == selectedYear.Value);
+
+            query = query.OrderByDescending(l => l.SentAt);
+
+            var pagedLogs = await query
                 .Select(l => new SmsLogViewModel
                 {
                     Id = l.Id,
-                    ConsumerName = l.Consumer.FullName,
+                    ConsumerName = l.Consumer!.FullName,
                     ContactNumber = l.ContactNumber,
                     Message = l.Message,
                     SentAt = l.SentAt,
@@ -565,10 +682,56 @@ namespace SantaFeWaterSystem.Controllers
                     ResponseMessage = l.ResponseMessage,
                     IsArchived = l.IsArchived
                 })
-                .ToPagedListAsync(pageNumber, pageSize);
+                .ToPagedListAsync(page, pageSize);
 
-            return View(logs);
+            ViewBag.SearchTerm = searchTerm;
+            ViewBag.SelectedMonth = selectedMonth;
+            ViewBag.SelectedYear = selectedYear;
+            ViewBag.CurrentPage = page; // ✅ important
+
+            return View(pagedLogs);
         }
+
+        // GET: SmsLogs/Details/5
+        [Authorize(Roles = "Admin,Staff")]
+        public async Task<IActionResult> Details(
+            int id,
+            string? searchTerm,
+            int? selectedMonth,
+            int? selectedYear,
+            int page = 1
+        )
+        {
+            var log = await _context.SmsLogs
+                .Include(l => l.Consumer)
+                .Where(l => l.Id == id)
+                .Select(l => new SmsLogViewModel
+                {
+                    Id = l.Id,
+                    ConsumerName = l.Consumer!.FullName!,
+                    ContactNumber = l.ContactNumber,
+                    Message = l.Message,
+                    SentAt = l.SentAt,
+                    IsSuccess = l.IsSuccess,
+                    ResponseMessage = l.ResponseMessage,
+                    IsArchived = l.IsArchived
+                })
+                .FirstOrDefaultAsync();
+
+            if (log == null)
+                return NotFound();
+
+            ViewBag.SearchTerm = searchTerm;
+            ViewBag.SelectedMonth = selectedMonth;
+            ViewBag.SelectedYear = selectedYear;
+            ViewBag.CurrentPage = page; // ✅ important
+
+            return View(log);
+        }
+
+
+
+
 
 
 

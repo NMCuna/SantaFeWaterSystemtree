@@ -436,147 +436,128 @@ namespace SantaFeWaterSystem.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(BillingFormViewModel viewModel)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                var billing = viewModel.Billing;
+                await LoadEligibleConsumersAsync(viewModel);
+                return View(viewModel);
+            }
 
-                // Get latest billing for PreviousReading
-                var lastBilling = await _context.Billings
-                    .Where(b => b.ConsumerId == billing.ConsumerId)
-                    .OrderByDescending(b => b.BillingDate)
-                    .FirstOrDefaultAsync();
+            var billing = viewModel.Billing;
 
-                billing.PreviousReading = lastBilling?.PresentReading ?? 0m;
-                billing.CubicMeterUsed = billing.PresentReading - billing.PreviousReading;
+            // ===== Get latest billing and compute usage =====
+            var lastBilling = await _context.Billings
+                .Where(b => b.ConsumerId == billing.ConsumerId)
+                .OrderByDescending(b => b.BillingDate)
+                .FirstOrDefaultAsync();
 
-                if (billing.CubicMeterUsed < 0)
+            billing.PreviousReading = lastBilling?.PresentReading ?? 0m;
+            billing.CubicMeterUsed = billing.PresentReading - billing.PreviousReading;
+
+            if (billing.CubicMeterUsed < 0)
+            {
+                ModelState.AddModelError("", "Present Reading must be greater than or equal to Previous Reading.");
+                await LoadEligibleConsumersAsync(viewModel);
+                return View(viewModel);
+            }
+
+            var consumer = await _context.Consumers.FindAsync(billing.ConsumerId);
+            if (consumer == null)
+            {
+                ModelState.AddModelError("", "Consumer not found.");
+                await LoadEligibleConsumersAsync(viewModel);
+                return View(viewModel);
+            }
+
+            // ===== Get rate =====
+            var rateRecord = await _context.Rates
+                .Where(r => r.AccountType == consumer.AccountType && r.EffectiveDate <= billing.BillingDate)
+                .OrderByDescending(r => r.EffectiveDate)
+                .FirstOrDefaultAsync();
+
+            if (rateRecord == null)
+            {
+                ModelState.AddModelError("", "No rate defined for the consumer's account type at the billing date.");
+                await LoadEligibleConsumersAsync(viewModel);
+                return View(viewModel);
+            }
+
+            decimal rate = rateRecord.RatePerCubicMeter;
+            var actualUsage = billing.CubicMeterUsed;
+            var chargeableUsage = actualUsage < 10 ? 10 : actualUsage;
+
+            billing.CubicMeterUsed = actualUsage;
+            billing.AmountDue = rate * chargeableUsage;
+            billing.Remarks = actualUsage < 10 ? "Minimum charge applied" : null;
+            billing.DueDate = billing.DueDate == default ? billing.BillingDate.AddDays(20) : billing.DueDate;
+            billing.Status = string.IsNullOrWhiteSpace(billing.Status) ? "Unpaid" : billing.Status;
+
+            billing.Penalty = (DateTime.Now > billing.DueDate && billing.Status != "Paid")
+                ? (rateRecord.PenaltyAmount > 0 ? rateRecord.PenaltyAmount : 10m)
+                : 0m;
+
+            decimal additionalFees = billing.AdditionalFees ?? 0m;
+            billing.TotalAmount = billing.AmountDue + billing.Penalty + additionalFees;
+
+            billing.BillNo = await GenerateBillNoForConsumerAsync(billing.ConsumerId);
+
+            // ===== Stage core entities (no Save yet) =====
+            _context.Billings.Add(billing);
+
+            _context.Notifications.Add(new Notification
+            {
+                ConsumerId = billing.ConsumerId,
+                Title = "New Water Bill",
+                Message = $"Hello {consumer.FirstName}, your bill (Bill No: {billing.BillNo}) dated {billing.BillingDate:yyyy-MM-dd} is due on {billing.DueDate:yyyy-MM-dd}. Total amount: ₱{billing.TotalAmount:N2}. Please settle it promptly to avoid disconnection.",
+                CreatedAt = DateTime.Now
+            });
+
+            _context.AuditTrails.Add(new AuditTrail
+            {
+                PerformedBy = User.Identity?.Name ?? "Unknown",
+                Action = "Created Billing",
+                Timestamp = DateTime.Now,
+                Details = $"Created billing for Consumer ID: {billing.ConsumerId}, Bill No: {billing.BillNo}, " +
+                          $"Billing Date: {billing.BillingDate:MM/dd/yyyy}, Previous Reading: {billing.PreviousReading}, " +
+                          $"Present Reading: {billing.PresentReading}, Cubic Meter Used: {billing.CubicMeterUsed}, " +
+                          $"Amount Due: ₱{billing.AmountDue:N2}, Penalty: ₱{billing.Penalty:N2}, " +
+                          $"Additional Fees: ₱{billing.AdditionalFees ?? 0:N2}, Total: ₱{billing.TotalAmount:N2}, " +
+                          $"Due Date: {billing.DueDate:MM/dd/yyyy}, Status: {billing.Status}"
+            });
+
+            // Create a BillNotification entity and stage it (navigation to billing so EF wires FKs)
+            BillNotification billNotif = null;
+            var user = await _context.Users.Include(u => u.Consumer)
+                .FirstOrDefaultAsync(u => u.Consumer != null && u.Consumer.Id == billing.ConsumerId);
+
+            if (user != null)
+            {
+                billNotif = new BillNotification
                 {
-                    ModelState.AddModelError("", "Present Reading must be greater than or equal to Previous Reading.");
-                    await LoadEligibleConsumersAsync(viewModel);
-                    return View(viewModel);
-                }
-
-                var consumer = await _context.Consumers.FindAsync(billing.ConsumerId);
-                if (consumer == null)
-                {
-                    ModelState.AddModelError("", "Consumer not found.");
-                    await LoadEligibleConsumersAsync(viewModel);
-                    return View(viewModel);
-                }
-
-                // Get rate by account type and billing date
-                var rateRecord = await _context.Rates
-                    .Where(r => r.AccountType == consumer.AccountType && r.EffectiveDate <= billing.BillingDate)
-                    .OrderByDescending(r => r.EffectiveDate)
-                    .FirstOrDefaultAsync();
-
-                if (rateRecord == null)
-                {
-                    ModelState.AddModelError("", "No rate defined for the consumer's account type at the billing date.");
-                    await LoadEligibleConsumersAsync(viewModel);
-                    return View(viewModel);
-                }
-
-                decimal rate = rateRecord.RatePerCubicMeter;
-
-                // Apply minimum usage if below 10 cubic meters
-                var actualUsage = billing.CubicMeterUsed; // real usage, e.g., from form
-
-                // Enforce minimum
-                var chargeableUsage = actualUsage < 10 ? 10 : actualUsage;
-
-                // Apply billing logic
-                billing.CubicMeterUsed = actualUsage; // store real usage
-                billing.AmountDue = rate * chargeableUsage;
-                billing.Remarks = actualUsage < 10 ? "Minimum charge applied" : null;
-
-
-
-
-                // Set default due date if not set
-                if (billing.DueDate == default)
-                {
-                    billing.DueDate = billing.BillingDate.AddDays(20);
-                }
-
-                // Set default status if empty
-                if (string.IsNullOrWhiteSpace(billing.Status))
-                {
-                    billing.Status = "Unpaid";
-                }
-
-                decimal additionalFees = billing.AdditionalFees ?? 0m;
-
-                // Calculate penalty if overdue and unpaid
-                billing.Penalty = 0m;
-                if (DateTime.Now > billing.DueDate && billing.Status != "Paid")
-                {
-                    billing.Penalty = rateRecord.PenaltyAmount > 0 ? rateRecord.PenaltyAmount : 10m;
-                }
-
-                billing.TotalAmount = billing.AmountDue + billing.Penalty + additionalFees;
-
-                //  Generate and assign BillNo here
-                billing.BillNo = await GenerateBillNoForConsumerAsync(billing.ConsumerId);
-
-                _context.Billings.Add(billing);
-                await _context.SaveChangesAsync();
-
-                //  In-app notification creation
-                var billingNotification = new Notification
-                {
+                    Billing = billing,     // use navigation property
                     ConsumerId = billing.ConsumerId,
-                    Title = "New Water Bill",
-                    Message = $"Hello {consumer.FirstName}, your bill (Bill No: {billing.BillNo}) dated {billing.BillingDate:yyyy-MM-dd} is due on {billing.DueDate:yyyy-MM-dd}. Total amount: ₱{billing.TotalAmount:N2}. Please settle it promptly to avoid disconnection.",
-                    CreatedAt = DateTime.Now
+                    IsNotified = false
                 };
-                _context.Notifications.Add(billingNotification);
+                _context.BillNotifications.Add(billNotif);
+            }
 
-                //  Add AuditTrail after successful SaveChanges
-                _context.AuditTrails.Add(new AuditTrail
+            // ===== Persist core records (1st save) =====
+            await _context.SaveChangesAsync();
+            // At this point: billing.Id exists and in-app notification + audit + billNotif are stored.
+
+            // ===== Non-critical external operations (best-effort) =====
+
+            // 1) Push notifications (parallelized)
+            if (user != null)
+            {
+                var subscriptions = await _context.UserPushSubscriptions
+                    .Where(s => s.UserId == user.Id)
+                    .ToListAsync();
+
+                if (subscriptions.Any())
                 {
-                    PerformedBy = User.Identity?.Name ?? "Unknown",
-                    Action = "Created Billing",
-                    Timestamp = DateTime.Now,
-                    Details = $"Created billing for Consumer ID: {billing.ConsumerId}, " +
-                              $"Bill No: {billing.BillNo}, " +
-                              $"Billing Date: {billing.BillingDate:MM/dd/yyyy}, " +
-                              $"Previous Reading: {billing.PreviousReading}, " +
-                              $"Present Reading: {billing.PresentReading}, " +
-                              $"Cubic Meter Used: {billing.CubicMeterUsed}, " +
-                              $"Amount Due: ₱{billing.AmountDue:N2}, " +
-                              $"Penalty: ₱{billing.Penalty:N2}, " +
-                              $"Additional Fees: ₱{billing.AdditionalFees ?? 0:N2}, " +
-                              $"Total: ₱{billing.TotalAmount:N2}, " +
-                              $"Due Date: {billing.DueDate:MM/dd/yyyy}, " +
-                              $"Status: {billing.Status}"
-                });
-
-                //  Add push notification record and optionally send
-                var user = await _context.Users
-                    .Include(u => u.Consumer)
-                    .FirstOrDefaultAsync(u => u.Consumer != null && u.Consumer.Id == billing.ConsumerId);
-
-                if (user != null)
-                {
-                    var billNotif = new BillNotification
-                    {
-                        BillingId = billing.Id,
-                        ConsumerId = billing.ConsumerId,
-                        IsNotified = false // Initially false
-                    };
-
-                    _context.BillNotifications.Add(billNotif);
-                    await _context.SaveChangesAsync(); // Save notification record
-
-                    // Optional: Immediately send push notification
-                    var subscriptions = await _context.UserPushSubscriptions
-                        .Where(s => s.UserId == user.Id)
-                        .ToListAsync();
-
                     var vapidAuth = new VapidAuthentication(
-                        "BA_B1RL8wfVkIA7o9eZilYNt7D0_CbU5zsvqCZUFcCnVeqFr6a9BPxHPtWlNNgllEkEqk6jcRgp02ypGhGO3gZI",
-                        "0UqP8AfB9hFaQhm54rEabEwlaCo44X23BO6ID8n7E_U")
+                     "BA_B1RL8wfVkIA7o9eZilYNt7D0_CbU5zsvqCZUFcCnVeqFr6a9BPxHPtWlNNgllEkEqk6jcRgp02ypGhGO3gZI",
+                     "0UqP8AfB9hFaQhm54rEabEwlaCo44X23BO6ID8n7E_U")
                     {
                         Subject = "mailto:cunanicolemichael@gmail.com"
                     };
@@ -586,127 +567,146 @@ namespace SantaFeWaterSystem.Controllers
                         DefaultAuthentication = vapidAuth
                     };
 
-                    bool anySuccess = false;
-
-                    foreach (var sub in subscriptions)
+                    var pushTasks = subscriptions.Select(sub => Task.Run(async () =>
                     {
-                        var subscription = new Lib.Net.Http.WebPush.PushSubscription
-                        {
-                            Endpoint = sub.Endpoint,
-                            Keys = new Dictionary<string, string>
-            {
-                { "p256dh", sub.P256DH },
-                { "auth", sub.Auth }
-            }
-                        };
-
-                        var payload = System.Text.Json.JsonSerializer.Serialize(new
-                        {
-                            title = "📢 New Water Bill",
-                            body = $"Amount Due: ₱{billing.AmountDue} - Due {billing.DueDate:MMM dd}"
-                        });
-
                         try
                         {
-                            await pushClient.RequestPushMessageDeliveryAsync(subscription, new Lib.Net.Http.WebPush.PushMessage(payload));
-                            anySuccess = true;
+                            var subscription = new Lib.Net.Http.WebPush.PushSubscription
+                            {
+                                Endpoint = sub.Endpoint,
+                                Keys = new Dictionary<string, string>
+                 {
+                     { "p256dh", sub.P256DH },
+                     { "auth", sub.Auth }
+                 }
+                            };
+
+                            var payload = System.Text.Json.JsonSerializer.Serialize(new
+                            {
+                                title = "📢 New Water Bill",
+                                body = $"Amount Due: ₱{billing.AmountDue:N2} - Due {billing.DueDate:MMM dd}"
+                            });
+
+                            await pushClient.RequestPushMessageDeliveryAsync(subscription,
+                                new Lib.Net.Http.WebPush.PushMessage(payload));
+
+                            return true;
                         }
                         catch (Exception ex)
                         {
                             Console.WriteLine($"[Push Error] {ex.Message}");
+                            return false;
                         }
-                    }
+                    })).ToArray();
 
-                    //  Mark as notified only if at least one success
-                    if (anySuccess)
-                    {
-                        billNotif.IsNotified = true;
-                        _context.BillNotifications.Update(billNotif);
-                    }
-                }
-
-                await _context.SaveChangesAsync();
-
-                //  Send SMS
-                if (!string.IsNullOrWhiteSpace(consumer.ContactNumber))
-                {
-                    var smsMessage = $"Hello {consumer.FullName}, your water bill (#{billing.BillNo}) for {billing.BillingDate:MMMM yyyy} is ₱{billing.TotalAmount:N2}. It is due on {billing.DueDate:MMMM d}. – Santa Fe Water System";
-
-                    Console.WriteLine("SMS Service Type: " + _smsService.GetType().Name); // Will print: MockSmsService
-
-                    var smsResult = await _smsService.SendSmsAsync(consumer.ContactNumber, smsMessage);
-
-                    TempData["SmsStatus"] = smsResult.success
-                        ? "✅ SMS sent successfully (mock)."
-                        : $"❌ SMS failed: {smsResult.response}";
-                
-                //  Save to SMS log
-                _context.SmsLogs.Add(new SmsLog
-                {
-                    ConsumerId = consumer.Id,
-                    ContactNumber = consumer.ContactNumber,
-                    Message = smsMessage,
-                    IsSuccess = smsResult.success,
-                    SentAt = DateTime.Now,
-                    ResponseMessage = smsResult.response
-                });
-
-                await _context.SaveChangesAsync();
-            }
-
-                // Send Email if Consumer has registered email
-                if (!string.IsNullOrWhiteSpace(consumer.Email))
-                {
-                    var emailSubject = $"Your Water Bill (Bill No: {billing.BillNo}) - Due {billing.DueDate:MMMM d}";
-                    var emailBody = $@"
-                               <p>Hello <strong>{consumer.FullName}</strong>,</p>
-                               <p>Your water bill for <strong>{billing.BillingDate:MMMM yyyy}</strong> is now available.</p>
-                               <p><strong>Bill No:</strong> {billing.BillNo}<br/>
-                               <strong>Billing Date:</strong> {billing.BillingDate:MMMM d, yyyy}<br/>
-                               <strong>Amount Due:</strong> ₱{billing.TotalAmount:N2}<br/>
-                               <strong>Due Date:</strong> {billing.DueDate:MMMM d, yyyy}</p>
-                               <p>Please settle it promptly to avoid penalties or disconnection.</p>
-                               <p>Thank you,<br/>Santa Fe Water System</p>";
+                    bool anyPushSuccess = false;
                     try
                     {
-                        await _emailSender.SendEmailAsync(consumer.Email, emailSubject, emailBody);
-
-                        _context.EmailLogs.Add(new EmailLog
-                        {
-                            ConsumerId = consumer.Id,
-                            EmailAddress = consumer.Email,
-                            Subject = emailSubject,
-                            Message = emailBody,
-                            IsSuccess = true,
-                            SentAt = DateTime.Now
-                        });
+                        var results = await Task.WhenAll(pushTasks);
+                        anyPushSuccess = results.Any(r => r);
                     }
-                    catch (Exception ex)
+                    catch
                     {
-                        _context.EmailLogs.Add(new EmailLog
-                        {
-                            ConsumerId = consumer.Id,
-                            EmailAddress = consumer.Email,
-                            Subject = emailSubject,
-                            Message = emailBody,
-                            IsSuccess = false,
-                            SentAt = DateTime.Now,
-                            ResponseMessage = ex.Message
-                        });
+                        // Task.WhenAll can throw if something unexpected occurs — we already handle exceptions inside tasks.
+                        anyPushSuccess = false;
                     }
 
-                    await _context.SaveChangesAsync();
+                    if (anyPushSuccess && billNotif != null)
+                    {
+                        billNotif.IsNotified = true; // tracked entity — will be persisted on final save
+                    }
                 }
-
-
-                TempData["SuccessMessage"] = "✅ Billing successfully created and notification sent.";
-                return RedirectToAction(nameof(Index));
             }
 
-            // If we got here, ModelState is invalid — reload eligible consumers
-            await LoadEligibleConsumersAsync(viewModel);
-            return View(viewModel);
+            // 2) SMS (best-effort) — prepare log to save later
+            if (!string.IsNullOrWhiteSpace(consumer.ContactNumber))
+            {
+                try
+                {
+                    var smsMessage = $"Hello {consumer.FullName}, your water bill (#{billing.BillNo}) for {billing.BillingDate:MMMM yyyy} is ₱{billing.TotalAmount:N2}. Due on {billing.DueDate:MMMM d}. – Santa Fe Water System";
+                    var smsResult = await _smsService.SendSmsAsync(consumer.ContactNumber, smsMessage);
+
+                    _context.SmsLogs.Add(new SmsLog
+                    {
+                        ConsumerId = consumer.Id,
+                        ContactNumber = consumer.ContactNumber,
+                        Message = smsMessage,
+                        IsSuccess = smsResult.success,
+                        SentAt = DateTime.Now,
+                        ResponseMessage = smsResult.response
+                    });
+
+                    TempData["SmsStatus"] = smsResult.success ? "✅ SMS sent successfully." : $"❌ SMS failed: {smsResult.response}";
+                }
+                catch (Exception ex)
+                {
+                    // If SMS sending throws unexpectedly, log the failure to DB
+                    _context.SmsLogs.Add(new SmsLog
+                    {
+                        ConsumerId = consumer.Id,
+                        ContactNumber = consumer.ContactNumber,
+                        Message = $"(Failure) Could not send SMS for billing #{billing.BillNo}",
+                        IsSuccess = false,
+                        SentAt = DateTime.Now,
+                        ResponseMessage = ex.Message
+                    });
+                    TempData["SmsStatus"] = $"❌ SMS failed: {ex.Message}";
+                }
+            }
+
+            // 3) Email (best-effort) — prepare log to save later
+            if (!string.IsNullOrWhiteSpace(consumer.Email))
+            {
+                var emailSubject = $"Your Water Bill (Bill No: {billing.BillNo}) - Due {billing.DueDate:MMMM d}";
+                var emailBody = $@"
+     <p>Hello <strong>{consumer.FullName}</strong>,</p>
+     <p>Your water bill for <strong>{billing.BillingDate:MMMM yyyy}</strong> is now available.</p>
+     <p><strong>Bill No:</strong> {billing.BillNo}<br/>
+     <strong>Billing Date:</strong> {billing.BillingDate:MMMM d, yyyy}<br/>
+     <strong>Amount Due:</strong> ₱{billing.TotalAmount:N2}<br/>
+     <strong>Due Date:</strong> {billing.DueDate:MMMM d, yyyy}</p>
+     <p>Please settle it promptly to avoid penalties or disconnection.</p>
+     <p>Thank you,<br/>Santa Fe Water System</p>";
+
+                try
+                {
+                    await _emailSender.SendEmailAsync(consumer.Email, emailSubject, emailBody);
+
+                    _context.EmailLogs.Add(new EmailLog
+                    {
+                        ConsumerId = consumer.Id,
+                        EmailAddress = consumer.Email,
+                        Subject = emailSubject,
+                        Message = emailBody,
+                        IsSuccess = true,
+                        SentAt = DateTime.Now
+                    });
+                }
+                catch (Exception ex)
+                {
+                    _context.EmailLogs.Add(new EmailLog
+                    {
+                        ConsumerId = consumer.Id,
+                        EmailAddress = consumer.Email,
+                        Subject = emailSubject,
+                        Message = emailBody,
+                        IsSuccess = false,
+                        SentAt = DateTime.Now,
+                        ResponseMessage = ex.Message
+                    });
+                }
+            }
+
+            // ===== Final Save: persist logs and any updates (billNotif.IsNotified) =====
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = "✅ Billing successfully created and notifications processed (in-app guaranteed).";
+            return RedirectToAction(nameof(Index));
         }
+
+
+
+
 
 
 
@@ -757,12 +757,11 @@ namespace SantaFeWaterSystem.Controllers
 
         // GET: Billing/Details/5
         [Authorize(Roles = "Admin,Staff")]
-        public async Task<IActionResult> Details(int? id)
+        public async Task<IActionResult> Details(int? id, int? page, string? search, string? status)
         {
             if (id == null)
                 return NotFound();
 
-            // Retrieve the billing record including related Consumer
             var billing = await _context.Billings
                 .Include(b => b.Consumer)
                 .FirstOrDefaultAsync(b => b.Id == id);
@@ -770,7 +769,7 @@ namespace SantaFeWaterSystem.Controllers
             if (billing == null)
                 return NotFound();
 
-            // Log the audit trail
+            // Audit trail
             _context.AuditTrails.Add(new AuditTrail
             {
                 PerformedBy = User.Identity?.Name ?? "Unknown",
@@ -778,10 +777,13 @@ namespace SantaFeWaterSystem.Controllers
                 Timestamp = DateTime.Now,
                 Details = $"Viewed Billing ID: {billing.Id}, Bill No: {billing.BillNo}, Consumer: {billing.Consumer?.FirstName} {billing.Consumer?.LastName}"
             });
-
             await _context.SaveChangesAsync();
 
-            // Pass the billing model to the Details view
+            // Keep the state for Back button
+            ViewData["Page"] = page;
+            ViewData["Search"] = search;
+            ViewData["Status"] = status;
+
             return View(billing);
         }
 
@@ -792,22 +794,39 @@ namespace SantaFeWaterSystem.Controllers
 
         // GET: Billing/Edit/5
         [Authorize(Roles = "Admin,Staff")]
-        public async Task<IActionResult> Edit(int? id)
+        public async Task<IActionResult> Edit(int id, int? page, string? search, string? status)
         {
-            if (id == null) return NotFound();
+            var billing = await _context.Billings
+                .Include(b => b.Consumer)
+                .FirstOrDefaultAsync(b => b.Id == id);
 
-            var billing = await _context.Billings.FindAsync(id);
             if (billing == null) return NotFound();
 
-            ViewBag.Consumers = _context.Consumers.ToList();
+            var consumer = billing.Consumer;
+
+            // 🔑 Find the applicable rate
+            var rateRecord = await _context.Rates
+                .Where(r => r.AccountType == consumer.AccountType && r.EffectiveDate <= billing.BillingDate)
+                .OrderByDescending(r => r.EffectiveDate)
+                .FirstOrDefaultAsync();
+
+            // Send it to the view
+            ViewBag.RatePerCubic = rateRecord?.RatePerCubicMeter ?? 20; // fallback if none
+            ViewBag.Consumers = await _context.Consumers.ToListAsync();
+
+            // Save current state to return to Index
+            ViewData["Page"] = page;
+            ViewData["Search"] = search;
+            ViewData["Status"] = status;
+
             return View(billing);
         }
 
-
+        //post edit
         [Authorize(Roles = "Admin,Staff")]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, Billing billing)
+        public async Task<IActionResult> Edit(int id, Billing billing, int? page, string? search, string? status)
         {
             if (id != billing.Id) return NotFound();
 
@@ -825,7 +844,7 @@ namespace SantaFeWaterSystem.Controllers
 
             try
             {
-                // Store old values for audit
+                // ===== Keep old values for audit =====
                 var oldReading = existing.PresentReading;
                 var oldAmountDue = existing.AmountDue;
                 var oldPenalty = existing.Penalty;
@@ -833,42 +852,71 @@ namespace SantaFeWaterSystem.Controllers
                 var oldTotalAmount = existing.TotalAmount;
                 var oldStatus = existing.Status;
                 var oldDueDate = existing.DueDate;
-                var oldConsumerId = existing.ConsumerId;
-                var oldBillNo = existing.BillNo;
 
-                // Recalculate fields and update
-                existing.BillNo = billing.BillNo;
-                existing.BillingDate = billing.BillingDate;
-                existing.PreviousReading = billing.PreviousReading;
+                // ===== Recalculate like Create =====
                 existing.PresentReading = billing.PresentReading;
-                existing.CubicMeterUsed = billing.PresentReading - billing.PreviousReading;
-                existing.AmountDue = billing.AmountDue;
+                existing.PreviousReading = billing.PreviousReading;
+
+                existing.CubicMeterUsed = existing.PresentReading - existing.PreviousReading;
+                if (existing.CubicMeterUsed < 0)
+                {
+                    ModelState.AddModelError("", "Present Reading must be greater than or equal to Previous Reading.");
+                    ViewBag.Consumers = _context.Consumers.ToList();
+                    return View(existing);
+                }
+
+                var consumer = await _context.Consumers.FindAsync(existing.ConsumerId);
+                if (consumer == null)
+                {
+                    ModelState.AddModelError("", "Consumer not found.");
+                    ViewBag.Consumers = _context.Consumers.ToList();
+                    return View(existing);
+                }
+
+                // Get latest rate
+                var rateRecord = await _context.Rates
+                    .Where(r => r.AccountType == consumer.AccountType && r.EffectiveDate <= existing.BillingDate)
+                    .OrderByDescending(r => r.EffectiveDate)
+                    .FirstOrDefaultAsync();
+
+                if (rateRecord == null)
+                {
+                    ModelState.AddModelError("", "No rate defined for this consumer type.");
+                    ViewBag.Consumers = _context.Consumers.ToList();
+                    return View(existing);
+                }
+
+                var rate = rateRecord.RatePerCubicMeter;
+                var actualUsage = existing.CubicMeterUsed;
+                var chargeableUsage = actualUsage < 10 ? 10 : actualUsage;
+
+                existing.AmountDue = rate * chargeableUsage;
+                existing.Remarks = actualUsage < 10 ? "Minimum charge applied" : null;
                 existing.AdditionalFees = billing.AdditionalFees ?? 0;
                 existing.Status = billing.Status;
-                existing.ConsumerId = billing.ConsumerId;
 
-                if (billing.DueDate == default || billing.DueDate < billing.BillingDate)
-                    existing.DueDate = billing.BillingDate.AddDays(20);
+                // Due date rule
+                if (billing.DueDate == default || billing.DueDate < existing.BillingDate)
+                    existing.DueDate = existing.BillingDate.AddDays(20);
                 else
                     existing.DueDate = billing.DueDate;
 
-                if (existing.Status == "Unpaid" && DateTime.Now > existing.DueDate)
-                    existing.Penalty = existing.AmountDue * 0.10m;
-                else
-                    existing.Penalty = 0;
+                // Penalty rule
+                existing.Penalty = (DateTime.Now > existing.DueDate && existing.Status != "Paid")
+                    ? (rateRecord.PenaltyAmount > 0 ? rateRecord.PenaltyAmount : 10m)
+                    : 0;
 
                 existing.TotalAmount = existing.AmountDue + existing.Penalty + existing.AdditionalFees.GetValueOrDefault();
 
                 _context.Update(existing);
 
-                //  Audit trail with old vs. new values
+                // ===== Audit trail =====
                 _context.AuditTrails.Add(new AuditTrail
                 {
                     PerformedBy = User.Identity?.Name ?? "Unknown",
                     Action = "Edited Billing",
                     Timestamp = DateTime.Now,
-                    Details = $"Billing ID: {existing.Id}, Consumer ID: {oldConsumerId} → {existing.ConsumerId}, " +
-                              $"Bill No: {oldBillNo} → {existing.BillNo}, " +
+                    Details = $"Billing ID: {existing.Id}, " +
                               $"Present Reading: {oldReading} → {existing.PresentReading}, " +
                               $"Amount Due: ₱{oldAmountDue:N2} → ₱{existing.AmountDue:N2}, " +
                               $"Penalty: ₱{oldPenalty:N2} → ₱{existing.Penalty:N2}, " +
@@ -878,8 +926,109 @@ namespace SantaFeWaterSystem.Controllers
                               $"Due Date: {oldDueDate:MM/dd/yyyy} → {existing.DueDate:MM/dd/yyyy}"
                 });
 
+                // ===== In-app notification =====
+                _context.Notifications.Add(new Notification
+                {
+                    ConsumerId = existing.ConsumerId,
+                    Title = "📢 Bill Updated",
+                    Message = $"Hello {consumer.FullName},\n\n" +
+                              $"We’ve updated your bill (Bill No: {existing.BillNo}). " +
+                              $"The new total is ₱{existing.TotalAmount:N2}. " +
+                              $"This update was made to ensure your billing information is accurate.\n\n" +
+                              $"We sincerely apologize for any inconvenience this may have caused. " +
+                              $"Thank you for your understanding and continued trust in the Santa Fe Water System.",
+                    CreatedAt = DateTime.Now
+                });
+
+                // ===== Push notification (best-effort) =====
+                var user = await _context.Users.Include(u => u.Consumer)
+                    .FirstOrDefaultAsync(u => u.Consumer != null && u.Consumer.Id == existing.ConsumerId);
+
+                if (user != null)
+                {
+                    var subscriptions = await _context.UserPushSubscriptions
+                        .Where(s => s.UserId == user.Id)
+                        .ToListAsync();
+
+                    if (subscriptions.Any())
+                    {
+                        try
+                        {
+                            var vapidAuth = new VapidAuthentication(
+                             "BA_B1RL8wfVkIA7o9eZilYNt7D0_CbU5zsvqCZUFcCnVeqFr6a9BPxHPtWlNNgllEkEqk6jcRgp02ypGhGO3gZI",
+                             "0UqP8AfB9hFaQhm54rEabEwlaCo44X23BO6ID8n7E_U")
+                            {
+                                Subject = "mailto:cunanicolemichael@gmail.com"
+                            };
+
+                            var pushClient = new Lib.Net.Http.WebPush.PushServiceClient
+                            {
+                                DefaultAuthentication = vapidAuth
+                            };
+
+                            var payload = System.Text.Json.JsonSerializer.Serialize(new
+                            {
+                                title = "📢 Bill Updated",
+                                body = $"Bill #{existing.BillNo} updated. Total: ₱{existing.TotalAmount:N2}"
+                            });
+
+                            foreach (var sub in subscriptions)
+                            {
+                                var subscription = new Lib.Net.Http.WebPush.PushSubscription
+                                {
+                                    Endpoint = sub.Endpoint,
+                                    Keys = new Dictionary<string, string>
+                            {
+                                { "p256dh", sub.P256DH },
+                                { "auth", sub.Auth }
+                            }
+                                };
+
+                                try
+                                {
+                                    await pushClient.RequestPushMessageDeliveryAsync(subscription,
+                                        new Lib.Net.Http.WebPush.PushMessage(payload));
+                                }
+                                catch (Exception ex)
+                                {
+                                    Console.WriteLine($"[Push Error] {ex.Message}");
+                                }
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"[Push Setup Error] {ex.Message}");
+                        }
+                    }
+                }
+
+                // NOTE: No SMS, no Email → log why
+                _context.EmailLogs.Add(new EmailLog
+                {
+                    ConsumerId = existing.ConsumerId,
+                    EmailAddress = consumer.Email,
+                    Subject = "Bill Edit",
+                    Message = "Email skipped intentionally for bill edits.",
+                    IsSuccess = false,
+                    SentAt = DateTime.Now,
+                    ResponseMessage = "Skipped by design (edit uses only app + push)."
+                });
+
+                _context.SmsLogs.Add(new SmsLog
+                {
+                    ConsumerId = existing.ConsumerId,
+                    ContactNumber = consumer.ContactNumber,
+                    Message = "SMS skipped intentionally for bill edits.",
+                    IsSuccess = false,
+                    SentAt = DateTime.Now,
+                    ResponseMessage = "Skipped by design (edit uses only app + push)."
+                });
+
                 await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+
+                TempData["SuccessMessage"] = "✅ Billing updated successfully (in-app + push notification sent).";
+                // Redirect to Index with previous page + filters
+                return RedirectToAction(nameof(Index), new { page, search, status });
             }
             catch (DbUpdateConcurrencyException)
             {
@@ -894,11 +1043,12 @@ namespace SantaFeWaterSystem.Controllers
 
 
 
+
         // ================== DELETE BILLING ==================
 
         // GET: Billing/Delete/5
         [Authorize(Roles = "Admin,Staff")]
-        public async Task<IActionResult> Delete(int? id)
+        public async Task<IActionResult> Delete(int? id, int page = 1, string search = null, string status = null, int? selectedMonth = null, int? selectedYear = null)
         {
             if (id == null) return NotFound();
 
@@ -908,14 +1058,21 @@ namespace SantaFeWaterSystem.Controllers
 
             if (billing == null) return NotFound();
 
+            ViewData["Page"] = page;
+            ViewData["Search"] = search;
+            ViewData["Status"] = status;
+            ViewData["SelectedMonth"] = selectedMonth;
+            ViewData["SelectedYear"] = selectedYear;
+
             return View(billing);
         }
 
 
+        //Post:delete
         [Authorize(Roles = "Admin,Staff")]
         [HttpPost, ActionName("DeleteConfirmed")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
+        public async Task<IActionResult> DeleteConfirmed(int id, int page = 1, string search = null, string status = null, int? selectedMonth = null, int? selectedYear = null)
         {
             var billing = await _context.Billings
                 .Include(b => b.Consumer)
@@ -939,7 +1096,15 @@ namespace SantaFeWaterSystem.Controllers
 
             await _context.SaveChangesAsync();
 
-            return RedirectToAction(nameof(Index));
+            // Redirect back to the same page with filters
+            return RedirectToAction(nameof(Index), new
+            {
+                page,
+                searchTerm = search,
+                statusFilter = status,
+                selectedMonth,
+                selectedYear
+            });
         }
 
 

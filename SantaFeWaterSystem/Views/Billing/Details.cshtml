@@ -163,7 +163,20 @@
     </div>
 
     <div class="mt-4 d-flex justify-content-between">
-        <a asp-action="Index" class="btn btn-secondary"><i class="bi bi-arrow-left-circle"></i> Back to List</a>
-        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary"><i class="bi bi-pencil-square"></i> Edit</a>
+        <a asp-action="Index"
+           asp-route-page="@ViewData["Page"]"
+           asp-route-search="@ViewData["Search"]"
+           asp-route-status="@ViewData["Status"]"
+           class="btn btn-secondary">
+            <i class="bi bi-arrow-left-circle"></i> Back to List </a>
+
+        <a asp-action="Edit"
+           asp-route-id="@Model.Id"
+           asp-route-page="@ViewData["Page"]"
+           asp-route-search="@ViewData["Search"]"
+           asp-route-status="@ViewData["Status"]"
+           class="btn btn-primary">
+            <i class="bi bi-pencil-square"></i> Edit
+        </a>
     </div>
 </div>

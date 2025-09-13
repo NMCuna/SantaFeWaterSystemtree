@@ -3,7 +3,6 @@
 @using X.PagedList
 @using System.Text.Encodings.Web
 
-
 @{
     ViewData["Title"] = "SMS Logs";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
@@ -32,69 +31,119 @@
     <i class="bi bi-chat-dots me-2"></i> SMS Logs
 </h2>
 
-@using (Html.BeginForm("ArchiveSelected", "Notifications", FormMethod.Post))
-{
-    @Html.AntiForgeryToken()
-
-    <div class="mb-3 d-flex justify-content-start gap-2 flex-wrap">
-        <button type="submit" class="btn btn-warning">
-            <i class="bi bi-archive"></i> Archive Selected
-        </button>
-
-        <a href="@Url.Action("ArchivedSmsLogs", "Notifications")" class="btn btn-secondary">
-            <i class="bi bi-folder2-open"></i> View Archived
-        </a>
+<!-- Filter Form -->
+<form method="get" class="row g-2 mb-3">
+    <div class="col-md-4">
+        <input type="text" name="searchTerm" class="form-control" placeholder="Search message, number, or recipient..." value="@ViewBag.SearchTerm" />
     </div>
-
-    <table class="table table-bordered table-hover">
-        <thead class="table-primary">
-            <tr>
-                <th><input type="checkbox" id="select-all" /></th>
-                <th>Recipient</th>
-                <th>Contact Number</th>
-                <th>Message</th>
-                <th>Status</th>
-                <th>Sent At</th>
-                <th>Response</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var log in Model)
+    <div class="col-md-3">
+        <select name="selectedMonth" class="form-select">
+            <option value="">All Months</option>
+            @for (int m = 1; m <= 12; m++)
             {
-                <tr>
-                    <td>
-                        <input type="checkbox" name="selectedIds" value="@log.Id" class="row-checkbox" />
-                    </td>
-                    <td>@log.ConsumerName</td>
-                    <td>@log.ContactNumber</td>
-                    <td>
-                        <button type="button" class="btn btn-sm btn-info view-message-btn"
-                                data-bs-toggle="modal"
-                                data-bs-target="#globalMessageModal"
-                                data-message="@log.Message"
-                                data-title="Message from @log.ConsumerName">
-                            <i class="bi bi-eye"></i> View Message
-                        </button>
-                    </td>
-                    <td>
-                        @if (log.IsSuccess)
-                        {
-                            <span class="badge bg-success">Success</span>
-                        }
-                        else
-                        {
-                            <span class="badge bg-danger">Failed</span>
-                        }
-                    </td>
-                    <td>@log.SentAt.ToString("g")</td>
-                    <td>@log.ResponseMessage</td>
-                </tr>
+                var monthName = System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(m);
+                <option value="@m" selected="@(ViewBag.SelectedMonth != null && (int)ViewBag.SelectedMonth == m ? "selected" : null)">@monthName</option>
             }
-        </tbody>
-    </table>
+        </select>
+    </div>
+    <div class="col-md-3">
+        <select name="selectedYear" class="form-select">
+            <option value="">All Years</option>
+            @for (int y = DateTime.Now.Year; y >= DateTime.Now.Year - 5; y--)
+            {
+                <option value="@y" selected="@(ViewBag.SelectedYear != null && (int)ViewBag.SelectedYear == y ? "selected" : null)">@y</option>
+            }
+        </select>
+    </div>
+    <div class="col-md-auto">
+        <button type="submit" class="btn btn-outline-primary">
+            <i class="bi bi-funnel-fill me-1"></i> Filter
+        </button>
+    </div>
+</form>
 
-    <div class="d-flex justify-content-center mt-4">
-        @Html.PagedListPager(Model, page => Url.Action("SmsLogs", new { page }),
+@if (Model != null && Model.Any())
+{
+    @using (Html.BeginForm("ArchiveSelected", "Notifications", FormMethod.Post, new { onsubmit = "return confirm('Are you sure you want to archive selected SMS logs?');" }))
+    {
+        @Html.AntiForgeryToken()
+
+        <div class="mb-3 d-flex justify-content-start gap-2 flex-wrap">
+            <button type="submit" class="btn btn-warning">
+                <i class="bi bi-archive me-1"></i> Archive Selected
+            </button>
+
+            <a href="@Url.Action("ArchivedSmsLogs", "Notifications")" class="btn btn-secondary">
+                <i class="bi bi-folder2-open me-1"></i> View Archived
+            </a>
+        </div>
+
+        <table class="table table-bordered table-hover">
+            <thead class="table-primary">
+                <tr>
+                    <th><input type="checkbox" id="select-all" /></th>
+                    <th>Recipient</th>
+                    <th>Contact Number</th>
+                    <th>Message</th>
+                    <th>Status</th>
+                    <th>Sent At</th>
+                    <th>Response</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var log in Model)
+                {
+                    <tr class="@(log.IsSuccess ? "" : "table-danger")">
+                        <td>
+                            <input type="checkbox" name="selectedIds" value="@log.Id" class="row-checkbox" />
+                        </td>
+                        <td>@log.ConsumerName</td>
+                        <td>@log.ContactNumber</td>
+                        <td>
+                            <button type="button" class="btn btn-sm btn-info view-message-btn"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#globalMessageModal"
+                                    data-message="@Html.Raw(Html.Encode(log.Message).Replace("\n", "<br />"))"
+                                    data-title="Message from @log.ConsumerName">
+                                <i class="bi bi-eye"></i> View
+                            </button>
+                        </td>
+                        <td>
+                            @if (log.IsSuccess)
+                            {
+                                <span class="badge bg-success">Success</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-danger">Failed</span>
+                            }
+                        </td>
+                        <td>@log.SentAt.ToString("g")</td>
+                        <td>@log.ResponseMessage</td>
+                        <td>
+                            <a asp-action="Details" asp-route-id="@log.Id"
+                               asp-route-searchTerm="@ViewBag.SearchTerm"
+                               asp-route-selectedMonth="@ViewBag.SelectedMonth"
+                               asp-route-selectedYear="@ViewBag.SelectedYear"
+                               asp-route-page="@ViewBag.CurrentPage"
+                               class="btn btn-sm btn-primary">
+                                <i class="bi bi-eye-fill me-1"></i> Details
+                            </a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        <!-- Pagination -->
+        <div class="d-flex justify-content-center mt-4">
+            @Html.PagedListPager(Model, page => Url.Action("SmsLogs", new {
+            page,
+        searchTerm = ViewBag.SearchTerm,
+        selectedMonth = ViewBag.SelectedMonth,
+        selectedYear = ViewBag.SelectedYear
+        }),
         new PagedListRenderOptions
         {
             DisplayLinkToFirstPage = PagedListDisplayMode.Always,
@@ -108,6 +157,13 @@
             PageClasses = new[] { "page-link" }
         })
 </div>
+    }
+}
+else
+{
+    <div class="alert alert-info text-center">
+        <i class="bi bi-info-circle me-1"></i> No SMS logs found for the selected month/year or search term.
+    </div>
 }
 
 <!-- Global Reusable Modal -->
@@ -130,17 +186,19 @@
 
 @section Scripts {
     <script>
+        // Select all checkbox
         document.getElementById("select-all").addEventListener("change", function () {
             const checkboxes = document.querySelectorAll(".row-checkbox");
             checkboxes.forEach(cb => cb.checked = this.checked);
         });
 
+        // View message modal
         document.querySelectorAll(".view-message-btn").forEach(button => {
             button.addEventListener("click", function () {
                 const message = this.getAttribute("data-message");
                 const title = this.getAttribute("data-title");
                 document.getElementById("globalMessageModalLabel").innerText = title;
-                document.getElementById("globalMessageModalBody").innerText = message;
+                document.getElementById("globalMessageModalBody").innerHTML = message;
             });
         });
     </script>

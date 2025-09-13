@@ -1,4 +1,4 @@
-﻿@model X.PagedList.IPagedList<SantaFeWaterSystem.Models.Billing>
+﻿ @model X.PagedList.IPagedList<SantaFeWaterSystem.Models.Billing>
 @using X.PagedList.Mvc.Core
 @using System.Security.Claims
 @inject IHttpContextAccessor HttpContextAccessor
@@ -201,17 +201,40 @@
                 <td class="action-buttons">
                     @if (userPermissions.Contains("ViewBilling"))
                     {
-                        <a class="btn btn-sm btn-info" asp-action="Details" asp-route-id="@bill.Id"><i class="bi bi-eye"></i> View</a>
+                        <a class="btn btn-sm btn-info"
+                           asp-action="Details"
+                           asp-route-id="@bill.Id"
+                           asp-route-page="@Model.PageNumber"
+                           asp-route-search="@ViewBag.CurrentSearchTerm"
+                           asp-route-status="@ViewBag.CurrentStatusFilter">
+                            <i class="bi bi-eye"></i> View
+                        </a>
                     }
 
                     @if (userPermissions.Contains("EditBilling"))
                     {
-                        <a class="btn btn-sm btn-primary" asp-action="Edit" asp-route-id="@bill.Id"><i class="bi bi-pencil-square"></i> Edit</a>
+                        <a asp-action="Edit"
+                           asp-route-id="@bill.Id"
+                           asp-route-page="@Model.PageNumber"
+                           asp-route-search="@ViewBag.CurrentSearchTerm"
+                           asp-route-status="@ViewBag.CurrentStatusFilter"
+                           class="btn btn-sm btn-primary">
+                            <i class="bi bi-pencil-square"></i> Edit
+                        </a>
                     }
 
                     @if (userPermissions.Contains("DeleteBilling"))
                     {
-                        <a class="btn btn-sm btn-danger" asp-action="Delete" asp-route-id="@bill.Id"><i class="bi bi-trash"></i> Delete</a>
+                        <a class="btn btn-sm btn-danger"
+                           asp-action="Delete"
+                           asp-route-id="@bill.Id"
+                           asp-route-page="@Model.PageNumber"
+                           asp-route-search="@ViewBag.CurrentSearchTerm"
+                           asp-route-status="@ViewBag.CurrentStatusFilter"
+                           asp-route-selectedMonth="@ViewBag.SelectedMonth"
+                           asp-route-selectedYear="@ViewBag.SelectedYear">
+                            <i class="bi bi-trash"></i> Delete
+                        </a>
                     }
 
                     @if (bill.Status == "Unpaid" && userPermissions.Contains("NotifyBilling"))

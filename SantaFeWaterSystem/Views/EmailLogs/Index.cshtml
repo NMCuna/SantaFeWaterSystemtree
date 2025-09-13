@@ -1,45 +1,126 @@
-﻿@model IEnumerable<SantaFeWaterSystem.Models.EmailLog>
+﻿@model IPagedList<SantaFeWaterSystem.Models.EmailLog>
+@using X.PagedList.Mvc.Core
 
 @{
     ViewData["Title"] = "Email Logs";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
+
+    var searchTerm = ViewBag.SearchTerm as string;
+    var selectedMonth = ViewBag.SelectedMonth as int?;
+    var selectedYear = ViewBag.SelectedYear as int?;
 }
 
-<h2>Email Logs</h2>
+<!-- Header with icon -->
+<h2>
+    <i class="bi bi-envelope-paper-fill me-2"></i> Email Logs
+</h2>
 
+<!-- Filters -->
+<form method="get" class="row g-2 mb-3">
+    <div class="col-md-4">
+        <input type="text" name="searchTerm" class="form-control" placeholder="Search subject, message, or consumer..." value="@searchTerm" />
+    </div>
+    <div class="col-md-3">
+        <select name="selectedMonth" class="form-select">
+            <option value=""><i class="bi bi-calendar"></i> All Months</option>
+            @for (int m = 1; m <= 12; m++)
+            {
+                var monthName = System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(m);
+                <option value="@m" selected="@(selectedMonth == m ? "selected" : null)">@monthName</option>
+            }
+        </select>
+    </div>
+    <div class="col-md-3">
+        <select name="selectedYear" class="form-select">
+            <option value=""><i class="bi bi-calendar-year"></i> All Years</option>
+            @for (int y = DateTime.Now.Year; y >= DateTime.Now.Year - 5; y--)
+            {
+                <option value="@y" selected="@(selectedYear == y ? "selected" : null)">@y</option>
+            }
+        </select>
+    </div>
+    <div class="col-md-auto">
+        <button type="submit" class="btn btn-outline-primary">
+            <i class="bi bi-search me-1"></i> Filter
+        </button>
+    </div>
+</form>
+
+<!-- Table -->
 <table class="table table-bordered table-striped">
-    <thead class="thead-dark">
+    <thead class="table-dark">
         <tr>
-            <th>Consumer</th>
-            <th>Email</th>
-            <th>Subject</th>
-            <th>Sent At</th>
-            <th>Status</th>
-            <th></th>
+            <th><i class="bi bi-person-fill me-1"></i> Consumer</th>
+            <th><i class="bi bi-envelope-fill me-1"></i> Email</th>
+            <th><i class="bi bi-card-text me-1"></i> Subject</th>
+            <th><i class="bi bi-calendar-event-fill me-1"></i> Sent At</th>
+            <th><i class="bi bi-check2-circle me-1"></i> Status</th>
+            <th><i class="bi bi-tools me-1"></i> Action</th>
         </tr>
     </thead>
     <tbody>
-        @foreach (var item in Model)
+        @if (Model.Any())
+        {
+            foreach (var item in Model)
+            {
+                <tr>
+                    <td>@item.Consumer?.FullName</td>
+                    <td>@item.EmailAddress</td>
+                    <td>@item.Subject</td>
+                    <td>@item.SentAt.ToString("g")</td>
+                    <td>
+                        @if (item.IsSuccess)
+                        {
+                            <span class="text-success"><i class="bi bi-check-circle me-1"></i> Success</span>
+                        }
+                        else
+                        {
+                            <span class="text-danger"><i class="bi bi-x-circle me-1"></i> Failed</span>
+                        }
+                    </td>
+                    <td>
+                        <a asp-action="Details"
+                           asp-route-id="@item.Id"
+                           asp-route-searchTerm="@ViewBag.SearchTerm"
+                           asp-route-selectedMonth="@ViewBag.SelectedMonth"
+                           asp-route-selectedYear="@ViewBag.SelectedYear"
+                           asp-route-page="@Model.PageNumber"
+                           class="btn btn-sm btn-info">
+                            <i class="bi bi-eye-fill me-1"></i> View
+                        </a>
+                    </td>
+                </tr>
+            }
+        }
+        else
         {
             <tr>
-                <td>@item.Consumer?.FullName</td>
-                <td>@item.EmailAddress</td>
-                <td>@item.Subject</td>
-                <td>@item.SentAt.ToString("g")</td>
-                <td>
-                    @if (item.IsSuccess)
-                    {
-                        <span class="text-success">Success</span>
-                    }
-                    else
-                    {
-                        <span class="text-danger">Failed</span>
-                    }
-                </td>
-                <td>
-                    <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-info btn-sm">View</a>
+                <td colspan="6" class="text-center text-muted">
+                    <i class="bi bi-inbox me-1"></i> No email logs found.
                 </td>
             </tr>
         }
     </tbody>
 </table>
+
+<!-- Pagination -->
+@if (Model.PageCount > 1)
+{
+    <div class="d-flex justify-content-center mt-3">
+        @Html.PagedListPager(Model, page => Url.Action("Index", new {
+        page,
+        searchTerm = searchTerm,
+        selectedMonth = selectedMonth,
+        selectedYear = selectedYear
+        }), new PagedListRenderOptions
+    {
+        DisplayLinkToPreviousPage = PagedListDisplayMode.Always,
+        DisplayLinkToNextPage = PagedListDisplayMode.Always,
+        DisplayLinkToFirstPage = PagedListDisplayMode.Always,
+        DisplayLinkToLastPage = PagedListDisplayMode.Always,
+        MaximumPageNumbersToDisplay = 5,
+        LiElementClasses = new[] { "page-item" },
+        PageClasses = new[] { "page-link" }
+    })
+</div>
+}

@@ -229,6 +229,9 @@
     <form asp-action="DeleteConfirmed" method="post" class="mt-4">
         @Html.AntiForgeryToken()
         <input type="hidden" asp-for="Id" />
+        <input type="hidden" name="page" value="@(ViewData["Page"])" />
+        <input type="hidden" name="search" value="@(ViewData["Search"])" />
+        <input type="hidden" name="status" value="@(ViewData["Status"])" />
 
         <div class="form-check mb-3">
             <input type="checkbox" class="form-check-input" id="confirmDeleteCheck" />
@@ -240,7 +243,11 @@
         <button type="submit" class="btn btn-danger" id="deleteBtn" disabled>
             <i class="bi bi-trash"></i> Delete
         </button>
-        <a asp-action="Index" class="btn btn-secondary ms-2">
+        <a asp-action="Index"
+           asp-route-page="@(ViewData["Page"])"
+           asp-route-searchTerm="@(ViewData["Search"])"
+           asp-route-statusFilter="@(ViewData["Status"])"
+           class="btn btn-secondary ms-2">
             <i class="bi bi-x-circle"></i> Cancel
         </a>
     </form>
