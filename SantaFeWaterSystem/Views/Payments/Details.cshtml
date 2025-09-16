@@ -49,37 +49,56 @@
         <i class="bi bi-receipt-cutoff"></i> Payment Details
     </div>
 
-    <div class="payment-details-card">
-        <p><span class="detail-label"><i class="bi bi-person-fill"></i> Consumer:</span> @Model.FullName</p>
-        <p><span class="detail-label"><i class="bi bi-calendar2-week-fill"></i> Billing Date:</span> @Model.BillingDate.ToShortDateString()</p>
-        <p><span class="detail-label"><i class="bi bi-calendar-check-fill"></i> Payment Date:</span> @Model.PaymentDate.ToShortDateString()</p>
-        <p><span class="detail-label"><i class="bi bi-receipt"></i> Bill No:</span> @Model.BillNo</p>
-        <p><span class="detail-label"><i class="bi bi-cash-coin"></i> Amount Paid:</span> ₱@Model.AmountPaid.ToString("N2")</p>
-        <p><span class="detail-label"><i class="bi bi-wallet2"></i> Payment Method:</span> @Model.PaymentMethod</p>
-        <p><span class="detail-label"><i class="bi bi-hash"></i> Transaction ID:</span> @Model.TransactionId</p>
-        <p>
-            <span class="detail-label"><i class="bi bi-shield-check"></i> Status:</span>
-            @if (Model.IsVerified)
-            {
-                <span class="text-success fw-bold"><i class="bi bi-patch-check-fill"></i> Verified</span>
-            }
-            else
-            {
-                <span class="text-warning fw-bold"><i class="bi bi-hourglass-split"></i> Pending</span>
-            }
-        </p>
-        <p class="detail-label"><i class="bi bi-card-image"></i> Receipt:</p>
-        @if (!string.IsNullOrEmpty(Model.ReceiptImageUrl))
-        {
-            <img src="@Url.Content(Model.ReceiptImageUrl)" alt="Receipt" class="receipt-image" />
-        }
-        else
-        {
-            <p class="text-muted">No receipt uploaded.</p>
-        }
+    <div class="row">
+        <!-- LEFT SIDE: Payment Details -->
+        <div class="col-md-7">
+            <div class="payment-details-card">
+                <p><span class="detail-label"><i class="bi bi-person-fill"></i> Consumer:</span> @Model.FullName</p>
+                <p><span class="detail-label"><i class="bi bi-calendar2-week-fill"></i> Billing Date:</span> @Model.BillingDate.ToShortDateString()</p>
+                <p><span class="detail-label"><i class="bi bi-calendar-check-fill"></i> Payment Date:</span> @Model.PaymentDate.ToShortDateString()</p>
+                <p><span class="detail-label"><i class="bi bi-receipt"></i> Bill No:</span> @Model.BillNo</p>
+                <p><span class="detail-label"><i class="bi bi-cash-coin"></i> Amount Paid:</span> ₱@Model.AmountPaid.ToString("N2")</p>
+                <p><span class="detail-label"><i class="bi bi-wallet2"></i> Payment Method:</span> @Model.PaymentMethod</p>
+                <p><span class="detail-label"><i class="bi bi-hash"></i> Transaction ID:</span> @Model.TransactionId</p>
+                <p>
+                    <span class="detail-label"><i class="bi bi-shield-check"></i> Status:</span>
+                    @if (Model.IsVerified)
+                    {
+                        <span class="text-success fw-bold"><i class="bi bi-patch-check-fill"></i> Verified</span>
+                    }
+                    else
+                    {
+                        <span class="text-warning fw-bold"><i class="bi bi-hourglass-split"></i> Pending</span>
+                    }
+                </p>
 
-        <a asp-action="ManagePayments" class="btn btn-secondary mt-4">
-            <i class="bi bi-arrow-left-circle"></i> Back to Payments
-        </a>
+                <a asp-action="ManagePayments"
+                   asp-route-page="@ViewBag.Page"
+                   asp-route-searchTerm="@ViewBag.SearchTerm"
+                   asp-route-statusFilter="@ViewBag.StatusFilter"
+                   asp-route-paymentMethodFilter="@ViewBag.PaymentMethodFilter"
+                   asp-route-selectedMonth="@ViewBag.SelectedMonth"
+                   asp-route-selectedYear="@ViewBag.SelectedYear"
+                   class="btn btn-secondary mt-4">
+                    <i class="bi bi-arrow-left-circle"></i> Back to Payments
+                </a>
+
+            </div>
+        </div>
+
+        <!-- RIGHT SIDE: Receipt -->
+        <div class="col-md-5">
+            <div class="payment-details-card text-center">
+                <p class="detail-label"><i class="bi bi-card-image"></i> Receipt:</p>
+                @if (!string.IsNullOrEmpty(Model.ReceiptImageUrl))
+                {
+                    <img src="@Url.Content(Model.ReceiptImageUrl)" alt="Receipt" class="receipt-image img-fluid" />
+                }
+                else
+                {
+                    <p class="text-muted">No receipt uploaded.</p>
+                }
+            </div>
+        </div>
     </div>
 </div>

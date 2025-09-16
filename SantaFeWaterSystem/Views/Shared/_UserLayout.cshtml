@@ -153,34 +153,16 @@
                 </span>
             </a>
 
-
-
-            <a href="@Url.Action("Index", "UserActivity")" class="btn btn-outline-light btn-sm">
-                <i class="bi bi-clock-history me-1"></i> My Activity
+            <a href="@Url.Action("Index", "ConsumerSetting")" class="btn btn-outline-light btn-sm">
+                <i class="bi bi-gear me-1"></i> Settings
             </a>
-            @if (!is2FAEnabled)
-            {
-                <a href="/Account/Setup2FAUser" class="btn btn-outline-light btn-sm">
-                    <i class="bi bi-shield-lock me-1"></i> Setup 2FA
-                </a>
-            }
-            else
-            {
-                <form method="post" asp-controller="Account" asp-action="Reset2FAUser" class="m-0"
-                      onsubmit="return confirm('Are you sure you want to disable Two-Factor Authentication?');">
-                    @Html.AntiForgeryToken()
-                    <button type="submit" class="btn btn-outline-warning btn-sm">
-                        <i class="bi bi-shield-x me-1"></i> Disable 2FA
-                    </button>
-                </form>
-            }
 
             <!-- Trigger Logout Modal -->
             <button class="btn btn-outline-danger btn-sm" type="button" data-bs-toggle="modal" data-bs-target="#logoutModal">
                 <i class="bi bi-box-arrow-right"></i> Logout
             </button>
-
         </div>
+
 
         <!-- Mobile Dropdown View -->
         <div class="dropdown d-lg-none">
@@ -204,39 +186,16 @@
                     </a>
                 </li>
                 <li>
-                    <a class="dropdown-item" href="@Url.Action("Index", "UserActivity")">
-                        <i class="bi bi-clock-history me-1"></i> My Activity
+                    <a class="dropdown-item" href="@Url.Action("Index", "ConsumerSetting")">
+                        <i class="bi bi-gear me-1"></i> Settings
                     </a>
                 </li>
-
-                @if (!is2FAEnabled)
-                {
-                    <li>
-                        <a class="dropdown-item" href="/Account/Setup2FAUser">
-                            <i class="bi bi-shield-lock me-1"></i> Setup 2FA
-                        </a>
-                    </li>
-                }
-                else
-                {
-                    <li>
-                        <form method="post" asp-controller="Account" asp-action="Reset2FAUser" class="m-0"
-                              onsubmit="return confirm('Are you sure you want to disable Two-Factor Authentication?');">
-                            @Html.AntiForgeryToken()
-                            <button type="submit" class="dropdown-item text-warning">
-                                <i class="bi bi-shield-x me-1"></i> Disable 2FA
-                            </button>
-                        </form>
-                    </li>
-                }
-
                 <li>
                     <!-- Trigger Modal -->
                     <button class="dropdown-item text-danger" type="button" data-bs-toggle="modal" data-bs-target="#logoutModal">
                         <i class="bi bi-box-arrow-right me-2"></i> Logout
                     </button>
                 </li>
-
             </ul>
         </div>
     </nav>

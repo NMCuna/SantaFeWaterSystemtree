@@ -64,15 +64,23 @@
             <label class="filter-label">Month</label>
             <input type="month" name="month" value="@ViewBag.Month" class="form-control" />
         </div>
-        <div class="col-md-5 d-flex gap-2">
+        <div class="col-md-5 d-flex gap-2 justify-content-end">
+          
+            <!-- Filter & Reset Buttons -->
             <button type="submit" class="btn btn-primary">
                 <i class="bi bi-funnel me-1"></i> Filter
             </button>
             <a href="@Url.Action("Index", "UserActivity")" class="btn btn-secondary">
                 <i class="bi bi-arrow-counterclockwise me-1"></i> Reset
             </a>
+
+            <!-- Back Button -->
+            <a asp-action="Index" asp-controller="ConsumerSetting" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left-circle me-1"></i> Back
+            </a>
         </div>
     </form>
+
 
 
    

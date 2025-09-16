@@ -25,7 +25,7 @@ namespace SantaFeWaterSystem.Controllers
 
 
 
-        //================== MANAGE PAYMENST LIST ==================
+        //================== MANAGE PAYMENTS LIST ==================
 
         // GET: Payments/ManagePayments
         [Authorize(Roles = "Admin,Staff")]
@@ -36,11 +36,19 @@ namespace SantaFeWaterSystem.Controllers
             int? selectedMonth,
             int? selectedYear,
             int page = 1,
-            int pageSize = 6)
+            int pageSize = 8)
         {
+            // ✅ Default month/year to current if not provided
+            if (!selectedMonth.HasValue || !selectedYear.HasValue)
+            {
+                var now = DateTime.Now;
+                selectedMonth ??= now.Month;
+                selectedYear ??= now.Year;
+            }
+
             var query = _context.Payments
                 .Include(p => p.Billing)
-                 .ThenInclude(b => b!.Consumer)
+                    .ThenInclude(b => b!.Consumer)
                 .AsQueryable();
 
             // Filter: Search by Consumer First or Last Name
@@ -72,7 +80,7 @@ namespace SantaFeWaterSystem.Controllers
                 query = query.Where(p => p.Method == paymentMethodFilter);
             }
 
-            // Filter: Month and Year
+            // ✅ Always apply selected month/year
             if (selectedMonth.HasValue)
             {
                 query = query.Where(p => p.PaymentDate.Month == selectedMonth.Value);
@@ -119,6 +127,7 @@ namespace SantaFeWaterSystem.Controllers
 
             return View(viewModel);
         }
+
 
 
 
@@ -403,8 +412,9 @@ namespace SantaFeWaterSystem.Controllers
         {
             var payment = await _context.Payments
                 .Include(p => p.Consumer)
+                .ThenInclude(c => c.User)
                 .Include(p => p.Billing)
-                 .FirstOrDefaultAsync(p => p.Id == id);
+                .FirstOrDefaultAsync(p => p.Id == id);
 
             if (payment == null)
                 return NotFound();
@@ -426,10 +436,17 @@ namespace SantaFeWaterSystem.Controllers
 
 
         //================== EDIT PAYMENT ==================
-        
+
         // GET: Payments/Edit/5
         [Authorize(Roles = "Admin,Staff")]
-        public IActionResult Edit(int id)
+        public IActionResult Edit(
+        int id,
+        string searchTerm,
+        string statusFilter,
+        string paymentMethodFilter,
+        int? selectedMonth,
+        int? selectedYear,
+        int page = 1)
         {
             var payment = _context.Payments
                 .Include(p => p.Consumer)
@@ -461,14 +478,29 @@ namespace SantaFeWaterSystem.Controllers
                 }).ToList()
             };
 
+            // ✅ Store filters for Back button
+            ViewBag.Page = page;
+            ViewBag.SearchTerm = searchTerm;
+            ViewBag.StatusFilter = statusFilter;
+            ViewBag.PaymentMethodFilter = paymentMethodFilter;
+            ViewBag.SelectedMonth = selectedMonth;
+            ViewBag.SelectedYear = selectedYear;
+
             return View(model);
         }
+
 
         // POST: Payments/Edit/5
         [Authorize(Roles = "Admin,Staff")]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(CreatePaymentViewModel model)
+        public async Task<IActionResult> Edit(CreatePaymentViewModel model,
+        string searchTerm,
+        string statusFilter,
+        string paymentMethodFilter,
+        int? selectedMonth,
+        int? selectedYear,
+        int page = 1)
         {
             if (!ModelState.IsValid)
             {
@@ -544,7 +576,16 @@ namespace SantaFeWaterSystem.Controllers
 
             await _context.SaveChangesAsync();
 
-            return RedirectToAction(nameof(ManagePayments));
+            // ✅ Redirect with filters and page
+            return RedirectToAction(nameof(ManagePayments), new
+            {
+                page,
+                searchTerm,
+                statusFilter,
+                paymentMethodFilter,
+                selectedMonth,
+                selectedYear
+            });
         }
 
 
@@ -556,7 +597,14 @@ namespace SantaFeWaterSystem.Controllers
 
         // GET: Payments/Details/5
         [Authorize(Roles = "Admin,Staff")]
-        public IActionResult Details(int id)
+        public IActionResult Details(
+            int id,
+            int page = 1,
+            string searchTerm = null,
+            string statusFilter = null,
+            string paymentMethodFilter = null,
+            int? selectedMonth = null,
+            int? selectedYear = null)
         {
             var payment = _context.Payments
                 .Include(p => p.Consumer)
@@ -565,6 +613,7 @@ namespace SantaFeWaterSystem.Controllers
 
             if (payment == null)
                 return NotFound();
+
             var model = new PaymentViewModel
             {
                 PaymentId = payment.Id,
@@ -579,6 +628,13 @@ namespace SantaFeWaterSystem.Controllers
                 IsVerified = payment.IsVerified
             };
 
+            // 🔹 Save paging & filters for Back button
+            ViewBag.Page = page;
+            ViewBag.SearchTerm = searchTerm;
+            ViewBag.StatusFilter = statusFilter;
+            ViewBag.PaymentMethodFilter = paymentMethodFilter;
+            ViewBag.SelectedMonth = selectedMonth;
+            ViewBag.SelectedYear = selectedYear;
 
             return View(model);
         }
@@ -588,11 +644,18 @@ namespace SantaFeWaterSystem.Controllers
 
 
 
-        //================== PAYMENT DETAILS ==================
+        //================== PAYMENT DElete ==================
 
         // GET: Payments/Delete/5
         [Authorize(Roles = "Admin,Staff")]
-        public IActionResult Delete(int id)
+        public IActionResult Delete(
+    int id,
+    int page = 1,
+    string searchTerm = null,
+    string statusFilter = null,
+    string paymentMethodFilter = null,
+    int? selectedMonth = null,
+    int? selectedYear = null)
         {
             var payment = _context.Payments
                 .Include(p => p.Consumer)
@@ -615,6 +678,14 @@ namespace SantaFeWaterSystem.Controllers
                 ReceiptImageUrl = payment.ImageUrl,
                 IsVerified = payment.IsVerified
             };
+
+            // 🔹 Persist filters & paging
+            ViewBag.Page = page;
+            ViewBag.SearchTerm = searchTerm;
+            ViewBag.StatusFilter = statusFilter;
+            ViewBag.PaymentMethodFilter = paymentMethodFilter;
+            ViewBag.SelectedMonth = selectedMonth;
+            ViewBag.SelectedYear = selectedYear;
 
             return View(model);
         }
@@ -623,7 +694,14 @@ namespace SantaFeWaterSystem.Controllers
         [Authorize(Roles = "Admin,Staff")]
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
+        public async Task<IActionResult> DeleteConfirmed(
+     int id,
+     int page = 1,
+     string searchTerm = null,
+     string statusFilter = null,
+     string paymentMethodFilter = null,
+     int? selectedMonth = null,
+     int? selectedYear = null)
         {
             var payment = await _context.Payments
                 .Include(p => p.Consumer)
@@ -654,9 +732,17 @@ namespace SantaFeWaterSystem.Controllers
             _context.Payments.Remove(payment);
             await _context.SaveChangesAsync();
 
-            return RedirectToAction(nameof(ManagePayments));
+            // 🔹 Redirect back with same filters & page
+            return RedirectToAction(nameof(ManagePayments), new
+            {
+                page,
+                searchTerm,
+                statusFilter,
+                paymentMethodFilter,
+                selectedMonth,
+                selectedYear
+            });
         }
-
 
 
 
@@ -665,7 +751,14 @@ namespace SantaFeWaterSystem.Controllers
         // POST: Payments/Verify
         [Authorize(Roles = "Admin,Staff")]
         [HttpPost]
-        public async Task<IActionResult> Verify(int id)
+        public async Task<IActionResult> Verify(
+    int id,
+    int page = 1,
+    string searchTerm = null,
+    string statusFilter = null,
+    string paymentMethodFilter = null,
+    int? selectedMonth = null,
+    int? selectedYear = null)
         {
             var payment = await _context.Payments
                 .Include(p => p.Consumer)
@@ -801,9 +894,17 @@ It has been marked as <strong>Paid</strong> in your account, and you can view th
 
             await _context.SaveChangesAsync();
 
-            return RedirectToAction(nameof(ManagePayments));
+            // ✅ Redirect back with filters & page preserved
+            return RedirectToAction(nameof(ManagePayments), new
+            {
+                page,
+                searchTerm,
+                statusFilter,
+                paymentMethodFilter,
+                selectedMonth,
+                selectedYear
+            });
         }
-
 
 
 
@@ -812,7 +913,14 @@ It has been marked as <strong>Paid</strong> in your account, and you can view th
         // POST: Payments/Unverify
         [Authorize(Roles = "Admin,Staff")]
         [HttpPost]
-        public async Task<IActionResult> Unverify(int id)
+        public async Task<IActionResult> Unverify(
+    int id,
+    int page = 1,
+    string searchTerm = null,
+    string statusFilter = null,
+    string paymentMethodFilter = null,
+    int? selectedMonth = null,
+    int? selectedYear = null)
         {
             var payment = await _context.Payments
                 .Include(p => p.Consumer)
@@ -904,7 +1012,17 @@ It has been marked as <strong>Paid</strong> in your account, and you can view th
 
             await _context.SaveChangesAsync();
 
-            return RedirectToAction(nameof(ManagePayments));
+
+            // ✅ Redirect with filters & page preserved
+            return RedirectToAction(nameof(ManagePayments), new
+            {
+                page,
+                searchTerm,
+                statusFilter,
+                paymentMethodFilter,
+                selectedMonth,
+                selectedYear
+            });
         }
     }
 }

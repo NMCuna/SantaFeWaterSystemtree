@@ -12,6 +12,7 @@ using SantaFeWaterSystem.Settings;
 using System.Globalization;
 using Microsoft.AspNetCore.HttpOverrides;
 using SantaFeWaterSystem.Hubs;
+using DbEmailSettings = SantaFeWaterSystem.Models.EmailSettings;
 
 
 QuestPDF.Settings.License = LicenseType.Community;
@@ -148,10 +149,11 @@ using (var scope = app.Services.CreateScope())
     }
 
 
+    
     // Seed default email settings if not exists
     if (!db.EmailSettings.Any())
     {
-        db.EmailSettings.Add(new EmailSettings
+        db.EmailSettings.Add(new DbEmailSettings
         {
             SmtpServer = "smtp.gmail.com",
             SmtpPort = 587,

@@ -78,6 +78,13 @@
     <div class="edit-form-container">
         <form asp-action="Edit" enctype="multipart/form-data" method="post">
             <input type="hidden" asp-for="PaymentId" />
+            <!-- preserve filters -->
+            <input type="hidden" name="Page" value="@ViewBag.Page" />
+            <input type="hidden" name="SearchTerm" value="@ViewBag.SearchTerm" />
+            <input type="hidden" name="StatusFilter" value="@ViewBag.StatusFilter" />
+            <input type="hidden" name="PaymentMethodFilter" value="@ViewBag.PaymentMethodFilter" />
+            <input type="hidden" name="SelectedMonth" value="@ViewBag.SelectedMonth" />
+            <input type="hidden" name="SelectedYear" value="@ViewBag.SelectedYear" />
 
             <div class="mb-3">
                 <label asp-for="ConsumerId" class="form-label">Consumer</label>
@@ -140,8 +147,15 @@
                 <button type="submit" class="btn btn-primary">
                     <i class="bi bi-save"></i> Save Changes
                 </button>
-                <a asp-action="ManagePayments" class="btn btn-secondary">
-                    <i class="bi bi-x-circle"></i> Cancel
+                <a asp-action="ManagePayments"
+                   asp-route-page="@ViewBag.Page"
+                   asp-route-searchTerm="@ViewBag.SearchTerm"
+                   asp-route-statusFilter="@ViewBag.StatusFilter"
+                   asp-route-paymentMethodFilter="@ViewBag.PaymentMethodFilter"
+                   asp-route-selectedMonth="@ViewBag.SelectedMonth"
+                   asp-route-selectedYear="@ViewBag.SelectedYear"
+                   class="btn btn-secondary mt-3">
+                    <i class="bi bi-arrow-left-circle"></i> Cancel
                 </a>
             </div>
         </form>

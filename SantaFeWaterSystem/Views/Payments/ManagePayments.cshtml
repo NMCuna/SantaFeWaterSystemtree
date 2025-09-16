@@ -75,11 +75,12 @@
                             <i class="bi bi-calendar-month"></i>
                         </span>
                         <select name="selectedMonth" class="form-select">
-                            <option value="">All Months</option>
                             @for (int month = 1; month <= 12; month++)
                             {
                                 var monthName = System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(month);
-                                <option value="@month" selected="@(Model.SelectedMonth == month)">@monthName</option>
+                                <option value="@month" selected="@(Model.SelectedMonth == month)">
+                                    @monthName
+                                </option>
                             }
                         </select>
                     </div>
@@ -92,10 +93,11 @@
                             <i class="bi bi-calendar3"></i>
                         </span>
                         <select name="selectedYear" class="form-select">
-                            <option value="">All Years</option>
                             @for (int year = DateTime.Now.Year; year >= 2020; year--)
                             {
-                                <option value="@year" selected="@(Model.SelectedYear == year)">@year</option>
+                                <option value="@year" selected="@(Model.SelectedYear == year)">
+                                    @year
+                                </option>
                             }
                         </select>
                     </div>
@@ -168,28 +170,59 @@
                     <td class="action-buttons">
                         @if (userPermissions.Contains("ViewPayment"))
                         {
-                            <a class="btn btn-sm btn-info" asp-action="Details" asp-route-id="@payment.PaymentId">
+                            <a class="btn btn-sm btn-info"
+                               asp-action="Details"
+                               asp-route-id="@payment.PaymentId"
+                               asp-route-page="@Model.PageNumber"
+                               asp-route-searchTerm="@Model.SearchTerm"
+                               asp-route-statusFilter="@Model.StatusFilter"
+                               asp-route-paymentMethodFilter="@Model.PaymentMethodFilter"
+                               asp-route-selectedMonth="@Model.SelectedMonth"
+                               asp-route-selectedYear="@Model.SelectedYear">
                                 <i class="bi bi-eye"></i> View
                             </a>
                         }
 
                         @if (userPermissions.Contains("EditPayment"))
                         {
-                            <a class="btn btn-sm btn-primary" asp-action="Edit" asp-route-id="@payment.PaymentId">
+                            <a class="btn btn-sm btn-primary"
+                               asp-action="Edit"
+                               asp-route-id="@payment.PaymentId"
+                               asp-route-page="@Model.PageNumber"
+                               asp-route-searchTerm="@Model.SearchTerm"
+                               asp-route-statusFilter="@Model.StatusFilter"
+                               asp-route-paymentMethodFilter="@Model.PaymentMethodFilter"
+                               asp-route-selectedMonth="@Model.SelectedMonth"
+                               asp-route-selectedYear="@Model.SelectedYear">
                                 <i class="bi bi-pencil-square"></i> Edit
                             </a>
                         }
 
                         @if (userPermissions.Contains("DeletePayment"))
                         {
-                            <a class="btn btn-sm btn-danger" asp-action="Delete" asp-route-id="@payment.PaymentId">
+                            <a class="btn btn-sm btn-danger"
+                               asp-action="Delete"
+                               asp-route-id="@payment.PaymentId"
+                               asp-route-page="@Model.PageNumber"
+                               asp-route-searchTerm="@Model.SearchTerm"
+                               asp-route-statusFilter="@Model.StatusFilter"
+                               asp-route-paymentMethodFilter="@Model.PaymentMethodFilter"
+                               asp-route-selectedMonth="@Model.SelectedMonth"
+                               asp-route-selectedYear="@Model.SelectedYear">
                                 <i class="bi bi-trash"></i> Delete
                             </a>
                         }
 
                         @if (!payment.IsVerified && userPermissions.Contains("VerifyPayment"))
                         {
-                            <form asp-action="Verify" asp-route-id="@payment.PaymentId" method="post" class="d-inline">
+                            <form asp-action="Verify" asp-route-id="@payment.PaymentId"
+                                  asp-route-page="@Model.PageNumber"
+                                  asp-route-searchTerm="@Model.SearchTerm"
+                                  asp-route-statusFilter="@Model.StatusFilter"
+                                  asp-route-paymentMethodFilter="@Model.PaymentMethodFilter"
+                                  asp-route-selectedMonth="@Model.SelectedMonth"
+                                  asp-route-selectedYear="@Model.SelectedYear"
+                                  method="post" class="d-inline">
                                 @Html.AntiForgeryToken()
                                 <button type="submit" class="btn btn-sm btn-success">
                                     <i class="bi bi-check-circle"></i> Verify
@@ -198,7 +231,14 @@
                         }
                         else if (payment.IsVerified && userPermissions.Contains("VerifyPayment"))
                         {
-                            <form asp-action="Unverify" asp-route-id="@payment.PaymentId" method="post" class="d-inline">
+                            <form asp-action="Unverify" asp-route-id="@payment.PaymentId"
+                                  asp-route-page="@Model.PageNumber"
+                                  asp-route-searchTerm="@Model.SearchTerm"
+                                  asp-route-statusFilter="@Model.StatusFilter"
+                                  asp-route-paymentMethodFilter="@Model.PaymentMethodFilter"
+                                  asp-route-selectedMonth="@Model.SelectedMonth"
+                                  asp-route-selectedYear="@Model.SelectedYear"
+                                  method="post" class="d-inline">
                                 @Html.AntiForgeryToken()
                                 <button type="submit" class="btn btn-sm btn-warning">
                                     <i class="bi bi-x-circle"></i> Unverify

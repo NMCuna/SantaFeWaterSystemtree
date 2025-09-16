@@ -86,7 +86,14 @@
             <button type="button" class="btn btn-danger" id="deleteBtn" disabled onclick="showDeleteModal()">
                 <i class="bi bi-trash3"></i> Delete
             </button>
-            <a asp-action="ManagePayments" class="btn btn-secondary">
+            <a asp-action="ManagePayments"
+               asp-route-page="@ViewBag.Page"
+               asp-route-searchTerm="@ViewBag.SearchTerm"
+               asp-route-statusFilter="@ViewBag.StatusFilter"
+               asp-route-paymentMethodFilter="@ViewBag.PaymentMethodFilter"
+               asp-route-selectedMonth="@ViewBag.SelectedMonth"
+               asp-route-selectedYear="@ViewBag.SelectedYear"
+               class="btn btn-secondary mt-3">
                 <i class="bi bi-arrow-left-circle"></i> Cancel
             </a>
         </div>
@@ -104,7 +111,17 @@
             <form asp-action="Delete" method="post">
                 <div class="modal-body">
                     <p class="mb-0">Are you sure you want to permanently delete this payment record?</p>
+
+                    <!-- Payment ID -->
                     <input type="hidden" asp-for="PaymentId" />
+
+                    <!-- Preserve filters & paging -->
+                    <input type="hidden" name="Page" value="@ViewBag.Page" />
+                    <input type="hidden" name="SearchTerm" value="@ViewBag.SearchTerm" />
+                    <input type="hidden" name="StatusFilter" value="@ViewBag.StatusFilter" />
+                    <input type="hidden" name="PaymentMethodFilter" value="@ViewBag.PaymentMethodFilter" />
+                    <input type="hidden" name="SelectedMonth" value="@ViewBag.SelectedMonth" />
+                    <input type="hidden" name="SelectedYear" value="@ViewBag.SelectedYear" />
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>

@@ -3,7 +3,8 @@
     ViewData["Title"] = "Walk-in Payment Successful";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
 
-    string qrContent = Url.Action("VerifyReceipt", "Payments", new { id = Model.Id }, Context.Request.Scheme);
+    // ✅ Get base URL dynamically (auto adjusts if host changes)
+    string baseUrl = $"{Context.Request.Scheme}://{Context.Request.Host}/";
 }
 
 @section Styles {
@@ -23,91 +24,115 @@
                 margin-right: 10px;
             }
 
+        .receipt-container {
+            display: flex;
+            justify-content: center;
+            gap: 20px; /* space between receipt and buttons */
+            align-items: flex-start;
+            flex-wrap: wrap; /* ✅ stack on smaller screens */
+        }
+
         .receipt-card {
-            background: #f8f9fa;
-            border-radius: 10px;
-            padding: 25px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            max-width: 420px; /* ✅ Narrower like receipt */
+            font-family: "Courier New", monospace; /* ✅ Receipt feel */
         }
 
             .receipt-card p {
-                font-size: 1.1rem;
-                margin-bottom: 0.5rem;
+                font-size: 0.95rem;
+                margin-bottom: 0.4rem;
             }
 
         .receipt-label {
-            font-weight: 600;
-            color: #495057;
+            font-weight: bold;
         }
 
-        .btn-actions {
-            margin-top: 30px;
-        }
-
-        .btn i {
-            margin-right: 5px;
+        .separator {
+            border-top: 1px dashed #666;
+            margin: 12px 0;
         }
 
         .print-logo {
-            width: 80px;
+            width: 70px;
             height: auto;
             margin-right: 10px;
         }
 
         .print-header {
-            display: flex;
-            align-items: center;
-            margin-bottom: 20px;
+            text-align: center;
+            margin-bottom: 15px;
         }
+
+            .print-header h4 {
+                margin: 0;
+                font-size: 1.2rem;
+                font-weight: bold;
+            }
+
+            .print-header small {
+                display: block;
+                font-size: 0.85rem;
+                color: #555;
+            }
 
         .watermark {
             position: absolute;
             opacity: 0.05;
-            font-size: 6rem;
+            font-size: 5rem;
             transform: rotate(-30deg);
             top: 40%;
-            left: 25%;
+            left: 20%;
             white-space: nowrap;
             pointer-events: none;
         }
 
         .signature-area {
-            margin-top: 50px;
+            margin-top: 40px;
+            text-align: center;
         }
 
         .signature-line {
             border-top: 1px solid #333;
-            width: 250px;
+            width: 200px;
+            margin: 0 auto;
             margin-top: 40px;
         }
 
+        /* ✅ Make buttons in one line */
+        .btn-actions {
+            display: flex;
+            flex-direction: row;
+            gap: 10px;
+            align-items: center;
+        }
+
         @@media print {
-            body *
+            body * {
+                visibility: hidden;
+            }
 
-        {
-            visibility: hidden;
-        }
+            #printSection, #printSection * {
+                visibility: visible;
+            }
 
-        #printSection, #printSection * {
-            visibility: visible;
-        }
+            #printSection {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                padding: 10px;
+            }
 
-        #printSection {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            padding: 20px;
-        }
+            .btn-actions, .success-header {
+                display: none;
+            }
 
-        .btn-actions, .success-header {
-            display: none;
-        }
-
-        .watermark {
-            display: block;
-        }
-
+            .watermark {
+                display: block;
+            }
         }
     </style>
 }
@@ -116,47 +141,64 @@
     <i class="bi bi-check-circle-fill"></i> Payment Recorded Successfully
 </div>
 
-<div class="receipt-card" id="printSection">
-    <!-- Logo + Header -->
-    <div class="print-header">
-        <img src="~/images/logo.png" alt="Logo" class="print-logo" />
-        <div>
-            <h4 class="mb-0">Santa Fe Water Billing System</h4>
+<div class="receipt-container">
+    <!-- Receipt -->
+    <div class="receipt-card" id="printSection">
+        <!-- Logo + Header -->
+        <div class="print-header">
+            <img src="~/images/logo.png" alt="Logo" class="print-logo" />
+            <h4>Santa Fe Water Billing System</h4>
             <small>Official Walk-in Payment Receipt</small>
         </div>
+
+        <div class="separator"></div>
+
+        <!-- Receipt Info -->
+        <p><span class="receipt-label">Consumer Name:</span> @Model.Consumer.FirstName @Model.Consumer.LastName</p>
+        <p><span class="receipt-label">Account No:</span> @Model.Consumer.User?.AccountNumber</p>
+        <p><span class="receipt-label">Address:</span> @Model.Consumer.HomeAddress</p>
+
+        <div class="separator"></div>
+
+        <p><span class="receipt-label">Bill No:</span> @Model.Billing.BillNo</p>
+        <p><span class="receipt-label">Amount Paid:</span> ₱@Model.AmountPaid.ToString("N2")</p>
+        <p><span class="receipt-label">Payment Method:</span> @Model.Method</p>
+        <p><span class="receipt-label">Date Paid:</span> @Model.PaymentDate.ToString("MMMM dd, yyyy - hh:mm tt")</p>
+        <p><span class="receipt-label">Transaction ID:</span> @Model.TransactionId</p>
+        <p><span class="receipt-label">Processed By:</span> @Model.ProcessedBy</p>
+
+        <div class="separator"></div>
+
+        <!-- QR Code -->
+        <div class="text-center my-3">
+            <img src="https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=@baseUrl" alt="QR Code" />
+            <p style="font-size:0.8rem; margin-top:5px;">Scan to Visit Website</p>
+        </div>
+
+        <div class="separator"></div>
+
+        <!-- Signature Area -->
+        <div class="signature-area">
+            <div class="signature-line"></div>
+            <p style="margin-top:5px; font-size:0.85rem;">Authorized Signature</p>
+        </div>
+
+        <!-- Watermark -->
+        <div class="watermark">Santa Fe Water</div>
     </div>
 
-    <!-- Receipt Info -->
-    <p><span class="receipt-label">Consumer Name:</span> @Model.Consumer.FirstName @Model.Consumer.LastName</p>
-    <p><span class="receipt-label">Account Number:</span> @Model.Consumer.User?.AccountNumber</p>
-    <p><span class="receipt-label">Address:</span> @Model.Consumer.HomeAddress</p>
-    <p><span class="receipt-label">Bill No:</span> @Model.Billing.BillNo</p>
-    <p><span class="receipt-label">Amount Paid:</span> ₱@Model.AmountPaid.ToString("N2")</p>
-    <p><span class="receipt-label">Payment Method:</span> @Model.Method</p>
-    <p><span class="receipt-label">Date:</span> @Model.PaymentDate.ToString("MMMM dd, yyyy - hh:mm tt")</p>
-    <p><span class="receipt-label">Transaction ID:</span> @Model.TransactionId</p>
-    <p><span class="receipt-label">Processed By:</span> @Model.ProcessedBy</p>
+    <!-- Action Buttons Beside Receipt -->
+    <div class="btn-actions">
+       
+        <a asp-action="DownloadReceipt" asp-route-id="@Model.Id" class="btn btn-outline-success">
+            <i class="bi bi-file-earmark-pdf"></i> Download PDF
+        </a>
+        <button class="btn btn-outline-secondary" onclick="window.print()">
+            <i class="bi bi-printer"></i> Print Receipt
+        </button>
 
-    <!-- QR Code -->
-    
-
-
-    <!-- Signature Area -->
-   
-
-    <!-- Watermark -->
-    <div class="watermark">Santa Fe Water</div>
-</div>
-
-<!-- Action Buttons -->
-<div class="btn-actions">
-    <a asp-action="ManagePayments" class="btn btn-primary me-2">
-        <i class="bi bi-arrow-left-circle"></i> Back
-    </a>
-    <a asp-action="DownloadReceipt" asp-route-id="@Model.Id" class="btn btn-outline-success me-2">
-        <i class="bi bi-file-earmark-pdf"></i> Download Receipt (PDF)
-    </a>
-    <button class="btn btn-outline-secondary" onclick="window.print()">
-        <i class="bi bi-printer"></i> Print Receipt
-    </button>
+        <a asp-action="ManagePayments" class="btn btn-primary">
+            <i class="bi bi-arrow-left-circle"></i> Back
+        </a>
+    </div>
 </div>
