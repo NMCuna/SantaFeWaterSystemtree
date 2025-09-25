@@ -2,8 +2,7 @@
 @inject IHttpContextAccessor HttpContextAccessor
 @inject SantaFeWaterSystem.Data.ApplicationDbContext _context
 
-@{
-    Layout = null;
+@{    
     var currentController = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
     var currentAction = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
     var isFeedbackActive = currentController == "Feedback";
@@ -75,17 +74,28 @@
     <!-- Navbar -->
     <nav class="navbar navbar-dark bg-primary fixed-top d-flex justify-content-between align-items-center px-3" style="height: 56px;">
         <div class="d-flex align-items-center gap-2">
-            <button class="btn btn-outline-light d-lg-none" id="sidebarToggle" aria-label="Toggle navigation" aria-expanded="false" aria-controls="sidebar" type="button">
+            <button class="btn btn-outline-light d-lg-none" id="sidebarToggle"
+                    aria-label="Toggle navigation" aria-expanded="false"
+                    aria-controls="sidebar" type="button">
                 <i class="bi bi-list"></i>
             </button>
 
-            <button class="btn btn-outline-light d-none d-lg-inline-flex me-2" id="collapseSidebarBtn" aria-label="Toggle sidebar collapse" type="button" title="Collapse Sidebar">
+            <button class="btn btn-outline-light d-none d-lg-inline-flex" id="collapseSidebarBtn"
+                    aria-label="Toggle sidebar collapse" type="button"
+                    title="Collapse Sidebar">
                 <i class="bi bi-chevron-left"></i>
             </button>
 
-            <button class="btn btn-outline-light btn-sm d-flex align-items-center" id="darkModeToggle" aria-label="Toggle dark mode" type="button" title="Toggle Dark Mode">
+            <button class="btn btn-outline-light btn-sm d-flex align-items-center" id="darkModeToggle"
+                    aria-label="Toggle dark mode" type="button" title="Toggle Dark Mode">
                 <i class="bi bi-moon-fill"></i>
             </button>
+
+            <!-- ✅ Home Help Icon for Consumer -->
+            <a class="btn btn-outline-light btn-sm d-flex align-items-center"
+               asp-controller="Help" asp-action="Consumer" title="Help">
+                <i class="bi bi-question-circle"></i>
+            </a>
 
             <!-- ✅ Mobile-only Notification & Support Icons -->
             <div class="d-lg-none d-flex align-items-center gap-1">
@@ -99,7 +109,6 @@
                     </span>
                 </a>
 
-
                 <a asp-controller="Supports" asp-action="UserSupport"
                    class="btn btn-outline-light btn-sm position-relative d-inline-flex d-lg-none"
                    id="supportButtonMobile" title="Support">
@@ -111,7 +120,6 @@
                         <span class="visually-hidden">unseen replies</span>
                     </span>
                 </a>
-
             </div>
         </div>
 
@@ -153,6 +161,12 @@
                 </span>
             </a>
 
+            <!-- Home Help Icon -->
+            <a class="btn btn-outline-light btn-sm d-flex align-items-center"
+               asp-controller="Help" asp-action="Consumer" title="Help">
+                <i class="bi bi-question-circle me-1"></i> Help 
+            </a>
+
             <a href="@Url.Action("Index", "ConsumerSetting")" class="btn btn-outline-light btn-sm">
                 <i class="bi bi-gear me-1"></i> Settings
             </a>
@@ -166,7 +180,8 @@
 
         <!-- Mobile Dropdown View -->
         <div class="dropdown d-lg-none">
-            <button class="btn btn-outline-light dropdown-toggle btn-sm d-flex align-items-center" type="button" id="userMenu" data-bs-toggle="dropdown" aria-expanded="false">
+            <button class="btn btn-outline-light dropdown-toggle btn-sm d-flex align-items-center"
+                    type="button" id="userMenu" data-bs-toggle="dropdown" aria-expanded="false">
                 <img src="@Url.Content("~/images/profiles/" + profilePic)"
                      onerror="this.onerror=null;this.src='@Url.Content("~/images/profiles/default.png")';"
                      class="rounded-circle border border-light me-2"
@@ -202,34 +217,24 @@
 
     <!-- Logout Confirmation Modal -->
     <div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content border-0 shadow-lg">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content rounded-3 shadow border-0">
 
-                <!-- Header -->
-                <div class="modal-header bg-danger text-white">
-                    <h5 class="modal-title d-flex align-items-center" id="logoutModalLabel">
-                        <i class="bi bi-box-arrow-right me-2"></i> Confirm Logout
-                    </h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
+                <div class="modal-body text-center p-4">
+                    <i class="bi bi-exclamation-triangle text-warning fs-1 mb-3"></i>
+                    <h5 class="mb-3">Confirm Logout</h5>
+                    <p class="text-muted mb-4">Are you sure you want to log out of your account?</p>
 
-                <!-- Body -->
-                <div class="modal-body text-center">
-                    <i class="bi bi-exclamation-triangle-fill text-warning fs-1 mb-3"></i>
-                    <p class="fs-5">Are you sure you want to <strong>log out</strong> of your account?</p>
-                </div>
-
-                <!-- Footer -->
-                <div class="modal-footer justify-content-center">
-                    <form method="post" asp-controller="Account" asp-action="Logout">
+                    <!-- Actions -->
+                    <form method="post" asp-controller="Account" asp-action="Logout" class="d-grid gap-2">
                         @Html.AntiForgeryToken()
-                        <button type="submit" class="btn btn-danger px-4">
+                        <button type="submit" class="btn btn-danger">
                             <i class="bi bi-box-arrow-right me-1"></i> Yes, Logout
                         </button>
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                            <i class="bi bi-x-circle me-1"></i> Cancel
+                        </button>
                     </form>
-                    <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">
-                        <i class="bi bi-x-circle me-1"></i> Cancel
-                    </button>
                 </div>
 
             </div>
@@ -255,11 +260,11 @@
                     <i class="bi bi-credit-card me-2"></i> Payment
                 </a>
             </li>
-            <li class="nav-item">
+             <!--  <li class="nav-item">
                 <a class="nav-link @((currentController == "User" && currentAction == "Profile") ? "active" : "")" asp-controller="User" asp-action="Profile">
                     <i class="bi bi-person-circle me-2"></i> Profile
                 </a>
-            </li>
+            </li> -->
             <li class="nav-item">
                 <a class="nav-link @((currentController == "User" && currentAction == "Support") ? "active" : "")" asp-controller="User" asp-action="Support">
                     <i class="bi bi-headset me-2"></i> Support

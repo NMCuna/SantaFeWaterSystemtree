@@ -6,16 +6,14 @@
 }
 
 @section Styles {
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha512" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
     <style>
         .form-icon {
             margin-right: 8px;
             color: #0d6efd;
-            transition: transform 0.3s ease;
         }
 
-        .form-control:focus,
-        .form-select:focus {
+        .form-control:focus, .form-select:focus {
             border-color: #0d6efd;
             box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
         }
@@ -24,7 +22,7 @@
             background-color: #fff;
             padding: 2rem;
             border-radius: 15px;
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
         }
 
         .toast-container {
@@ -57,7 +55,7 @@
                                     <div class="toast-body">
                                         <i class="bi bi-check-circle-fill me-2"></i> @TempData["SuccessMessage"]
                                     </div>
-                                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
                                 </div>
                             </div>
                         </div>
@@ -70,10 +68,10 @@
                         <input type="hidden" asp-for="Id" />
                         <input type="hidden" asp-for="Role" />
 
-                        <!-- ✅ Keep pagination + filters after submit -->
-                        <input type="hidden" name="roleFilter" value="@Context.Request.Query["roleFilter"]" />
-                        <input type="hidden" name="searchTerm" value="@Context.Request.Query["searchTerm"]" />
-                        <input type="hidden" name="page" value="@Context.Request.Query["page"]" />
+                        <!-- Keep filters/page for redirect -->
+                        <input type="hidden" name="roleFilter" value="@Model.RoleFilter" />
+                        <input type="hidden" name="searchTerm" value="@Model.SearchTerm" />
+                        <input type="hidden" name="page" value="@Model.CurrentPage" />
 
                         <div class="mb-3">
                             <label asp-for="Username" class="form-label">
@@ -103,9 +101,9 @@
                                 <i class="fas fa-save me-1"></i> Save Changes
                             </button>
                             <a asp-action="ManageUsers"
-                               asp-route-roleFilter="@Context.Request.Query["roleFilter"]"
-                               asp-route-searchTerm="@Context.Request.Query["searchTerm"]"
-                               asp-route-page="@Context.Request.Query["page"]"
+                               asp-route-roleFilter="@Model.RoleFilter"
+                               asp-route-searchTerm="@Model.SearchTerm"
+                               asp-route-page="@Model.CurrentPage"
                                class="btn btn-outline-secondary">
                                 <i class="fas fa-arrow-left me-1"></i> Cancel
                             </a>

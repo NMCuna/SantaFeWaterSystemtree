@@ -55,8 +55,16 @@ namespace SantaFeWaterSystem.Controllers
                 .FirstOrDefaultAsync(c => c.UserId == userId);
 
             if (consumer == null)
-                return Content("Consumer information not found.");
+            {
+                // Log it
+                await _audit.LogAsync(
+                    "Unlinked Login",
+                    $"User {User.Identity?.Name} logged in but does not have linked consumer information."
+                );
 
+                // Show user-friendly page instead of plain text
+                return View("NotLinked");
+            }
 
             ViewBag.IsMfaEnabled = consumer.User?.IsMfaEnabled ?? false;
 
@@ -1184,11 +1192,17 @@ namespace SantaFeWaterSystem.Controllers
         [Authorize(Roles = "User")]
         public async Task<IActionResult> ResetPassword(ResetPasswordViewModel model)
         {
-            // Reload latest password policy for redisplay if validation fails
+            // 🔹 Load latest password policy
             var policy = await _context.PasswordPolicies
                 .OrderByDescending(p => p.Id)
                 .FirstOrDefaultAsync();
-            ViewBag.PasswordPolicy = policy;
+
+            ViewBag.PasswordPolicy = policy ?? new PasswordPolicy
+            {
+                MinPasswordLength = 8,
+                RequireComplexity = true,
+                PasswordHistoryCount = 5
+            };
 
             if (!ModelState.IsValid)
             {
@@ -1204,31 +1218,55 @@ namespace SantaFeWaterSystem.Controllers
             if (user == null)
                 return NotFound();
 
-            // 🔹 Validate password against policy
+            // 🔹 Verify current password safely
+            bool isCurrentPasswordValid = false;
+            try
+            {
+                isCurrentPasswordValid = BCrypt.Net.BCrypt.Verify(model.CurrentPassword, user.PasswordHash);
+            }
+            catch (BCrypt.Net.SaltParseException)
+            {
+                // Log warning if needed
+            }
+
+            if (!isCurrentPasswordValid)
+            {
+                ModelState.AddModelError(nameof(model.CurrentPassword), "Current password is incorrect.");
+                TempData["Error"] = "❌ Current password is incorrect.";
+                return View(model);
+            }
+
+            // 🔹 Validate new password against policy
             var isValidPassword = await _passwordPolicyService.ValidatePasswordAsync(user.Id, model.NewPassword);
             if (!isValidPassword)
             {
                 ModelState.AddModelError(nameof(model.NewPassword),
                     "Password must meet all requirements (length, complexity, history).");
-
                 TempData["Error"] = "❌ Change password failed — your new password does not meet the requirements.";
                 return View(model);
             }
 
-            // 🔹 Hash and save password
-            user.PasswordHash = _passwordHasher.HashPassword(user, model.NewPassword);
+            // 🔹 Hash and save new password
+            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(model.NewPassword);
 
             // 🔹 Save password history
             await _passwordPolicyService.SavePasswordHistoryAsync(user.Id, user.PasswordHash);
 
-            await _context.SaveChangesAsync();
+            // 🔹 Log audit action
+            _context.AuditTrails.Add(new AuditTrail
+            {
+                Action = "Reset Password",
+                PerformedBy = User.Identity?.Name ?? "Unknown",
+                Timestamp = DateTime.UtcNow,
+                Details = $"User '{user.AccountNumber}' successfully reset their password."
+            });
 
-            // 🔹 Log the action
-            await _audit.LogAsync("Reset Password", "User successfully reset their password.", user.AccountNumber);
+            await _context.SaveChangesAsync();
 
             TempData["Message"] = "✅ Password changed successfully.";
             return RedirectToAction("Profile", "User");
         }
+
 
 
 

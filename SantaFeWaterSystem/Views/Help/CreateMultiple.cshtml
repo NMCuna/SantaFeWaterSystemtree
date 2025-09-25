@@ -1,0 +1,164 @@
+﻿@model List<SantaFeWaterSystem.Models.Help>
+
+@{
+    ViewData["Title"] = "Add Multiple Help Sections";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<h2 class="mb-4">Add Multiple Help Sections</h2>
+
+<form asp-action="CreateMultiple" method="post">
+    <div id="help-sections">
+        @for (int i = 0; i < Model.Count; i++)
+        {
+            <div class="card mb-3 p-3 section-card">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5>Section @(i + 1)</h5>
+                    <button type="button" class="btn btn-sm btn-danger remove-section">Remove</button>
+                </div>
+
+                <input type="hidden" asp-for="@Model[i].Id" />
+
+                <div class="mb-3">
+                    <label asp-for="@Model[i].Title" class="form-label">Title</label>
+                    <input asp-for="@Model[i].Title" class="form-control" placeholder="Enter help article title" />
+                    <span asp-validation-for="@Model[i].Title" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="@Model[i].Description" class="form-label">Description</label>
+                    <textarea asp-for="@Model[i].Description" class="form-control" rows="4" placeholder="Enter detailed help description"></textarea>
+                    <span asp-validation-for="@Model[i].Description" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="@Model[i].Section" class="form-label">Section</label>
+                    <select asp-for="@Model[i].Section" class="form-select">
+                        <option value="">(none)</option>
+                        <!-- Existing Sections -->
+                        <option>Home</option>
+                        <option>Privacy Policy</option>
+                        <option>Contact</option>
+                        <option>Inquiries</option>
+                        <option>User</option>
+                        <option>Staff</option>
+                        <option>Admin</option>
+                        <option>Login</option>
+                        <option>User Dashboard</option>
+                        <option>Billing History</option>
+                        <option>Payments</option>
+                        <option>Profile</option>
+                        <option>Support</option>
+                        <option>Community Feed</option>
+                        <option>Dark Mode</option>
+                        <option>Notifications</option>
+                        <option>Feedback</option>
+                        <option>Two-Factor Authentication</option>
+                        <option>Help</option>
+                        <option>AllowAnonymous</option>
+
+                        <!-- New Staff/Admin Sections -->
+                        <option>Staff Dashboard</option>
+                        <option>Admin Dashboard</option>
+                        <option>Manage Users</option>
+                        <option>Manage Consumers</option>
+                        <option>Manage Billing</option>
+                        <option>Manage Payments</option>
+                        <option>Disconnection List</option>
+                        <option>Manage Notifications</option>
+                        <option>Support Tickets</option>
+                        <option>Reports</option>
+                        <option>Audit Logs</option>
+                        <option>SMS Logs</option>
+                        <option>Email Logs</option>
+                        <option>Register Admin/Staff</option>
+                        <option>Register New User</option>
+                        <option>General Settings</option>
+                        <option>My Profile</option>
+                        <option>Help Center</option>
+                        <option>All Inquiries</option>
+                    </select>
+                    <span asp-validation-for="@Model[i].Section" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="@Model[i].RoleAccess" class="form-label">Visible To (RoleAccess)</label>
+                    <select asp-for="@Model[i].RoleAccess" class="form-select">
+                        <option value="">All</option>
+                        <option>User</option>
+                        <option>Staff</option>
+                        <option>Admin</option>
+                        <option>Home</option>
+                    </select>
+                    <small class="form-text text-muted">Choose who can see this article. Leave blank for "All".</small>
+                    <span asp-validation-for="@Model[i].RoleAccess" class="text-danger"></span>
+                </div>
+            </div>
+        }
+    </div>
+
+    <div class="mb-3">
+        <button type="button" id="add-section" class="btn btn-secondary me-2">Add Another Section</button>
+        <button type="submit" class="btn btn-primary">Save Sections</button>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        $(document).ready(function () {
+            let sectionIndex = @Model.Count;
+
+            // Add new section dynamically
+            $('#add-section').click(function () {
+                const sectionHtml = `
+                <div class="card mb-3 p-3 section-card">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5>Section ${sectionIndex + 1}</h5>
+                        <button type="button" class="btn btn-sm btn-danger remove-section">Remove</button>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Title</label>
+                        <input name="[${sectionIndex}].Title" class="form-control" placeholder="Enter help article title" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <textarea name="[${sectionIndex}].Description" class="form-control" rows="4" placeholder="Enter detailed help description"></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Section</label>
+                        <select name="[${sectionIndex}].Section" class="form-select">
+                            <option value="">(none)</option>
+                            <option>Home</option>
+                            <option>Consumer</option>
+                            <option>Staff</option>
+                            <option>Admin</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Visible To (RoleAccess)</label>
+                        <select name="[${sectionIndex}].RoleAccess" class="form-select">
+                            <option value="">All</option>
+                            <option>User</option>
+                            <option>Staff</option>
+                            <option>Admin</option>
+                            <option>AllowAnonymous</option>
+                        </select>
+                    </div>
+                </div>`;
+
+                $('#help-sections').append(sectionHtml);
+                sectionIndex++;
+            });
+
+            // Remove a section dynamically
+            $(document).on('click', '.remove-section', function () {
+                $(this).closest('.section-card').remove();
+            });
+        });
+    </script>
+}

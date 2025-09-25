@@ -71,7 +71,6 @@ else
             </button>
         </div>
 
-
         <div class="table-responsive d-none d-md-block">
             <table class="table table-bordered table-striped align-middle">
                 <thead class="table-dark">
@@ -93,7 +92,7 @@ else
                                 @if (!string.IsNullOrEmpty(log.Details) && log.Details.Length > 60)
                                 {
                                     <span>@log.Details.Substring(0, 60)...</span>
-                                    <button class="btn btn-sm btn-link text-primary" data-bs-toggle="modal" data-bs-target="#modal-@log.Id">View</button>
+                                    <button type="button" class="btn btn-sm btn-link text-primary" data-bs-toggle="modal" data-bs-target="#modal-@log.Id">View</button>
                                 }
                                 else
                                 {
@@ -165,7 +164,7 @@ else
                         @if (!string.IsNullOrEmpty(log.Details) && log.Details.Length > 100)
                         {
                             <span>@log.Details.Substring(0, 100)...</span>
-                            <button class="btn btn-sm btn-link text-primary" data-bs-toggle="modal" data-bs-target="#modal-@log.Id-sm">View more</button>
+                            <button type="button" class="btn btn-sm btn-link text-primary" data-bs-toggle="modal" data-bs-target="#modal-@log.Id-sm">View more</button>
                         }
                         else
                         {

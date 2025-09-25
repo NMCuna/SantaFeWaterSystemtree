@@ -1,0 +1,96 @@
+﻿@model IEnumerable<SantaFeWaterSystem.Models.Help>
+@{
+    ViewData["Title"] = "Help Management";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+
+    // Map section names to emojis
+    Dictionary<string, string> sectionIcons = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+    {
+        { "Home", "🏠" },
+        { "Privacy Policy", "🔒" },
+        { "Contact", "📞" },
+        { "Inquiries", "❓" },
+        { "Login", "🔑" },
+        { "User", "📊" },
+        { "Staff", "📋" },
+        { "Admin", "❗" },
+        { "User Dashboard", "📊" },
+        { "Billing History", "📜" },
+        { "Payments", "💳" },
+        { "Profile", "👤" },
+        { "Support", "🛠️" },
+        { "Community Feed", "🌐" },
+        { "Dark Mode", "🌙" },
+        { "Notifications", "🔔" },
+        { "Feedback", "💬" },
+        { "Two-Factor Authentication", "🔐" },
+        { "Help", "❓" },
+
+         // Admin & Staff Side
+    { "Admin Dashboard", "🖥️" },
+    { "Staff Dashboard", "📋" },
+    { "Manage Users", "👥" },
+    { "Manage Consumers", "🏠" },
+    { "Manage Billing", "🧾" },
+    { "Manage Payments", "💰" },
+    { "Disconnection List", "⛔" },
+    { "Manage Notifications", "📢" },
+    { "Support Tickets", "🎟️" },
+    { "Reports", "📈" },
+    { "Audit Logs", "📂" },
+    { "SMS Logs", "📱" },
+    { "Email Logs", "✉️" },
+    { "Register Admin/Staff", "🧑‍💼" },
+    { "Register New User", "➕" },
+    { "General Settings", "⚙️" },
+    { "My Profile", "🙍" },
+    { "Help Center", "💡" },
+    { "All Inquiries", "❓" }
+
+    };
+}
+
+<h2 class="mb-3">Help Articles</h2>
+
+<p>
+    <a asp-action="CreateMultiple" class="btn btn-success">Create New Help</a>
+</p>
+
+<div class="table-responsive">
+    <table class="table table-bordered table-striped align-middle">
+        <thead class="table-light">
+            <tr>
+                <th>Section</th>
+                <th>Title</th>
+                <th>Visible To</th>
+                <th>Created At</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>
+                        @if (!string.IsNullOrWhiteSpace(item.Section) && sectionIcons.ContainsKey(item.Section))
+                        {
+                            @sectionIcons[item.Section] @item.Section
+                        }
+                        else
+                        {
+                            @("-")
+                        }
+                    </td>
+                    <td>@(string.IsNullOrWhiteSpace(item.Title) ? "Untitled" : item.Title)</td>
+                    <td>@(string.IsNullOrWhiteSpace(item.RoleAccess) ? "All" : item.RoleAccess)</td>
+                    <td>@item.CreatedAt.ToString("yyyy-MM-dd")</td>
+                    <td>
+                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info me-1">Details</a>
+                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning me-1">Edit</a>
+                        <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger">Delete</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

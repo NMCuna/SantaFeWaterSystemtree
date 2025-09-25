@@ -108,6 +108,12 @@
                         <li class="nav-item">
                             <a class="nav-link" asp-controller="Home" asp-action="Contact"><i class="bi bi-telephone me-1"></i>Contact</a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="Help" asp-action="HomeHelp">
+                                <i class="bi bi-question-circle me-1"></i> Help
+                            </a>
+                        </li>
+
 
                         @if (User?.Identity?.IsAuthenticated == true)
                         {
@@ -160,6 +166,10 @@
             </div>
         </nav>
     </header>
+
+    <!-- Lyrics Modal -->
+    <!--  <partial name="_LyricsModal" /> -->
+
 
     
     <!-- Logout Confirmation Modal -->
@@ -228,5 +238,162 @@
 
     @RenderSection("Scripts", required: false)
 
+
+
+
+    <!--  
+        <script>
+            // lyrics + timestamps for each song
+            const songs = {
+                nanditoAko: {
+                    audio: "/music/nandito-ako.mp3",
+                           lyrics: [
+                        { time: 0, text: "[Verse 1]" },
+                        { time: 0, text: "Nandito ako, umiibig sa'yo" },
+                        { time: 6, text: "Buong puso ko'y tanging sa'yo lamang" },
+                        { time: 12, text: "Kahit na ikaw ay wala na" },
+                        { time: 18, text: "Nandito pa rin ako, nagmamahal sa'yo" },
+
+                        { time: 26, text: "[Chorus]" },
+                        { time: 26, text: "Nandito ako, naghihintay pa rin sa'yo" },
+                        { time: 34, text: "Umaasa kahit na masaktan" },
+                        { time: 42, text: "Babalik ka rin, muling iibigin" },
+                        { time: 50, text: "Nandito ako para sa’yo" }
+                    ]
+                },
+                manCantBeMoved: {
+                    audio: "/music/the-man-who-cant-be-moved.mp3",
+                    lyrics: [
+                                { time: 0,   text: "[Intro]" },
+        { time: 8,   text: "[Verse 1]" },
+        { time: 8,   text: "Going back to the corner where I first saw you" },
+        { time: 14,  text: "Gonna camp in my sleeping bag, I'm not gonna move" },
+        { time: 19,  text: "Got some words on cardboard, got your picture in my hand" },
+        { time: 24,  text: "Saying, 'If you see this girl, can you tell her where I am?'" },
+        { time: 28,  text: "Some try to hand me money, they don't understand" },
+        { time: 34,  text: "I'm not broke, I'm just a broken-hearted man" },
+        { time: 39,  text: "I know it makes no sense, what else can I do?" },
+        { time: 43,  text: "And how can I move on when I'm still in love with you?" },
+
+        { time: 48,  text: "[Chorus]" },
+        { time: 48,  text: "'Cause if one day you wake up, and find that you're missing me" },
+        { time: 52,  text: "And your heart starts to wonder where on this Earth I could be" },
+        { time: 57,  text: "Thinking maybe you'll come back here to the place that we'd meet" },
+        { time: 62,  text: "And you'll see me waiting for you, on the corner of the street" },
+        { time: 67,  text: "So I'm not moving" },
+        { time: 70,  text: "I'm not moving" },
+
+        { time: 78, text: "[Verse 2]" },
+        { time: 86, text: "Policeman says, 'Son, you can't stay here'" },
+        { time: 91, text: "I say, 'There's someone I'm waiting for, if it's a day, a month, a year'" },
+        { time: 96, text: "Gotta stand my ground, even if it rains or snows" },
+        { time: 101,text: "If she changes her mind, this is the first place she will go" },
+
+        { time: 102, text: "[Chorus]" },
+        { time: 105, text: "'Cause if one day you wake up, and find that you're missing me" },
+        { time: 110, text: "And your heart starts to wonder where on this Earth I could be" },
+        { time: 115, text: "Thinking maybe you'll come back here to the place that we'd meet" },
+        { time: 120, text: "And you'll see me waiting for you, on the corner of the street" },
+        { time: 124, text: "So I'm not moving" },
+        { time: 129, text: "I'm not moving" },
+        { time: 134, text: "I'm not moving" },
+        { time: 137, text: "I'm not moving" },
+
+        { time: 196, text: "[Bridge]" },
+        { time: 196, text: "People talk about the guy who's waiting on a girl, oh" },
+        { time: 202, text: "There are no holes in his shoes, but a big hole in his world, mmm" },
+        { time: 208, text: "Maybe I'll get famous as the man who can't be moved" },
+        { time: 214, text: "And maybe you won't mean to, but you'll see me on the news" },
+        { time: 220, text: "And you'll come running to the corner 'cause you know it's just for you" },
+        { time: 226, text: "I'm the man who can't be moved" },
+        { time: 232, text: "I'm the man who can't be moved" },
+
+        { time: 240, text: "[Chorus]" },
+        { time: 240, text: "'Cause if one day you wake up, and find that you're missing me (find you're missing me)" },
+        { time: 248, text: "And your heart starts to wonder where on this Earth I could be (oh, where on Earth I could be)" },
+        { time: 256, text: "Thinking maybe you'll come back here to the place that we'd meet (to the place that we'd meet, oh, oh)" },
+        { time: 264, text: "And you'll see me waiting for you, on the corner of the street (on the corner of the street)" },
+        { time: 272, text: "So I'm not moving" },
+
+        { time: 280, text: "[Chorus]" },
+        { time: 280, text: "'Cause if one day you wake up, and find that you're missing me (I'm not moving)" },
+        { time: 288, text: "And your heart starts to wonder where on this Earth I could be (I'm not moving)" },
+        { time: 296, text: "Thinking maybe you'll come back here to the place that we'd meet (I'm not moving)" },
+        { time: 304, text: "And you'll see me waiting for you, on the corner of the street" },
+
+        { time: 314, text: "[Outro]" },
+        { time: 314, text: "Going back to the corner" },
+        { time: 318, text: "Where I first saw you" },
+        { time: 322, text: "Gonna camp in my sleeping bag" },
+        { time: 326, text: "I'm not gonna move" }
+
+                    ]
+                }
+            };
+
+            const audio = document.getElementById("lyricsAudio");
+            const audioSource = document.getElementById("audioSource");
+            const lyricsDisplay = document.getElementById("lyricsDisplay");
+            const songSelector = document.getElementById("songSelector");
+
+            let currentLyrics = [];
+
+            function loadSong(key) {
+                const song = songs[key];
+                currentLyrics = song.lyrics;
+
+                // Always show lyrics even if no mp3
+                if (song.audio) {
+                    audioSource.src = song.audio;
+                    audio.load();
+                } else {
+                    audioSource.src = "";
+                    audio.load();
+                }
+
+                // render lyrics
+                lyricsDisplay.innerHTML = "";
+                song.lyrics.forEach((line, i) => {
+                    const p = document.createElement("p");
+                    p.textContent = line.text;
+                    p.classList.add("lyrics-line");
+                    p.setAttribute("data-time", line.time);
+                    lyricsDisplay.appendChild(p);
+                });
+            }
+
+            // highlight line while playing
+            audio.addEventListener("timeupdate", () => {
+                const currentTime = audio.currentTime;
+                let activeIndex = -1;
+
+                currentLyrics.forEach((line, i) => {
+                    if (currentTime >= line.time) activeIndex = i;
+                });
+
+                const lines = document.querySelectorAll("#lyricsDisplay .lyrics-line");
+                lines.forEach((line, i) => {
+                    line.classList.toggle("active-line", i === activeIndex);
+                });
+
+                if (activeIndex >= 0) {
+                    lines[activeIndex].scrollIntoView({ behavior: "smooth", block: "center" });
+                }
+            });
+
+            // song selector change
+            songSelector.addEventListener("change", e => {
+                loadSong(e.target.value);
+            });
+
+            // auto show modal on page load
+            document.addEventListener("DOMContentLoaded", function () {
+                loadSong(songSelector.value);
+                const modal = new bootstrap.Modal(document.getElementById("lyricsModal"));
+                modal.show();
+            });
+    </script> 
+    -->
+   
 </body>
 </html>

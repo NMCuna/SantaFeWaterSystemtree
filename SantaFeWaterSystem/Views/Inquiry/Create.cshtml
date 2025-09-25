@@ -6,11 +6,13 @@
 <div class="container my-5">
     <div class="row justify-content-center">
         <div class="col-12 col-md-10 col-lg-8">
+
             <div class="card shadow-lg border-0 rounded-3">
-                <div class="card-header bg-primary text-white">
+                <div class="card-header bg-primary text-white text-center py-3">
                     <h2 class="mb-0">
                         <i class="bi bi-chat-left-text me-2"></i> Send an Inquiry
                     </h2>
+                    <small class="text-light">We will respond as soon as possible</small>
                 </div>
                 <div class="card-body p-4">
 
@@ -21,60 +23,65 @@
                     }
 
                     <form id="inquiryForm" asp-action="Create" method="post" novalidate>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label asp-for="FirstName">
+
+                        <!-- Name -->
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label asp-for="FirstName" class="form-label">
                                     <i class="bi bi-person-fill me-1 text-secondary"></i> First Name
                                 </label>
-                                <input asp-for="FirstName" class="form-control" />
-                                <span asp-validation-for="FirstName" class="text-danger"></span>
+                                <input asp-for="FirstName" class="form-control" placeholder="Michael" />
+                                <span asp-validation-for="FirstName" class="text-danger small"></span>
                             </div>
-                            <div class="col-md-6 mb-3">
-                                <label asp-for="LastName">
+                            <div class="col-md-6">
+                                <label asp-for="LastName" class="form-label">
                                     <i class="bi bi-person-fill me-1 text-secondary"></i> Last Name
                                 </label>
-                                <input asp-for="LastName" class="form-control" />
-                                <span asp-validation-for="LastName" class="text-danger"></span>
+                                <input asp-for="LastName" class="form-control" placeholder="Cuna" />
+                                <span asp-validation-for="LastName" class="text-danger small"></span>
                             </div>
                         </div>
 
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label asp-for="Email">
+                        <!-- Contact -->
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label asp-for="Email" class="form-label">
                                     <i class="bi bi-envelope-fill me-1 text-secondary"></i> Email
                                 </label>
-                                <input asp-for="Email" class="form-control" />
-                                <span asp-validation-for="Email" class="text-danger"></span>
+                                <input asp-for="Email" class="form-control" placeholder="example@email.com" />
+                                <span asp-validation-for="Email" class="text-danger small"></span>
                             </div>
-                            <div class="col-md-6 mb-3">
-                                <label asp-for="PhoneNumber">
+                            <div class="col-md-6">
+                                <label asp-for="PhoneNumber" class="form-label">
                                     <i class="bi bi-telephone-fill me-1 text-secondary"></i> Phone Number
                                 </label>
-                                <input asp-for="PhoneNumber" class="form-control" />
-                                <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                                <input asp-for="PhoneNumber" class="form-control" placeholder="+63 912 345 6789" />
+                                <span asp-validation-for="PhoneNumber" class="text-danger small"></span>
                             </div>
                         </div>
 
+                        <!-- Purpose -->
                         <div class="mb-3">
-                            <label asp-for="Purpose">
+                            <label asp-for="Purpose" class="form-label">
                                 <i class="bi bi-flag-fill me-1 text-secondary"></i> Purpose
                             </label>
-                            <input asp-for="Purpose" class="form-control" />
-                            <span asp-validation-for="Purpose" class="text-danger"></span>
+                            <input asp-for="Purpose" class="form-control" placeholder="Inquiry Purpose" />
+                            <span asp-validation-for="Purpose" class="text-danger small"></span>
                         </div>
 
+                        <!-- Description -->
                         <div class="mb-3">
-                            <label asp-for="Description">
+                            <label asp-for="Description" class="form-label">
                                 <i class="bi bi-card-text me-1 text-secondary"></i> Description
                             </label>
-                            <textarea asp-for="Description" class="form-control" rows="4"></textarea>
-                            <span asp-validation-for="Description" class="text-danger"></span>
+                            <textarea asp-for="Description" class="form-control" rows="4" placeholder="Provide details here..."></textarea>
+                            <span asp-validation-for="Description" class="text-danger small"></span>
                         </div>
 
                         <!-- Privacy consent -->
-                        <div class="form-check mb-3">
+                        <div class="form-check mb-4">
                             <input asp-for="IsAgreed" class="form-check-input" id="IsAgreed" />
-                            <label class="form-check-label" for="IsAgreed">
+                            <label class="form-check-label small" for="IsAgreed">
                                 <i class="bi bi-shield-lock-fill text-primary me-1"></i>
                                 I agree to the use or processing of my personal information.
                                 <a href="@Url.Action("Privacy", "Home")" target="_blank" rel="noopener">
@@ -83,32 +90,32 @@
                             </label>
                         </div>
 
-                        <button type="submit" id="submitBtn" class="btn btn-primary w-100" disabled>
-                            <i class="bi bi-send-fill me-1"></i> Send Inquiry
+                        <!-- Submit Button -->
+                        <button type="submit" id="submitBtn" class="btn btn-primary w-100 btn-lg fw-bold" disabled>
+                            <i class="bi bi-send-fill me-2"></i> Send Inquiry
                         </button>
                     </form>
                 </div>
             </div>
+
         </div>
     </div>
 </div>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
-
-    <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
+        // Enable/disable submit button based on checkbox
         const agreed = document.getElementById("IsAgreed");
         const submitBtn = document.getElementById("submitBtn");
 
-        // Enable/disable submit button based on checkbox
         agreed.addEventListener("change", function () {
             submitBtn.disabled = !this.checked;
         });
 
-        // Handle Success Message
+        // Success Alert
         const successMessage = document.getElementById("successMessage");
         if (successMessage) {
             Swal.fire({
@@ -120,3 +127,23 @@
         }
     </script>
 }
+
+<style>
+    /* Input focus highlight */
+    .form-control:focus, .form-check-input:focus {
+        box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+        border-color: #0d6efd;
+    }
+
+    /* Card shadow enhancement */
+    .card {
+        border-radius: 1rem;
+    }
+
+    /* Slight hover lift on submit button */
+    #submitBtn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        transition: all 0.2s ease;
+    }
+</style>

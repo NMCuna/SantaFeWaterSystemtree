@@ -44,6 +44,7 @@ namespace SantaFeWaterSystem.Data
         public DbSet<PasswordHistory> PasswordHistories { get; set; }
         public DbSet<AdminAccessSetting> AdminAccessSettings { get; set; }
         public DbSet<AdminResetToken> AdminResetTokens { get; set; }
+        public DbSet<Help> Helps { get; set; } = default!;
 
 
 

@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using SantaFeWaterSystem.Data;
 using SantaFeWaterSystem.Models;
 using SantaFeWaterSystem.Services;
@@ -15,9 +16,19 @@ using System.Threading.Tasks;
 namespace SantaFeWaterSystem.Controllers
 {
     [Authorize(Roles = "Admin,Staff")]
-    public class UserProfileController(ApplicationDbContext _context, IWebHostEnvironment _environment, AuditLogService _audit, IPasswordHasher<User> _passwordHasher) : Controller
+    public class UserProfileController(
+        ApplicationDbContext context,
+        IWebHostEnvironment environment,
+        AuditLogService audit,
+        IPasswordHasher<User> passwordHasher,
+        PasswordPolicyService passwordPolicyService
+    ) : Controller
     {
-
+        private readonly ApplicationDbContext _context = context;
+        private readonly IWebHostEnvironment _environment = environment;
+        private readonly AuditLogService _audit = audit;
+        private readonly IPasswordHasher<User> _passwordHasher = passwordHasher;
+        private readonly PasswordPolicyService _passwordPolicyService = passwordPolicyService;
 
 
         /////////////////////////////////
@@ -136,48 +147,117 @@ namespace SantaFeWaterSystem.Controllers
 
 
 
-        // ================== CHANGE PASS ADMIN/STAFF ==================
+        // ================== RESET PASSWORD FOR ADMIN/STAFF ==================
 
-        // GET: UserProfile/ChangePassword
-        [Authorize(Roles = "Admin,Staff")]
+        // GET: Show Reset Password View
         [HttpGet]
-        public IActionResult ResetPassword()
+        [Authorize(Roles = "Admin,Staff")]
+        public async Task<IActionResult> ResetPassword()
         {
-            return View();
+            // 🔹 Load latest password policy
+            var policy = await _context.PasswordPolicies
+                .OrderByDescending(p => p.Id)
+                .FirstOrDefaultAsync();
+
+            if (policy == null)
+            {
+                policy = new PasswordPolicy
+                {
+                    MinPasswordLength = 8,
+                    RequireComplexity = true,
+                    PasswordHistoryCount = 5,
+                    MaxPasswordAgeDays = 0,
+                    MinPasswordAgeDays = 1
+                };
+            }
+
+            ViewBag.PasswordPolicy = policy;
+            return View(new ResetPasswordViewModel());
         }
 
+        // POST: Process Reset Password
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin,Staff")]
         public async Task<IActionResult> ResetPassword(ResetPasswordViewModel model)
         {
+            // 🔹 Load latest password policy
+            var policy = await _context.PasswordPolicies
+                .OrderByDescending(p => p.Id)
+                .FirstOrDefaultAsync();
+
+            ViewBag.PasswordPolicy = policy ?? new PasswordPolicy
+            {
+                MinPasswordLength = 8,
+                RequireComplexity = true,
+                PasswordHistoryCount = 5
+            };
+
             if (!ModelState.IsValid)
+            {
+                TempData["Error"] = "❌ Please correct the errors below.";
                 return View(model);
+            }
 
             var userId = User.FindFirstValue("UserId");
-            if (!int.TryParse(userId, out int id)) return Unauthorized();
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized();
+
+            if (!int.TryParse(userId, out int id))
+                return Unauthorized();
 
             var user = await _context.Users.FindAsync(id);
-            if (user == null) return NotFound();
+            if (user == null)
+                return NotFound();
 
-            user.PasswordHash = _passwordHasher.HashPassword(user, model.NewPassword);
-            await _context.SaveChangesAsync();
+            // 🔹 Verify current password
+            bool isCurrentPasswordValid = false;
+            try
+            {
+                isCurrentPasswordValid = BCrypt.Net.BCrypt.Verify(model.CurrentPassword, user.PasswordHash);
+            }
+            catch (BCrypt.Net.SaltParseException)
+            {
+                // Optionally log
+            }
 
-            // Audit trail
-            var performedBy = User.Identity?.Name ?? "Unknown";
-            var details = $"Password reset for user: {user.Username} (ID: {user.Id})";
+            if (!isCurrentPasswordValid)
+            {
+                ModelState.AddModelError(nameof(model.CurrentPassword), "Current password is incorrect.");
+                TempData["Error"] = "❌ Current password is incorrect.";
+                return View(model);
+            }
 
-            var audit = new AuditTrail
+            // 🔹 Validate new password against policy
+            var isValidPassword = await _passwordPolicyService.ValidatePasswordAsync(user.Id, model.NewPassword);
+            if (!isValidPassword)
+            {
+                ModelState.AddModelError(nameof(model.NewPassword),
+                    "Password must meet all requirements (length, complexity, history).");
+                TempData["Error"] = "❌ Change password failed — new password does not meet the requirements.";
+                return View(model);
+            }
+
+            // 🔹 Hash and save new password
+            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(model.NewPassword);
+
+            // 🔹 Save password history
+            await _passwordPolicyService.SavePasswordHistoryAsync(user.Id, user.PasswordHash);
+
+            // 🔹 Log audit action
+            _context.AuditTrails.Add(new AuditTrail
             {
                 Action = "Reset Password",
-                PerformedBy = performedBy,
+                PerformedBy = User.Identity?.Name ?? "Unknown",
                 Timestamp = DateTime.UtcNow,
-                Details = details
-            };
-            _context.AuditTrails.Add(audit);
+                Details = $"Admin/Staff '{user.Username}' reset their own password."
+            });
+
             await _context.SaveChangesAsync();
 
-            TempData["Message"] = "Your password has been reset successfully.";
+            TempData["Message"] = "✅ Password changed successfully.";
             return RedirectToAction("Profile");
         }
+
     }
 }

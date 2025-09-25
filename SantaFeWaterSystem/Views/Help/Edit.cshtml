@@ -1,0 +1,97 @@
+﻿@model SantaFeWaterSystem.Models.Help
+
+@{
+    ViewData["Title"] = "Edit Help Article";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<h2 class="mb-4">Edit Help Article</h2>
+
+<form asp-action="Edit" method="post">
+    <input type="hidden" asp-for="Id" />
+
+    <div class="mb-3">
+        <label asp-for="Title" class="form-label">Title</label>
+        <input asp-for="Title" class="form-control" placeholder="Enter help article title" />
+        <span asp-validation-for="Title" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Description" class="form-label">Description</label>
+        <textarea asp-for="Description" class="form-control" rows="6" placeholder="Enter detailed help description"></textarea>
+        <span asp-validation-for="Description" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Section" class="form-label">Section</label>
+        <select asp-for="Section" class="form-select">
+            <option value="">(none)</option>
+
+            <!-- Existing Sections -->
+            <option>Home</option>
+            <option>Privacy Policy</option>
+            <option>Contact</option>
+            <option>Inquiries</option>
+            <option>User</option>
+            <option>Staff</option>
+            <option>Admin</option>
+            <option>Login</option>
+            <option>User Dashboard</option>
+            <option>Billing History</option>
+            <option>Payments</option>
+            <option>Profile</option>
+            <option>Support</option>
+            <option>Community Feed</option>
+            <option>Dark Mode</option>
+            <option>Notifications</option>
+            <option>Feedback</option>
+            <option>Two-Factor Authentication</option>
+            <option>Help</option>
+            <option>AllowAnonymous</option>
+
+            <!-- New Staff/Admin Sections -->
+            <option>Staff Dashboard</option>
+            <option>Admin Dashboard</option>
+            <option>Manage Users</option>
+            <option>Manage Consumers</option>
+            <option>Manage Billing</option>
+            <option>Manage Payments</option>
+            <option>Disconnection List</option>
+            <option>Manage Notifications</option>
+            <option>Support Tickets</option>
+            <option>Reports</option>
+            <option>Audit Logs</option>
+            <option>SMS Logs</option>
+            <option>Email Logs</option>
+            <option>Register Admin/Staff</option>
+            <option>Register New User</option>
+            <option>General Settings</option>
+            <option>My Profile</option>
+            <option>Help Center</option>
+            <option>All Inquiries</option>
+        </select>
+        <span asp-validation-for="Section" class="text-danger"></span>
+    </div>
+
+
+
+    <div class="mb-3">
+        <label asp-for="RoleAccess" class="form-label">Visible To (RoleAccess)</label>
+        <select asp-for="RoleAccess" class="form-select">
+            <option value="">All</option>
+            <option>User</option>
+            <option>Staff</option>
+            <option>Admin</option>
+            <option>Home</option>
+        </select>
+        <small class="form-text text-muted">Choose who can see this article. Leave blank for "All".</small>
+        <span asp-validation-for="RoleAccess" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-success me-2">Save</button>
+    <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

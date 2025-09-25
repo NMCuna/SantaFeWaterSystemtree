@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using SantaFeWaterSystem.Data;
 using SantaFeWaterSystem.Models;
 using System.Text.RegularExpressions;
@@ -10,12 +9,10 @@ namespace SantaFeWaterSystem.Services
     public class PasswordPolicyService
     {
         private readonly ApplicationDbContext _context;
-        private readonly IPasswordHasher<User> _passwordHasher;
 
-        public PasswordPolicyService(ApplicationDbContext context, IPasswordHasher<User> passwordHasher)
+        public PasswordPolicyService(ApplicationDbContext context)
         {
             _context = context;
-            _passwordHasher = passwordHasher;
         }
 
         // Get current password policy
@@ -29,11 +26,11 @@ namespace SantaFeWaterSystem.Services
         {
             var policy = await GetPolicyAsync();
 
-            // Length check
+            // 🔹 Length check
             if (password.Length < policy.MinPasswordLength)
                 return false;
 
-            // Complexity check
+            // 🔹 Complexity check
             if (policy.RequireComplexity)
             {
                 bool hasUpper = Regex.IsMatch(password, "[A-Z]");
@@ -44,7 +41,7 @@ namespace SantaFeWaterSystem.Services
                     return false;
             }
 
-            // History check
+            // 🔹 History check (disallow reuse of recent N)
             var recentPasswords = await _context.PasswordHistories
                 .Where(h => h.UserId == userId)
                 .OrderByDescending(h => h.ChangedDate)
@@ -53,10 +50,19 @@ namespace SantaFeWaterSystem.Services
 
             foreach (var oldPassword in recentPasswords)
             {
-                var dummyUser = new User();
-                var result = _passwordHasher.VerifyHashedPassword(dummyUser, oldPassword.PasswordHash, password);
-                if (result == PasswordVerificationResult.Success)
-                    return false;
+                if (string.IsNullOrWhiteSpace(oldPassword.PasswordHash))
+                    continue; // skip empty hashes
+
+                try
+                {
+                    if (BCrypt.Net.BCrypt.Verify(password, oldPassword.PasswordHash))
+                        return false; // password was used recently
+                }
+                catch (BCrypt.Net.SaltParseException)
+                {
+                    // skip malformed hash
+                    continue;
+                }
             }
 
             return true;
@@ -65,6 +71,9 @@ namespace SantaFeWaterSystem.Services
         // Save password to history (with cleanup)
         public async Task SavePasswordHistoryAsync(int userId, string passwordHash)
         {
+            if (string.IsNullOrWhiteSpace(passwordHash))
+                return;
+
             // 1️⃣ Save new password
             _context.PasswordHistories.Add(new PasswordHistory
             {
@@ -91,5 +100,11 @@ namespace SantaFeWaterSystem.Services
                 await _context.SaveChangesAsync();
             }
         }
-}
+
+        // ✅ Helper: Hash a password with BCrypt
+        public string HashPassword(string password)
+        {
+            return BCrypt.Net.BCrypt.HashPassword(password);
+        }
+    }
 }

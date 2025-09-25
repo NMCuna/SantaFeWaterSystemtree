@@ -1,4 +1,4 @@
-﻿@model SantaFeWaterSystem.Models.Consumer
+﻿@model SantaFeWaterSystem.Models.ViewModels.ConsumerViewModel
 
 @{
     ViewData["Title"] = "Add New Consumer";
@@ -69,10 +69,12 @@
 
     <div class="form-section">
         <form asp-action="CreateConsumer" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
             <div class="row g-3">
                 <!-- Last Name -->
                 <div class="col-md-6">
-                    <label asp-for="LastName" class="form-label" data-bs-toggle="tooltip" title="Enter consumer's last name">Last Name</label>
+                    <label asp-for="LastName" class="form-label"></label>
                     <div class="input-icon-group">
                         <input asp-for="LastName" class="form-control" />
                         <i class="bi bi-person-vcard"></i>
@@ -82,7 +84,7 @@
 
                 <!-- First Name -->
                 <div class="col-md-6">
-                    <label asp-for="FirstName" class="form-label" data-bs-toggle="tooltip" title="Enter consumer's first name">First Name</label>
+                    <label asp-for="FirstName" class="form-label"></label>
                     <div class="input-icon-group">
                         <input asp-for="FirstName" class="form-control" />
                         <i class="bi bi-person-vcard"></i>
@@ -92,7 +94,7 @@
 
                 <!-- Middle Name -->
                 <div class="col-md-6">
-                    <label asp-for="MiddleName" class="form-label" data-bs-toggle="tooltip" title="Enter consumer's middle name">Middle Name</label>
+                    <label asp-for="MiddleName" class="form-label"></label>
                     <div class="input-icon-group">
                         <input asp-for="MiddleName" class="form-control" />
                         <i class="bi bi-person-vcard"></i>
@@ -102,9 +104,9 @@
 
                 <!-- Account Type -->
                 <div class="col-md-6">
-                    <label asp-for="AccountType" class="form-label" data-bs-toggle="tooltip" title="Select the consumer's account type">Account Type</label>
+                    <label asp-for="AccountType" class="form-label"></label>
                     <div class="input-icon-group">
-                        <select asp-for="AccountType" class="form-select" asp-items="ViewBag.AccountTypes">
+                        <select asp-for="AccountType" class="form-select" asp-items="Model.AccountTypes">
                             <option value="">-- Select Account Type --</option>
                         </select>
                         <i class="bi bi-card-list"></i>
@@ -114,7 +116,7 @@
 
                 <!-- Meter No -->
                 <div class="col-md-6">
-                    <label asp-for="MeterNo" class="form-label" data-bs-toggle="tooltip" title="Enter assigned water meter number">Meter No</label>
+                    <label asp-for="MeterNo" class="form-label"></label>
                     <div class="input-icon-group">
                         <input asp-for="MeterNo" class="form-control" />
                         <i class="bi bi-speedometer2"></i>
@@ -124,7 +126,7 @@
 
                 <!-- Email -->
                 <div class="col-md-6">
-                    <label asp-for="Email" class="form-label" data-bs-toggle="tooltip" title="Consumer's active email address">Email</label>
+                    <label asp-for="Email" class="form-label"></label>
                     <div class="input-icon-group">
                         <input asp-for="Email" class="form-control" />
                         <i class="bi bi-envelope"></i>
@@ -134,7 +136,7 @@
 
                 <!-- Home Address -->
                 <div class="col-md-6">
-                    <label asp-for="HomeAddress" class="form-label" data-bs-toggle="tooltip" title="Home address of the consumer">Home Address</label>
+                    <label asp-for="HomeAddress" class="form-label"></label>
                     <div class="input-icon-group">
                         <input asp-for="HomeAddress" class="form-control" />
                         <i class="bi bi-house-door"></i>
@@ -144,7 +146,7 @@
 
                 <!-- Meter Address -->
                 <div class="col-md-6">
-                    <label asp-for="MeterAddress" class="form-label" data-bs-toggle="tooltip" title="Physical location of the meter">Meter Address</label>
+                    <label asp-for="MeterAddress" class="form-label"></label>
                     <div class="input-icon-group">
                         <input asp-for="MeterAddress" class="form-control" />
                         <i class="bi bi-geo-alt"></i>
@@ -154,7 +156,7 @@
 
                 <!-- Contact Number -->
                 <div class="col-md-6">
-                    <label asp-for="ContactNumber" class="form-label" data-bs-toggle="tooltip" title="Active phone number for contact">Contact Number</label>
+                    <label asp-for="ContactNumber" class="form-label"></label>
                     <div class="input-icon-group">
                         <input asp-for="ContactNumber" class="form-control" />
                         <i class="bi bi-telephone"></i>
@@ -162,24 +164,11 @@
                     <span asp-validation-for="ContactNumber" class="text-danger"></span>
                 </div>
 
-                <!-- Status -->
-                <div class="col-md-6">
-                    <label asp-for="Status" class="form-label" data-bs-toggle="tooltip" title="Set initial status of the consumer">Status</label>
-                    <div class="input-icon-group">
-                        <select asp-for="Status" class="form-select">
-                            <option value="Active">Active</option>
-                            <option value="Disconnected">Disconnected</option>
-                        </select>
-                        <i class="bi bi-toggle-on"></i>
-                    </div>
-                    <span asp-validation-for="Status" class="text-danger"></span>
-                </div>
-
                 <!-- Linked User -->
                 <div class="col-md-6">
-                    <label asp-for="UserId" class="form-label" data-bs-toggle="tooltip" title="Select linked system user account">Linked User</label>
+                    <label asp-for="UserId" class="form-label"></label>
                     <div class="input-icon-group">
-                        <select asp-for="UserId" class="form-select" asp-items="ViewBag.Users">
+                        <select asp-for="UserId" class="form-select" asp-items="Model.AvailableUsers">
                             <option value="">-- Select a User --</option>
                         </select>
                         <i class="bi bi-person-check"></i>
@@ -190,7 +179,7 @@
 
             <div class="mt-4">
                 <button type="submit" class="btn btn-primary"><i class="bi bi-check-circle"></i> Create</button>
-                <a asp-action="Consumers" class="btn btn-secondary"><i class="bi bi-x-circle"></i> Cancel</a>
+                <a asp-action="Consumers" asp-controller="Admin" class="btn btn-secondary"><i class="bi bi-x-circle"></i> Cancel</a>
             </div>
         </form>
     </div>
@@ -199,7 +188,8 @@
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
     <script>
-        // Enable Bootstrap tooltips
-        document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => new bootstrap.Tooltip(el));
+        document.addEventListener("DOMContentLoaded", () => {
+            document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => new bootstrap.Tooltip(el));
+        });
     </script>
 }

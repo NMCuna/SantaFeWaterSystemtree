@@ -5,6 +5,34 @@
 
 @section Styles {
     <link rel="stylesheet" href="~/css/contact.css" asp-append-version="true" />
+    <style>
+        .inquiry-btn {
+            font-size: 1.25rem; /* bigger text */
+            font-weight: 600;
+            padding: 0.75rem 2rem;
+            border-radius: 50px; /* pill-shaped */
+            background: linear-gradient(90deg, #0d6efd, #3d8bfd);
+            color: #fff;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+            .inquiry-btn:hover {
+                background: linear-gradient(90deg, #0b5ed7, #2a75d2);
+                transform: translateY(-3px);
+                box-shadow: 0 6px 15px rgba(0,0,0,0.2);
+                text-decoration: none;
+            }
+
+            .inquiry-btn:focus {
+                outline: none;
+                box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.5);
+            }
+
+            /* Optional: icon spacing */
+            .inquiry-btn i {
+                vertical-align: middle;
+            }
+    </style>
 }
 
 <div class="container my-5">
@@ -61,11 +89,12 @@
 
                 <div class="divider"></div>
 
-                <div class="mt-4 text-center">
-                    <a asp-controller="Inquiry" asp-action="Create" class="btn btn-primary btn-lg">
-                        <i class="bi bi-chat-left-text"></i> Submit an Inquiry
+                <div class="mt-5 text-center">
+                    <a asp-controller="Inquiry" asp-action="Create" class="inquiry-btn btn btn-lg">
+                        <i class="bi bi-chat-left-text me-2"></i> Submit an Inquiry
                     </a>
                 </div>
+
             </div>
         </div>
     </div>

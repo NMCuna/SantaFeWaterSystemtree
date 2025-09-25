@@ -1,0 +1,125 @@
+﻿@{
+    ViewData["Title"] = "Account Pending";
+    Layout = "~/Views/Shared/_HomeLayout.cshtml";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-10 col-lg-8">
+            <div class="card shadow-lg border-0 rounded-3">
+                <div class="card-body text-center p-4 p-md-5">
+
+                    <!-- Header -->
+                    <h2 class="text-warning mb-3 fs-4 fs-md-3 fs-lg-2">
+                        <i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i>
+                        <span class="visually-hidden">Warning:</span>
+                        Account Not Yet Linked
+                    </h2>
+
+                    <p class="lead fs-6 fs-md-5">
+                        Your account has been created but is not yet linked to your <strong>Consumer Information</strong>.
+                    </p>
+                    <p class="text-muted fs-7 fs-md-6">
+                        This usually means the administrator is still verifying or connecting your account to your water service records.
+                    </p>
+
+                    <!-- Extra Information -->
+                    <div class="alert alert-info text-start mt-4 small">
+                        <h5 class="mb-2 fs-6 fs-md-5">
+                            <i class="bi bi-info-circle-fill" aria-hidden="true"></i>
+                            <span class="visually-hidden">Info:</span>
+                            What happens next?
+                        </h5>
+                        <ul class="mb-0 ps-3">
+                            <li>An administrator will link your account to your consumer profile.</li>
+                            <li>Once linked, you’ll gain full access to your <strong>billing</strong>, <strong>payment history</strong>, and <strong>notices</strong>.</li>
+                            <li>If this process takes longer than expected, you may <a asp-controller="Home" asp-action="Contact">contact support</a> for assistance.</li>
+                        </ul>
+                    </div>
+
+                    <!-- Status Badge -->
+                    <div class="mt-4">
+                        <span class="badge bg-warning text-dark p-2 fs-7 fs-md-6">
+                            Pending Admin Action
+                        </span>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="mt-5 d-flex justify-content-center gap-2 flex-wrap">
+                        <a asp-controller="Home" asp-action="Contact" class="btn btn-primary btn-sm btn-md-lg">
+                            <i class="bi bi-chat-dots-fill" aria-hidden="true"></i>
+                            Contact Support
+                        </a>
+                        <!-- Logout Trigger Button -->
+                        <button type="button" class="btn btn-outline-secondary btn-sm btn-md-lg" data-bs-toggle="modal" data-bs-target="#logoutModal">
+                            <i class="bi bi-box-arrow-right"></i> Logout
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Logout Confirmation Modal -->
+<div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow-lg border-0 rounded-3">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title" id="logoutModalLabel">
+                    <i class="bi bi-box-arrow-right"></i> Confirm Logout
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center">
+                <p class="lead mb-2">Are you sure you want to log out?</p>
+                <p class="text-muted">You will be returned to the homepage after logging out.</p>
+            </div>
+            <div class="modal-footer justify-content-center flex-wrap">
+                <button type="button" class="btn btn-secondary btn-sm btn-md-lg" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle"></i> Cancel
+                </button>
+                <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-danger btn-sm btn-md-lg">
+                        <i class="bi bi-check-circle"></i> Yes, Logout
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Extra responsive fine-tuning */
+    @@media (max-width: 576px) {
+        h2
+
+    {
+        font-size: 1.25rem !important;
+    }
+
+    p.lead {
+        font-size: 0.95rem !important;
+    }
+
+    .alert h5 {
+        font-size: 1rem !important;
+    }
+
+    .alert ul {
+        font-size: 0.85rem !important;
+    }
+
+    .badge {
+        font-size: 0.8rem !important;
+    }
+
+    .btn {
+        font-size: 0.85rem !important;
+        padding: .4rem .75rem;
+    }
+
+    }
+</style>

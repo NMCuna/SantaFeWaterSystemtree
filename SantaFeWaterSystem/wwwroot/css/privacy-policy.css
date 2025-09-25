@@ -1,8 +1,4 @@
-﻿.container {
-    max-width: 100%;
-    padding: 0 1rem;
-}
-
+﻿/* Existing styles ... */
 .privacy-title {
     background: linear-gradient(90deg, #198754, #28a745);
     color: white;
@@ -18,13 +14,6 @@
     box-shadow: 0 3px 8px rgba(25, 135, 84, 0.3);
 }
 
-.privacy-section-title {
-    font-size: clamp(1rem, 3.5vw, 1.25rem);
-    font-weight: 600;
-    margin-bottom: 0.25rem;
-    color: #198754;
-}
-
 .privacy-box {
     background: #ffffff;
     max-width: 100%;
@@ -34,38 +23,39 @@
     box-shadow: 0 4px 15px rgba(0,0,0,0.05);
     word-wrap: break-word;
     overflow-wrap: break-word;
+    max-height: 70vh;
+    overflow-y: auto;
 }
-
-    .privacy-box p {
-        line-height: 1.6;
-        margin-bottom: 0.75rem;
-        text-align: left;
-        white-space: pre-wrap;
-        color: #212529;
-        font-size: clamp(0.9rem, 3vw, 1rem);
-    }
 
 .privacy-intro {
     font-weight: bold;
     color: #856404;
     margin-bottom: 1rem;
-    white-space: pre-wrap;
     text-align: center;
     font-size: clamp(0.95rem, 3vw, 1.1rem);
 }
 
-.privacy-box p.fw-bold {
-    color: #856404;
+.privacy-section-title {
+    font-weight: 500;
+    font-size: clamp(1rem, 3.5vw, 1.25rem);
+    color: #198754;
+    transition: color 0.3s ease, transform 0.2s ease;
 }
 
-.privacy-section {
-    padding: 1rem 0;
+    .privacy-section-title:hover {
+        color: #145c33;
+        transform: translateX(5px);
+    }
+
+.section-number {
+    font-weight: 700;
+    color: #198754;
 }
 
 .privacy-section-content {
     font-size: clamp(0.9rem, 3vw, 1rem);
     color: #495057;
-    line-height: 1.6;
+    line-height: 1.7;
 }
 
 .back-home-btn {
@@ -76,11 +66,38 @@
     background: linear-gradient(90deg, #198754, #28a745);
     color: white;
     border: none;
+    text-decoration: none; /* <-- remove underline */
     transition: background-color 0.2s ease, transform 0.2s ease;
 }
 
     .back-home-btn:hover {
         background: linear-gradient(90deg, #157347, #1e8e3e);
+        transform: translateY(-2px);
+        text-decoration: none; /* also prevent underline on hover */
+    }
+
+
+/* Back to Top Button */
+#backToTopBtn {
+    display: none;
+    position: fixed;
+    bottom: 40px;
+    right: 30px;
+    z-index: 99;
+    font-size: 1.5rem;
+    border: none;
+    outline: none;
+    background-color: #198754;
+    color: white;
+    cursor: pointer;
+    padding: 0.5rem 0.75rem;
+    border-radius: 50%;
+    box-shadow: 0 3px 6px rgba(0,0,0,0.15);
+    transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+    #backToTopBtn:hover {
+        background-color: #145c33;
         transform: translateY(-2px);
     }
 

@@ -120,6 +120,22 @@
                     </a>
                 </div>
             }
+
+            @if (userPermissions.Contains("ManageHelp") || isAdmin)
+            {
+                <div class="col-md-4">
+                    <a asp-controller="Help" asp-action="Index" class="text-decoration-none">
+                        <div class="card shadow-sm border-0 h-100 text-center p-3 setting-card">
+                            <div class="card-body">
+                                <i class="bi bi-question-circle fs-1 text-primary"></i>
+                                <h5 class="mt-3">Help Management</h5>
+                                <p class="text-muted small">Create, edit, delete, and view help articles for all roles.</p>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            }
+
         </div>
     </div>
 </div>

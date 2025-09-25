@@ -99,6 +99,29 @@
                 </button>
             </div>
 
+            <div class="me-3">
+                @if (isAdmin)
+                {
+                    <a class="btn btn-outline-light"
+                       asp-controller="Help"
+                       asp-action="Admin"
+                       title="Admin Help">
+                        <i class="bi bi-question-circle"></i>
+                    </a>
+                }
+                else if (isStaff)
+                {
+                    <a class="btn btn-outline-light"
+                       asp-controller="Help"
+                       asp-action="Staff"
+                       title="Staff Help">
+                        <i class="bi bi-question-circle"></i>
+                    </a>
+                }
+            </div>
+
+
+
             <!-- Dropdown -->
             <div class="dropdown">
                 <button class="btn btn-outline-light btn-sm d-flex justify-content-center align-items-center"

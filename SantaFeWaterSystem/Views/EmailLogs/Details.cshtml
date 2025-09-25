@@ -20,7 +20,6 @@
             <i class="bi bi-arrow-left-circle me-1"></i> Back to List
         </a>
     </div>
-
 </div>
 
 <!-- Details Card -->
@@ -47,9 +46,10 @@
 
             <dt class="col-sm-3">Status</dt>
             <dd class="col-sm-9">
-                @(Model.IsSuccess
-                                ? "<span class='text-success'><i class='bi bi-check-circle me-1'></i>Success</span>"
-                                : "<span class='text-danger'><i class='bi bi-x-circle me-1'></i>Failed</span>")
+                <span class="@(Model.IsSuccess ? "text-success" : "text-danger")">
+                    <i class="@(Model.IsSuccess ? "bi bi-check-circle" : "bi bi-x-circle") me-1"></i>
+                    @(Model.IsSuccess ? "Success" : "Failed")
+                </span>
             </dd>
 
             <dt class="col-sm-3">Response</dt>

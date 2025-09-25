@@ -33,8 +33,8 @@
                             <label asp-for="MaxPasswordAgeDays" class="form-label">
                                 <i class="bi bi-calendar-x me-1"></i> Maximum Password Age (Days)
                             </label>
-                            <input asp-for="MaxPasswordAgeDays" class="form-control policy-input" type="number" min="0" />
-                            <small class="text-muted">Users must change their password after this many days.</small>
+                            <input asp-for="MaxPasswordAgeDays" class="form-control policy-input" type="number" min="0" id="MaxPasswordAgeDays" />
+                            <small class="text-muted">Users must change their password after this many days. Set to <strong>0</strong> for <em>Never expires</em>.</small>
                             <span asp-validation-for="MaxPasswordAgeDays" class="text-danger"></span>
                         </div>
 
@@ -42,7 +42,7 @@
                             <label asp-for="MinPasswordAgeDays" class="form-label">
                                 <i class="bi bi-calendar-check me-1"></i> Minimum Password Age (Days)
                             </label>
-                            <input asp-for="MinPasswordAgeDays" class="form-control policy-input" type="number" min="0" />
+                            <input asp-for="MinPasswordAgeDays" class="form-control policy-input" type="number" min="0" id="MinPasswordAgeDays" />
                             <small class="text-muted">Prevents users from changing passwords too frequently.</small>
                             <span asp-validation-for="MinPasswordAgeDays" class="text-danger"></span>
                         </div>
@@ -51,7 +51,7 @@
                             <label asp-for="MinPasswordLength" class="form-label">
                                 <i class="bi bi-text-paragraph me-1"></i> Minimum Password Length
                             </label>
-                            <input asp-for="MinPasswordLength" class="form-control policy-input" type="number" min="6" />
+                            <input asp-for="MinPasswordLength" class="form-control policy-input" type="number" min="6" id="MinPasswordLength" />
                             <small class="text-muted">Recommended minimum is 8 characters.</small>
                             <span asp-validation-for="MinPasswordLength" class="text-danger"></span>
                         </div>
@@ -60,7 +60,7 @@
                             <label asp-for="PasswordHistoryCount" class="form-label">
                                 <i class="bi bi-clock-history me-1"></i> Password History
                             </label>
-                            <input asp-for="PasswordHistoryCount" class="form-control policy-input" type="number" min="0" />
+                            <input asp-for="PasswordHistoryCount" class="form-control policy-input" type="number" min="0" id="PasswordHistoryCount" />
                             <small class="text-muted">Disallows reusing the last N passwords.</small>
                             <span asp-validation-for="PasswordHistoryCount" class="text-danger"></span>
                         </div>
@@ -91,7 +91,10 @@
                         </div>
                         <div class="card-body">
                             <ul class="list-unstyled mb-0" id="policyPreview">
-                                <li><i class="bi bi-dot"></i> Password expires in <strong>@Model.MaxPasswordAgeDays</strong> days</li>
+                                <li>
+                                    <i class="bi bi-dot"></i> Password expires in
+                                    <strong>@(Model.MaxPasswordAgeDays == 0 ? "Never expires" : Model.MaxPasswordAgeDays + " days")</strong>
+                                </li>
                                 <li><i class="bi bi-dot"></i> Must wait <strong>@Model.MinPasswordAgeDays</strong> days before changing again</li>
                                 <li><i class="bi bi-dot"></i> Minimum length: <strong>@Model.MinPasswordLength</strong> characters</li>
                                 <li><i class="bi bi-dot"></i> Cannot reuse last <strong>@Model.PasswordHistoryCount</strong> passwords</li>
@@ -119,8 +122,10 @@
                 const history = document.getElementById("PasswordHistoryCount").value || 0;
                 const complexity = document.getElementById("complexityCheck").checked ? "Yes" : "No";
 
+                const maxAgeText = (parseInt(maxAge) === 0) ? "Never expires" : `${maxAge} days`;
+
                 preview.innerHTML = `
-                    <li><i class="bi bi-dot"></i> Password expires in <strong>${maxAge}</strong> days</li>
+                    <li><i class="bi bi-dot"></i> Password expires in <strong>${maxAgeText}</strong></li>
                     <li><i class="bi bi-dot"></i> Must wait <strong>${minAge}</strong> days before changing again</li>
                     <li><i class="bi bi-dot"></i> Minimum length: <strong>${minLength}</strong> characters</li>
                     <li><i class="bi bi-dot"></i> Cannot reuse last <strong>${history}</strong> passwords</li>
@@ -129,7 +134,7 @@
             }
 
             inputs.forEach(input => input.addEventListener("input", updatePreview));
-            updatePreview(); // initialize
+            updatePreview(); // initialize on load
         });
     </script>
 }

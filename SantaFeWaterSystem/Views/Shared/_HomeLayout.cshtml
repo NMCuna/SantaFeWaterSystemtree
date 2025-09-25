@@ -108,17 +108,22 @@
         @RenderBody()
     </main>
 
-    <!-- Footer -->
-    <footer class="footer border-top py-3 bg-light mt-auto" role="contentinfo">
-        <div class="container d-flex justify-content-center flex-wrap" aria-label="Footer Navigation">
+    <footer class="footer border-top mt-5 py-3 bg-light">
+        <div class="container d-flex justify-content-center flex-wrap">
             <span class="text-nowrap">&copy; @DateTime.Now.Year - Santa Fe Water Billing System -</span>
             <a class="mx-1 text-nowrap" asp-controller="Home" asp-action="Index">Home</a>
             <span class="text-nowrap">|</span>
             <a class="mx-1 text-nowrap" asp-controller="Home" asp-action="Privacy">Privacy</a>
             <span class="text-nowrap">|</span>
             <a class="mx-1 text-nowrap" asp-controller="Home" asp-action="Contact">Contact</a>
+            <span class="text-nowrap">|</span>
+            <a class="mx-1 text-nowrap" asp-controller="Inquiry" asp-action="Create">Inquiries</a>
         </div>
     </footer>
+
+    <!-- ✅ Cookie Consent Banner (moved near footer) -->
+    <partial name="_CookieConsentPartial" />
+
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>

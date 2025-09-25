@@ -2,14 +2,24 @@
 
 @{
     ViewData["Title"] = "Profile";
-    Layout = "~/Views/Shared/_UserLayout.cshtml";
+    Layout = "~/Views/Shared/_HomeLayout.cshtml";
 }
 
 @section Styles {
     <link href="~/css/profile.css" rel="stylesheet" asp-append-version="true" />
 }
 
-<h2 class="mb-3 text-primary fw-bold text-center">My Profile <i class="bi bi-person-circle"></i></h2>
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="mb-0 text-primary fw-bold">
+        <i class="bi bi-person-circle me-2"></i> My Profile
+    </h2>
+    <a href="@Url.Action("Dashboard", "User")"
+       class="btn btn-danger btn-sm rounded-circle d-flex align-items-center justify-content-center"
+       style="width: 32px; height: 32px;"
+       title="Back">
+        <i class="bi bi-x-lg text-white"></i>
+    </a>
+</div>
 
 @if (TempData["Message"] != null)
 {
@@ -115,7 +125,6 @@
                     </div>
 
                     <div class="row g-2">
-                        <!-- Only editable fields -->
                         <div class="col-12 col-sm-6">
                             <label asp-for="ContactNumber" class="form-label">Contact Number</label>
                             <input asp-for="ContactNumber" class="form-control form-control-sm" />
@@ -158,14 +167,12 @@
 
 @section Scripts {
     <script>
-        // Modal preview on click
         const previewImage = document.getElementById('previewImage');
         const modalPreviewImage = document.getElementById('modalPreviewImage');
         previewImage.addEventListener('click', () => {
             modalPreviewImage.src = previewImage.src;
         });
 
-        // Live preview for file inputs (camera & gallery)
         const cameraInput = document.getElementById('cameraInput');
         const galleryInput = document.getElementById('galleryInput');
         const modalImage = document.getElementById('modalProfileImage');

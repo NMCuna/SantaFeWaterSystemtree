@@ -1,13 +1,15 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.EntityFrameworkCore;
-using SantaFeWaterSystem.Models;
-using SantaFeWaterSystem.Data;
-using SantaFeWaterSystem.ViewModels;
-using SantaFeWaterSystem.Services;
-using System.Security.Claims;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
 using QuestPDF.Infrastructure;
+using SantaFeWaterSystem.Data;
+using SantaFeWaterSystem.Models;
+using SantaFeWaterSystem.Models.ViewModels;
+using SantaFeWaterSystem.Services;
+using SantaFeWaterSystem.ViewModels;
+using System.Security.Claims;
+using PermissionCheckbox = SantaFeWaterSystem.ViewModels.PermissionCheckbox;
 
 namespace SantaFeWaterSystem.Controllers;
 
@@ -344,14 +346,13 @@ public class AdminController(PermissionService permissionService, ApplicationDbC
 
     // ================== EditAdmin/Staff User ==================
 
-
     // GET: Admin/EditAdminUser/5
     [Authorize(Roles = "Admin")]
     [HttpGet]
-    public async Task<IActionResult> EditAdminUser(int id)
+    public async Task<IActionResult> EditAdminUser(int id, string? roleFilter = "", string? searchTerm = "", int page = 1)
     {
         var user = await _context.Users.FindAsync(id);
-        if (user == null || (user.Role != "Admin" && user.Role != "Staff"))
+        if (user == null || (user.Role?.Trim() != "Admin" && user.Role?.Trim() != "Staff"))
             return NotFound();
 
         var model = new EditAdminUserViewModel
@@ -360,49 +361,50 @@ public class AdminController(PermissionService permissionService, ApplicationDbC
             Username = user.Username ?? string.Empty,
             FullName = user.FullName ?? string.Empty,
             IsMfaEnabled = user.IsMfaEnabled,
-            Role = user.Role
+            Role = user.Role ?? string.Empty,
+            RoleFilter = roleFilter,
+            SearchTerm = searchTerm,
+            CurrentPage = page
         };
 
         return View("EditAdminUser", model);
     }
 
-
-    // POST: Admin/EditAdminUser/5
+    // POST: Admin/EditAdminUser
     [Authorize(Roles = "Admin")]
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> EditAdminUser(int id, EditAdminUserViewModel model, string roleFilter, string searchTerm, int page = 1)
+    public async Task<IActionResult> EditAdminUser(EditAdminUserViewModel model)
     {
-        if (id != model.Id)
-            return BadRequest();
-
-        var user = await _context.Users.FindAsync(id);
-        if (user == null || (user.Role != "Admin" && user.Role != "Staff"))
-            return NotFound();
-
         if (!ModelState.IsValid)
             return View("EditAdminUser", model);
 
-        string oldName = user.FullName ?? "";
+        var user = await _context.Users.FindAsync(model.Id);
+        if (user == null || (user.Role?.Trim() != "Admin" && user.Role?.Trim() != "Staff"))
+            return NotFound();
+
+        // Store old values for audit
         string oldUsername = user.Username ?? "";
+        string oldFullName = user.FullName ?? "";
         bool oldMfa = user.IsMfaEnabled;
 
-        user.FullName = model.FullName?.Trim();
-        user.Username = model.Username?.Trim();
+        // Update user
+        user.Username = model.Username?.Trim() ?? string.Empty;
+        user.FullName = model.FullName?.Trim() ?? string.Empty;
         user.IsMfaEnabled = model.IsMfaEnabled;
 
         var auditDetails = new List<string> { $"User ID: {user.Id}" };
         if (oldUsername != user.Username)
             auditDetails.Add($"Username: {oldUsername} → {user.Username}");
-        if (oldName != user.FullName)
-            auditDetails.Add($"Full Name: {oldName} → {user.FullName}");
+        if (oldFullName != user.FullName)
+            auditDetails.Add($"Full Name: {oldFullName} → {user.FullName}");
         if (oldMfa != user.IsMfaEnabled)
             auditDetails.Add($"MFA Enabled: {oldMfa} → {user.IsMfaEnabled}");
 
         using var transaction = await _context.Database.BeginTransactionAsync();
         try
         {
-            _context.Update(user);
+            _context.Users.Update(user);
             await _context.SaveChangesAsync();
 
             if (auditDetails.Count > 1)
@@ -420,8 +422,13 @@ public class AdminController(PermissionService permissionService, ApplicationDbC
             await transaction.CommitAsync();
             TempData["SuccessMessage"] = "Admin/Staff user updated successfully.";
 
-            //  Redirect back with same filter, search, and page
-            return RedirectToAction("ManageUsers", new { roleFilter, searchTerm, page });
+            // Redirect back to ManageUsers with same filters/page
+            return RedirectToAction("ManageUsers", new
+            {
+                roleFilter = model.RoleFilter,
+                searchTerm = model.SearchTerm,
+                page = model.CurrentPage
+            });
         }
         catch
         {
@@ -430,7 +437,6 @@ public class AdminController(PermissionService permissionService, ApplicationDbC
             return View("EditAdminUser", model);
         }
     }
-
 
 
     // ================== DeleteUser ==================
@@ -733,7 +739,6 @@ public class AdminController(PermissionService permissionService, ApplicationDbC
         }
 
 
-
     // ================== CreateConsumer ==================
 
     // GET: CreateConsumer
@@ -750,53 +755,82 @@ public class AdminController(PermissionService permissionService, ApplicationDbC
             .Where(u => u.Role == "User" && !linkedUserIds.Contains(u.Id))
             .ToList();
 
-        ViewBag.AccountTypes = new SelectList(Enum.GetValues(typeof(ConsumerType)));
-        ViewBag.Users = new SelectList(availableUsers, "Id", "Username");
-
-        //  Initialize a new Consumer with default "Active" status
-        var consumer = new Consumer
+        var model = new ConsumerViewModel
         {
-            Status = "Active"
+            AccountTypes = Enum.GetValues(typeof(ConsumerType))
+                .Cast<ConsumerType>()
+                .Select(a => new SelectListItem
+                {
+                    Value = a.ToString(),
+                    Text = a.ToString()
+                }),
+            AvailableUsers = availableUsers.Select(u => new SelectListItem
+            {
+                Value = u.Id.ToString(),
+                Text = u.Username
+            })
         };
 
-        return View(consumer); // pass the default model to the view
+        return View(model);
     }
 
 
+    // POST: CreateConsumer
     [Authorize(Roles = "Admin,Staff")]
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public IActionResult CreateConsumer(Consumer consumer)
+    public IActionResult CreateConsumer(ConsumerViewModel model)
     {
         if (ModelState.IsValid)
         {
-            //  Enforce default status when creating
-            consumer.Status = "Active";
-            consumer.IsDisconnected = false;
-
-            _context.Consumers.Add(consumer);
-            _context.SaveChanges();
-
-            // Add audit trail entry
-            _context.AuditTrails.Add(new AuditTrail
+            var consumer = new Consumer
             {
-                PerformedBy = User.Identity?.Name ?? "Unknown",
-                Action = "Created Consumer",
-                Timestamp = DateTime.Now,
-                Details = $"New Consumer Added: ID = {consumer.Id}, Name = {consumer.LastName}, {consumer.FirstName} {consumer.MiddleName}, " +
-                          $"Meter No = {consumer.MeterNo}, Email = {consumer.Email}, Type = {consumer.AccountType}, " +
-                          $"Contact = {consumer.ContactNumber}, Linked User ID = {consumer.UserId}"
-            });
+                FirstName = model.FirstName,
+                MiddleName = model.MiddleName,
+                LastName = model.LastName,
+                HomeAddress = model.HomeAddress,
+                MeterAddress = model.MeterAddress,
+                Email = model.Email,
+                ContactNumber = model.ContactNumber,
+                AccountType = model.AccountType,
+                MeterNo = model.MeterNo,
+                UserId = model.UserId,
+                Status = "Active",
+                IsDisconnected = false
+            };
 
-            _context.SaveChanges(); // Save the audit entry
+            try
+            {
+                _context.Consumers.Add(consumer);
+                _context.SaveChanges();
 
-            TempData["SuccessMessage"] = "Consumer added successfully!";
-            return RedirectToAction("Consumers");
+                // Audit trail
+                _context.AuditTrails.Add(new AuditTrail
+                {
+                    PerformedBy = User.Identity?.Name ?? "Unknown",
+                    Action = "Created Consumer",
+                    Timestamp = DateTime.Now,
+                    Details = $"New Consumer Added: ID = {consumer.Id}, " +
+                              $"Name = {consumer.LastName}, {consumer.FirstName} {consumer.MiddleName}, " +
+                              $"Meter No = {consumer.MeterNo}, Email = {consumer.Email}, " +
+                              $"Type = {consumer.AccountType}, Contact = {consumer.ContactNumber}, " +
+                              $"Linked User ID = {consumer.UserId}"
+                });
+
+                _context.SaveChanges();
+
+                TempData["SuccessMessage"] = "Consumer added successfully!";
+                return RedirectToAction("Consumers", "Admin");
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("", "Error saving consumer: " + ex.Message);
+            }
         }
 
-        // Reload dropdowns if validation fails
+        // If validation fails, reload dropdowns
         var linkedUserIds = _context.Consumers
-            .Where(c => c.UserId != null && c.UserId != consumer.UserId)
+            .Where(c => c.UserId != null)
             .Select(c => c.UserId)
             .ToList();
 
@@ -804,11 +838,24 @@ public class AdminController(PermissionService permissionService, ApplicationDbC
             .Where(u => u.Role == "User" && !linkedUserIds.Contains(u.Id))
             .ToList();
 
-        ViewBag.AccountTypes = new SelectList(Enum.GetValues(typeof(ConsumerType)), consumer.AccountType);
-        ViewBag.Users = new SelectList(availableUsers, "Id", "Username", consumer.UserId);
-        return View(consumer);
-    }
+        model.AccountTypes = Enum.GetValues(typeof(ConsumerType))
+            .Cast<ConsumerType>()
+            .Select(a => new SelectListItem
+            {
+                Value = a.ToString(),
+                Text = a.ToString(),
+                Selected = a == model.AccountType
+            });
 
+        model.AvailableUsers = availableUsers.Select(u => new SelectListItem
+        {
+            Value = u.Id.ToString(),
+            Text = u.Username,
+            Selected = u.Id == model.UserId
+        });
+
+        return View(model);
+    }
 
 
     // ================== ConsumerDetails ==================

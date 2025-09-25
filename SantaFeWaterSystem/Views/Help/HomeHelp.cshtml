@@ -1,0 +1,61 @@
+﻿@model IEnumerable<SantaFeWaterSystem.Models.Help>
+
+@{
+    ViewData["Title"] = "Help Center";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    // Map section names to emojis
+    Dictionary<string, string> sectionIcons = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+    {
+        { "Home", "🏠" },
+        { "Privacy Policy", "🔒" },
+        { "Contact", "📞" },
+        { "Inquiries", "❓" },
+        { "Login", "🔑" },
+        { "User", "📊" },
+        { "Staff", "📋" },
+        { "Admin", "❗" },
+        { "User Dashboard", "📊" },
+        { "Billing History", "📜" },
+        { "Payments", "💳" },
+        { "Profile", "👤" },
+        { "Support", "🛠️" },
+        { "Community Feed", "🌐" },
+        { "Dark Mode", "🌙" },
+        { "Notifications", "🔔" },
+        { "Feedback", "💬" },
+        { "Two-Factor Authentication", "🔐" },
+        { "Help", "❓" }
+    };
+}
+
+<h2 class="text-center mb-4">
+    <i class="bi bi-question-circle me-2"></i> Help Center
+</h2>
+
+<div class="row">
+    @foreach (var item in Model)
+    {
+        <div class="col-md-6 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <!-- Section Icon + Title -->
+                    <h5 class="card-title">
+                        @if (!string.IsNullOrWhiteSpace(item.Section) && sectionIcons.ContainsKey(item.Section))
+                        {
+                            @sectionIcons[item.Section]
+                        }
+                        @(!string.IsNullOrWhiteSpace(item.Title) ? item.Title : "Untitled")
+                    </h5>
+
+                    <!-- Description -->
+                    <p class="card-text">
+                        @(string.IsNullOrWhiteSpace(item.Description) ? "No description available." : item.Description)
+                    </p>
+
+                                
+                </div>
+            </div>
+        </div>
+    }
+</div>

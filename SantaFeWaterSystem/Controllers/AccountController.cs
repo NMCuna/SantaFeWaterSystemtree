@@ -403,15 +403,22 @@ public class AccountController(
         }
 
         // ✅ Validate password
-        bool passwordValid;
-        try
-        {
-            passwordValid = _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, model.Password)
-                            == PasswordVerificationResult.Success;
-        }
-        catch
+        bool passwordValid = false;
+        if (user.PasswordHash.StartsWith("$2a$") || user.PasswordHash.StartsWith("$2b$"))
         {
             passwordValid = BCrypt.Net.BCrypt.Verify(model.Password, user.PasswordHash);
+        }
+        else
+        {
+            var result = _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, model.Password);
+            passwordValid = result == PasswordVerificationResult.Success;
+
+            // ✅ Optional: rehash to BCrypt for new login
+            if (passwordValid)
+            {
+                user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(model.Password);
+                await _context.SaveChangesAsync();
+            }
         }
 
         if (!passwordValid)
@@ -514,10 +521,9 @@ public class AccountController(
 
 
 
-    /////////////////////////////////////////////////
-    ///// CONSUMER RESET PASS/ IN  MANAGE USER  /////
-    ////////////////////////////////////////////////
-
+    ///////////////////////////////////////////////
+    ///// CONSUMER RESET PASS/ IN MANAGE USER /////
+    ///////////////////////////////////////////////
 
     // ================== ResetPassword/ADMIN ACTION TO RESET USER PASS ==================
     [Authorize(Roles = "Admin,Staff")]
@@ -583,8 +589,8 @@ public class AccountController(
             return View(user);
         }
 
-        // ✅ Hash new password
-        var hashedPassword = _passwordHasher.HashPassword(user, NewPassword);
+        // ✅ Hash new password using BCrypt
+        var hashedPassword = BCrypt.Net.BCrypt.HashPassword(NewPassword);
         user.PasswordHash = hashedPassword;
 
         // ✅ Save password history
@@ -748,8 +754,7 @@ public class AccountController(
 
     /////////////////////////////////////////////////////////   
     //    CONSUMER AFTER FORGOT PASS/ IN GMAIL LINK       //
-    ////////////////////////////////////////////////////////
-
+    /////////////////////////////////////////////////////////
 
     // ================== Reset Password via Email Token ==================
     [HttpGet]
@@ -778,7 +783,7 @@ public class AccountController(
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> ResetPasswordUser(ResetPasswordUserViewModel model)
     {
-        // ✅ Always load password policy
+        // Always load password policy
         var passwordPolicy = await _context.PasswordPolicies.FirstOrDefaultAsync();
         ViewBag.PasswordPolicy = passwordPolicy;
 
@@ -794,7 +799,7 @@ public class AccountController(
             return View(model);
         }
 
-        // ✅ Check password policy
+        // Check password policy
         var isValidPassword = await _passwordPolicyService.ValidatePasswordAsync(user.Id, model.NewPassword);
         if (!isValidPassword)
         {
@@ -802,20 +807,20 @@ public class AccountController(
             return View(model);
         }
 
-        // ✅ Hash and save password
-        var hashedPassword = _passwordHasher.HashPassword(user, model.NewPassword);
+        // Hash and save password using BCrypt
+        var hashedPassword = BCrypt.Net.BCrypt.HashPassword(model.NewPassword);
         user.PasswordHash = hashedPassword;
 
-        // ✅ Save password history
+        // Save password history
         await _passwordPolicyService.SavePasswordHistoryAsync(user.Id, hashedPassword);
 
-        // ✅ Clear reset token
+        // Clear reset token
         user.PasswordResetToken = null;
         user.PasswordResetExpiry = null;
 
         await _context.SaveChangesAsync();
 
-        // ✅ Audit trail
+        //  Audit trail
         _context.AuditTrails.Add(new AuditTrail
         {
             Action = "Reset Password (User)",
@@ -828,7 +833,6 @@ public class AccountController(
 
         return RedirectToAction(nameof(ResetPasswordUserConfirmation));
     }
-
 
 
     // ================== ResetPasswordUserConfirmation ==================
@@ -1190,10 +1194,10 @@ public class AccountController(
 
 
     //////////////////////////////////////////////////////////
-    //      ACCOUNT / BACKUP RESET PASSADMIN  2FA           //
+    ////      ACCOUNT / BACKUP RESET PASSADMIN  2FA       ////
     //////////////////////////////////////////////////////////
 
-    // ================== MySecretEmergenceResetPasswordforAdmin ==================
+    // ================== MySecretEmergenceResetPasswordforAdmin (GET) ==================
     [HttpGet]
     [AllowAnonymous]
     public async Task<IActionResult> MySecretEmergenceResetPasswordforAdmin(string token)
@@ -1205,13 +1209,10 @@ public class AccountController(
         ViewBag.CurrentTime = DateTime.Now.ToString("hh:mm tt");
 
         var today = DateTime.Today.DayOfWeek.ToString();
-
         var expectedToken = await _context.AdminResetTokens
             .Where(t => t.Day == today)
             .Select(t => t.Token)
             .FirstOrDefaultAsync();
-
-        Console.WriteLine($"[DEBUG] Today: {today}, Expected Token: {expectedToken}, Provided: {token}");
 
         if (string.IsNullOrWhiteSpace(token) || token != expectedToken)
         {
@@ -1224,26 +1225,33 @@ public class AccountController(
             ViewBag.TimeWarning = "⏰ This page is only available between 12:00 PM and 5:00 PM.";
         }
 
-        ViewBag.Token = token; // <-- pass token to form
+        // ✅ Load all admins to select
+        var admins = await _context.Users
+            .Where(u => u.Role == "Admin")
+            .Select(u => new { u.Id, u.Username })
+            .ToListAsync();
+        ViewBag.AdminList = admins;
+
+        // ✅ Load password policy for display
+        var passwordPolicy = await _context.PasswordPolicies.FirstOrDefaultAsync();
+        ViewBag.PasswordPolicy = passwordPolicy;
+
+        ViewBag.Token = token; // pass token to form
         return View();
     }
 
-
-
-    // POST: Handle Reset Password
+    // ================== MySecretEmergenceResetPasswordforAdmin (POST) ==================
     [HttpPost]
     [AllowAnonymous]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> MySecretEmergenceResetPasswordforAdmin(string token, string NewPassword, string ConfirmPassword)
+    public async Task<IActionResult> MySecretEmergenceResetPasswordforAdmin(int AdminId, string token, string NewPassword, string ConfirmPassword)
     {
         var today = DateTime.Today.DayOfWeek.ToString();
-
         var expectedToken = await _context.AdminResetTokens
             .Where(t => t.Day == today)
             .Select(t => t.Token)
             .FirstOrDefaultAsync();
 
-        // ✅ Validate token from form
         if (string.IsNullOrWhiteSpace(token) || token != expectedToken)
         {
             TempData["Error"] = "⛔ Token expired or invalid. Please request a new one.";
@@ -1256,20 +1264,32 @@ public class AccountController(
             return RedirectToAction("MySecretEmergenceResetPasswordforAdmin", new { token });
         }
 
-        var admin = await _context.Users.FirstOrDefaultAsync(u => u.Role == "Admin");
-
+        var admin = await _context.Users.FirstOrDefaultAsync(u => u.Id == AdminId && u.Role == "Admin");
         if (admin == null)
         {
             TempData["Error"] = "❌ Admin not found.";
             return RedirectToAction("MySecretEmergenceResetPasswordforAdmin", new { token });
         }
 
+        // ✅ Validate password against policy
+        var isValidPassword = await _passwordPolicyService.ValidatePasswordAsync(admin.Id, NewPassword);
+        if (!isValidPassword)
+        {
+            TempData["Error"] = "❌ Password does not meet security policy requirements.";
+            return RedirectToAction("MySecretEmergenceResetPasswordforAdmin", new { token, AdminId });
+        }
+
+        // ✅ Hash new password using BCrypt
         admin.PasswordHash = BCrypt.Net.BCrypt.HashPassword(NewPassword);
         admin.PasswordResetToken = null;
         admin.PasswordResetExpiry = null;
         admin.AccessFailedCount = 0;
         admin.LockoutEnd = null;
 
+        // ✅ Save password history
+        await _passwordPolicyService.SavePasswordHistoryAsync(admin.Id, admin.PasswordHash);
+
+        // ✅ Audit log
         _context.AuditTrails.Add(new AuditTrail
         {
             PerformedBy = "EmergencyResetAccess",
@@ -1281,8 +1301,9 @@ public class AccountController(
         await _context.SaveChangesAsync();
 
         TempData["Success"] = "✅ Password reset successfully!";
-        return RedirectToAction("MySecretEmergenceResetPasswordforAdmin", new { token });
+        return RedirectToAction("MySecretEmergenceResetPasswordforAdmin", new { token, AdminId });
     }
+
 
 
 }

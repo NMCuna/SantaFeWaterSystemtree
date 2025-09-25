@@ -675,6 +675,34 @@ namespace SantaFeWaterSystem.Migrations
                     b.ToTable("FeedbackLikes");
                 });
 
+            modelBuilder.Entity("SantaFeWaterSystem.Models.Help", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RoleAccess")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Section")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Title")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Helps");
+                });
+
             modelBuilder.Entity("SantaFeWaterSystem.Models.HomePageContent", b =>
                 {
                     b.Property<int>("Id")

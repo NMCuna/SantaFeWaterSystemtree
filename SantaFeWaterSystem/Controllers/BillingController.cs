@@ -387,6 +387,47 @@ namespace SantaFeWaterSystem.Controllers
 
 
 
+        // ================== GetConsumerInfo ==================
+        [HttpGet]
+        public async Task<IActionResult> GetConsumerInfo(int consumerId)
+        {
+            var consumer = await _context.Consumers
+                .Include(c => c.Billings.OrderByDescending(b => b.BillingDate).Take(1))
+                .FirstOrDefaultAsync(c => c.Id == consumerId);
+
+            if (consumer == null)
+                return NotFound();
+
+            // Get latest billing for previous reading
+            var lastBilling = consumer.Billings.FirstOrDefault();
+
+            // Get applicable rate based on consumer account type and current date
+            var rateRecord = await _context.Rates
+                .Where(r => r.AccountType == consumer.AccountType && r.EffectiveDate <= DateTime.Today)
+                .OrderByDescending(r => r.EffectiveDate)
+                .FirstOrDefaultAsync();
+
+            if (rateRecord == null)
+            {
+                return Json(new
+                {
+                    accountType = consumer.AccountType.ToString(),
+                    previousReading = lastBilling?.PresentReading ?? 0,
+                    rate = 0,
+                    penalty = 0
+                });
+            }
+
+            return Json(new
+            {
+                accountType = consumer.AccountType.ToString(),
+                previousReading = lastBilling?.PresentReading ?? 0,
+                rate = rateRecord.RatePerCubicMeter,
+                penalty = rateRecord.PenaltyAmount
+            });
+        }
+
+
 
         // ================== CREATE NEW BILLING ==================
 

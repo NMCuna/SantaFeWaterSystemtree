@@ -1,0 +1,16 @@
+﻿@model SantaFeWaterSystem.Models.Help
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="card shadow-sm p-4">
+    <h2 class="mb-3 text-danger">Delete Help Article</h2>
+    <p>Are you sure you want to delete the help article titled:</p>
+    <h5 class="mb-3"><strong>@(Model.Title ?? "Untitled")</strong></h5>
+
+    <form asp-action="Delete" method="post">
+        <input type="hidden" asp-for="Id" />
+        <button type="submit" class="btn btn-danger me-2">Yes, Delete</button>
+        <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>

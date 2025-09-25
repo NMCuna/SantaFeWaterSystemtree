@@ -302,6 +302,55 @@ namespace SantaFeWaterSystem.Controllers
                     // Save in-app notification + push
                     await _context.SaveChangesAsync();
                 }
+                
+                // ================= EMAIL CONFIRMATION =================
+                if (consumer != null && !string.IsNullOrWhiteSpace(consumer.Email))
+                {
+                    var emailSubject = $"Walk-in Payment Recorded - Bill No: {billing?.BillNo}";
+                    var emailBody = $@"
+                   <p>Hello <strong>{consumer.FullName}</strong>,</p>
+                   <p>Your walk-in payment has been successfully recorded by our team. 
+                      It has been marked as <strong>Paid</strong> in your account, and you can view the updated status by logging in to the Santa Fe Water System Website.</p>
+                   <p>
+                   <strong>Bill No:</strong> {billing?.BillNo}<br/>
+                   <strong>Amount Paid:</strong> ₱{payment.AmountPaid:N2}<br/>
+                   <strong>Payment Method:</strong> {payment.Method}<br/>
+                   <strong>Processed By:</strong> {payment.ProcessedBy}<br/>
+                   <strong>Date Paid:</strong> {DateTime.Now:MMMM d, yyyy hh:mm tt}
+                   </p>
+                   <p>Thank you for your payment.<br/>Santa Fe Water System</p>";
+
+                    try
+                    {
+                        await _emailSender.SendEmailAsync(consumer.Email, emailSubject, emailBody);
+
+                        _context.EmailLogs.Add(new EmailLog
+                        {
+                            ConsumerId = consumer.Id,
+                            EmailAddress = consumer.Email,
+                            Subject = emailSubject,
+                            Message = emailBody,
+                            IsSuccess = true,
+                            SentAt = DateTime.Now
+                        });
+                    }
+                    catch (Exception ex)
+                    {
+                        _context.EmailLogs.Add(new EmailLog
+                        {
+                            ConsumerId = consumer.Id,
+                            EmailAddress = consumer.Email,
+                            Subject = emailSubject,
+                            Message = emailBody,
+                            IsSuccess = false,
+                            SentAt = DateTime.Now,
+                            ResponseMessage = ex.Message
+                        });
+                    }
+
+                    await _context.SaveChangesAsync();
+                }
+
 
                 return RedirectToAction("WalkInConfirmation", new { id = payment.Id });
             }

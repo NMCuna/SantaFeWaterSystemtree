@@ -1,4 +1,5 @@
 ﻿@model SantaFeWaterSystem.Models.PrivacyPolicy
+
 @{
     ViewData["Title"] = "Privacy Policy";
 }
@@ -8,49 +9,89 @@
 }
 
 <div class="container pt-3">
-    <!-- reduced top padding -->
     <div class="row justify-content-center">
         <div class="col-12 col-md-10 col-lg-8">
 
             <!-- Title -->
-            <div class="text-center mb-3">
-                <!-- reduced bottom margin -->
+            <div class="text-center mb-4">
                 <h1 class="privacy-title">@Model.Title</h1>
                 <p class="text-muted mb-0">Last Updated: @Model.CreatedAt.ToString("MMMM dd, yyyy")</p>
             </div>
 
-           
+            <!-- Policy Content Box -->
+            <div class="privacy-box border rounded shadow-sm p-4 bg-light">
 
-            <!-- Policy Content (scrollable) -->
-            <div class="privacy-box border rounded shadow-sm privacy-scrollable">
+                <!-- Intro / Description -->
                 @if (!string.IsNullOrWhiteSpace(Model.Content))
                 {
-                    <p class="privacy-intro text-center">@Model.Content</p>
+                    <p class="privacy-intro text-center mb-4">@Model.Content</p>
                 }
-
-
 
                 <!-- Sections -->
                 @if (Model.Sections != null && Model.Sections.Any(s => s.IsActive))
                 {
-                    @foreach (var sec in Model.Sections.Where(s => s.IsActive))
-                    {
-                        <div class="privacy-section mb-3">
-                            <h5 class="privacy-section-title">@sec.SectionTitle</h5>
-                            <p class="privacy-section-content">@sec.Content</p>
-                        </div>
-                    }
+                    <div class="accordion" id="privacyAccordion">
+                        @{
+                            int sectionCounter = 1;
+                        }
+                        @foreach (var sec in Model.Sections.Where(s => s.IsActive))
+                        {
+                            var collapseId = $"section-{sec.Id}";
+                            var isFirst = sectionCounter == 1; // first section open by default
+                                                               <div class="accordion-item mb-3 privacy-section">
+                                                                   <h2 class="accordion-header" id="heading-@sec.Id">
+                                                                       <button class="accordion-button @(isFirst ? "" : "collapsed") privacy-section-title" type="button"
+                                                                               data-bs-toggle="collapse"
+                                                                               data-bs-target="#@collapseId"
+                                                                               aria-expanded="@(isFirst.ToString().ToLower())"
+                                                                               aria-controls="@collapseId">
+                                                                           <span class="section-number me-2">@sectionCounter.</span> @sec.SectionTitle
+                                                                       </button>
+                                                                   </h2>
+                                                                   <div id="@collapseId" class="accordion-collapse collapse @(isFirst ? "show" : "")" aria-labelledby="heading-@sec.Id" data-bs-parent="#privacyAccordion">
+                                                                       <div class="accordion-body privacy-section-content">
+                                                                           @Html.Raw(sec.Content)
+                                                                       </div>
+                                                                   </div>
+                                                               </div>
+                            sectionCounter++;
+                        }
+                    </div>
                 }
-
             </div>
 
             <!-- Back to Home Button -->
             <div class="text-center mt-4">
-                <a asp-controller="Home" asp-action="Index" class="btn btn-primary">
-                    <i class="bi bi-house-door-fill"></i> Back to Home
+                <a asp-controller="Home" asp-action="Index" class="back-home-btn">
+                    <i class="bi bi-house-door-fill me-1"></i> Back to Home
                 </a>
             </div>
 
         </div>
     </div>
 </div>
+
+<!-- Back to Top Button -->
+<button id="backToTopBtn" class="btn btn-success" title="Back to Top">
+    <i class="bi bi-arrow-up-circle-fill"></i>
+</button>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Back to Top Button
+        const backToTopBtn = document.getElementById("backToTopBtn");
+
+        window.onscroll = function () {
+            if (document.body.scrollTop > 200 || document.documentElement.scrollTop > 200) {
+                backToTopBtn.style.display = "block";
+            } else {
+                backToTopBtn.style.display = "none";
+            }
+        };
+
+        backToTopBtn.addEventListener("click", function () {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+    </script>
+}

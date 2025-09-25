@@ -1,0 +1,57 @@
+﻿@model SantaFeWaterSystem.Models.Help
+
+@{
+    ViewData["Title"] = "Help Details";
+
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+
+    // Map section names to emojis
+    Dictionary<string, string> sectionIcons = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+    {
+        { "Home", "🏠" },
+        { "Privacy Policy", "🔒" },
+        { "Contact", "📞" },
+        { "Inquiries", "❓" },
+        { "Login", "🔑" },
+        { "User", "📊" },
+        { "Staff", "📋" },
+        { "Admin", "❗" },
+        { "User Dashboard", "📊" },
+        { "Billing History", "📜" },
+        { "Payments", "💳" },
+        { "Profile", "👤" },
+        { "Support", "🛠️" },
+        { "Community Feed", "🌐" },
+        { "Dark Mode", "🌙" },
+        { "Notifications", "🔔" },
+        { "Feedback", "💬" },
+        { "Two-Factor Authentication", "🔐" },
+        { "Help", "❓" }
+    };
+
+    string sectionIcon = !string.IsNullOrWhiteSpace(Model.Section) && sectionIcons.ContainsKey(Model.Section)
+                         ? sectionIcons[Model.Section]
+                         : "";
+}
+
+@if (User.IsInRole("Admin"))
+{
+    <div class="card shadow-sm p-4 mb-4">
+        <h2 class="mb-3">@sectionIcon @(!string.IsNullOrWhiteSpace(Model.Title) ? Model.Title : "Untitled")</h2>
+
+        <p>@(!string.IsNullOrWhiteSpace(Model.Description) ? Model.Description : "No description available.")</p>
+
+        <p><strong>Section:</strong> @(Model.Section ?? "-")</p>
+        <p><strong>Visible To:</strong> @(Model.RoleAccess ?? "All")</p>
+
+        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning me-2">Edit</a>
+        <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-danger">Delete</a>
+        <a asp-action="Admin" class="btn btn-secondary ms-2">Back to List</a>
+    </div>
+}
+else
+{
+    <div class="alert alert-danger">
+        You do not have permission to view this page.
+    </div>
+}

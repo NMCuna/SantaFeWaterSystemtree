@@ -15,25 +15,34 @@ namespace SantaFeWaterSystem.Models.ViewModels
         [Required]
         public string LastName { get; set; } = string.Empty;
 
-        // Optional: Computed property to keep compatibility with old FullName
+        // Computed property (useful if you want to show full name in lists)
         public string FullName => $"{FirstName} {MiddleName} {LastName}".Replace("  ", " ").Trim();
 
         [Required]
-        public string Address { get; set; } = string.Empty;
+        [Display(Name = "Home Address")]
+        public string HomeAddress { get; set; } = string.Empty;
+
+        [Display(Name = "Meter Address")]
+        public string? MeterAddress { get; set; }
 
         [Required, EmailAddress]
         public string Email { get; set; } = string.Empty;
 
-        public string? AccountNumber { get; set; }
-
+        [Display(Name = "Contact Number")]
         public string? ContactNumber { get; set; }
 
-        public int? UserId { get; set; }
+        [Display(Name = "Account Type")]
+        [Required]
+        public ConsumerType AccountType { get; set; }
 
-        public List<SelectListItem>? AvailableUsers { get; set; } // For dropdown
-
-        public string? AccountType { get; set; }
+        [Display(Name = "Meter No.")]
         public string? MeterNo { get; set; }
 
+        [Display(Name = "Linked User")]
+        public int? UserId { get; set; }
+
+        // Dropdowns
+        public IEnumerable<SelectListItem>? AvailableUsers { get; set; }
+        public IEnumerable<SelectListItem>? AccountTypes { get; set; }
     }
 }
