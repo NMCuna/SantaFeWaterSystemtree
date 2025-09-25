@@ -1264,7 +1264,7 @@ namespace SantaFeWaterSystem.Controllers
             await _context.SaveChangesAsync();
 
             TempData["Message"] = "✅ Password changed successfully.";
-            return RedirectToAction("Profile", "User");
+            return RedirectToAction("Index", " ConsumerSetting");
         }
 
 

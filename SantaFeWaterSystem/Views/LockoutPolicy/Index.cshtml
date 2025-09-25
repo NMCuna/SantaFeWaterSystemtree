@@ -4,51 +4,138 @@
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
-<div class="container mt-5">
-    <!-- Flex container: Heading left, button right -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h3 class="mb-0">
-            <i class="bi bi-shield-lock me-2"></i> Lockout Policy Settings
-        </h3>
+<div class="container mt-4">
+    <div class="card shadow-lg border-0">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <h4 class="mb-0"><i class="bi bi-shield-lock me-2"></i> Lockout Policy Settings</h4>
+            <a asp-controller="GeneralSettings" asp-action="Security" class="btn btn-light btn-sm">
+                <i class="bi bi-arrow-left-circle me-1"></i> Back to Security
+            </a>
+        </div>
 
-        <a asp-controller="GeneralSettings" asp-action="Security" class="btn btn-secondary">
-            <i class="bi bi-arrow-left-circle me-1"></i> Back to Security
-        </a>
+        <div class="card-body">
+            @if (TempData["Success"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="bi bi-check-circle me-1"></i> @TempData["Success"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+
+            <div class="row">
+                <!-- 🔹 Current Policy Preview -->
+                <div class="col-lg-7">
+                    <div class="card border-info shadow-sm">
+                        <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+                            <span><i class="bi bi-eye me-1"></i> Current Policy</span>
+                            <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editPolicyModal">
+                                <i class="bi bi-pencil-square me-1"></i> Edit
+                            </button>
+                        </div>
+                        <div class="card-body">
+                            <ul class="list-unstyled mb-0">
+                                <li>
+                                    <i class="bi bi-dot"></i> Lockout after
+                                    <strong>@Model.MaxFailedAccessAttempts</strong> failed attempts
+                                </li>
+                                <li>
+                                    <i class="bi bi-dot"></i> Locked out for
+                                    <strong>@Model.LockoutMinutes</strong> minutes
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 🔹 Info Panel -->
+                <div class="col-lg-5 mt-4 mt-lg-0">
+                    <div class="alert alert-secondary small">
+                        <i class="bi bi-info-circle me-1"></i>
+                        <strong>What is Lockout Policy?</strong><br />
+                        This feature protects accounts by locking them temporarily after too many failed login attempts.
+                        It reduces the risk of brute-force or password-guessing attacks.
+
+                        <hr class="my-2" />
+
+                        <strong><i class="bi bi-shield-check me-1"></i> Why it matters:</strong>
+                        <ul class="mb-2">
+                            <li>Prevents repeated unauthorized login attempts.</li>
+                            <li>Slows down attackers trying to guess passwords.</li>
+                            <li>Alerts admins if unusual login activity occurs.</li>
+                        </ul>
+
+                        <strong><i class="bi bi-gear me-1"></i> How it works:</strong>
+                        <ul class="mb-0">
+                            <li><b>Max Failed Attempts</b>: Number of wrong logins allowed before lockout.</li>
+                            <li><b>Lockout Duration</b>: How long the account stays locked.</li>
+                            <li>After lockout expires, the user may try logging in again.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-
-    <form asp-action="Index" method="post" class="mt-3">
-        <div class="mb-3">
-            <label class="form-label">Max Failed Attempts</label>
-            <input asp-for="MaxFailedAccessAttempts" class="form-control" />
-            <span asp-validation-for="MaxFailedAccessAttempts" class="text-danger"></span>
-        </div>
-        <div class="mb-3">
-            <label class="form-label">Lockout Duration (minutes)</label>
-            <input asp-for="LockoutMinutes" class="form-control" />
-            <span asp-validation-for="LockoutMinutes" class="text-danger"></span>
-        </div>
-        <button type="submit" class="btn btn-primary">
-            <i class="bi bi-save me-1"></i> Save Policy
-        </button>
-    </form>
 </div>
 
-<!-- ✅ Success Modal -->
-<div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
+<!-- 🔹 Modal for Editing Policy -->
+<div class="modal fade" id="editPolicyModal" tabindex="-1" aria-labelledby="editPolicyLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header bg-success text-white">
-                <h5 class="modal-title" id="successModalLabel">
-                    <i class="bi bi-check-circle-fill me-2"></i> Success
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                @TempData["Success"]
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-success" data-bs-dismiss="modal">OK</button>
-            </div>
+            <form asp-action="Index" method="post" novalidate>
+                @Html.AntiForgeryToken()
+                <input type="hidden" asp-for="Id" />
+
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="editPolicyLabel">
+                        <i class="bi bi-pencil-square me-1"></i> Edit Lockout Policy
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body row">
+                    <!-- Left column: form -->
+                    <div class="col-lg-7">
+                        <div class="mb-3">
+                            <label asp-for="MaxFailedAccessAttempts" class="form-label">
+                                <i class="bi bi-x-octagon me-1"></i> Max Failed Attempts
+                            </label>
+                            <input asp-for="MaxFailedAccessAttempts" class="form-control" type="number" min="1" />
+                            <span asp-validation-for="MaxFailedAccessAttempts" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="LockoutMinutes" class="form-label">
+                                <i class="bi bi-clock me-1"></i> Lockout Duration (minutes)
+                            </label>
+                            <input asp-for="LockoutMinutes" class="form-control" type="number" min="1" />
+                            <span asp-validation-for="LockoutMinutes" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <!-- Right column: live preview -->
+                    <div class="col-lg-5 mt-4 mt-lg-0">
+                        <div class="card border-info shadow-sm">
+                            <div class="card-header bg-info text-white">
+                                <i class="bi bi-eye me-1"></i> Live Preview
+                            </div>
+                            <div class="card-body">
+                                <ul class="list-unstyled mb-0" id="modalPolicyPreview">
+                                    <!-- will update dynamically -->
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-success">
+                        <i class="bi bi-save me-1"></i> Save Changes
+                    </button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle me-1"></i> Cancel
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
@@ -56,13 +143,24 @@
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
     <script>
-        // Show modal if TempData has a message
         document.addEventListener("DOMContentLoaded", function () {
-            var hasMessage = "@TempData["Success"]" !== "";
-            if (hasMessage) {
-                var modal = new bootstrap.Modal(document.getElementById('successModal'));
-                modal.show();
+            const failedAttemptsInput = document.getElementById("MaxFailedAccessAttempts");
+            const lockoutMinutesInput = document.getElementById("LockoutMinutes");
+            const preview = document.getElementById("modalPolicyPreview");
+
+            function updatePreview() {
+                const attempts = failedAttemptsInput.value || 0;
+                const minutes = lockoutMinutesInput.value || 0;
+
+                preview.innerHTML = `
+                    <li><i class="bi bi-dot"></i> Lockout after <strong>${attempts}</strong> failed attempts</li>
+                    <li><i class="bi bi-dot"></i> Locked out for <strong>${minutes}</strong> minutes</li>
+                `;
             }
+
+            failedAttemptsInput.addEventListener("input", updatePreview);
+            lockoutMinutesInput.addEventListener("input", updatePreview);
+            updatePreview();
         });
     </script>
 }

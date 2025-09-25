@@ -23,18 +23,92 @@
             }
 
             <div class="row">
-                <!-- 🔹 Settings Form -->
+                <!-- 🔹 Current Policy Preview -->
                 <div class="col-lg-7">
-                    <form asp-action="Index" method="post" novalidate id="policyForm">
-                        @Html.AntiForgeryToken()
-                        <input type="hidden" asp-for="Id" /> <!-- ✅ Hidden ID field -->
+                    <div class="card border-info shadow-sm">
+                        <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+                            <span><i class="bi bi-eye me-1"></i> Current Policy</span>
+                            <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editPolicyModal">
+                                <i class="bi bi-pencil-square me-1"></i> Edit
+                            </button>
+                        </div>
+                        <div class="card-body">
+                            <ul class="list-unstyled mb-0">
+                                <li>
+                                    <i class="bi bi-dot"></i> Password expires in
+                                    <strong>@(Model.MaxPasswordAgeDays == 0 ? "Never expires" : Model.MaxPasswordAgeDays + " days")</strong>
+                                </li>
+                                <li><i class="bi bi-dot"></i> Must wait <strong>@Model.MinPasswordAgeDays</strong> days before changing again</li>
+                                <li><i class="bi bi-dot"></i> Minimum length: <strong>@Model.MinPasswordLength</strong> characters</li>
+                                <li><i class="bi bi-dot"></i> Cannot reuse last <strong>@Model.PasswordHistoryCount</strong> passwords</li>
+                                <li><i class="bi bi-dot"></i> Complexity required: <strong>@(Model.RequireComplexity ? "Yes" : "No")</strong></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
 
+                <!-- 🔹 Info Panel -->
+                <div class="col-lg-5 mt-4 mt-lg-0">
+                    <div class="alert alert-secondary small">
+                        <i class="bi bi-info-circle me-1"></i>
+                        <strong>What is Password Policy?</strong><br />
+                        These are rules that make sure user passwords are strong and safe.
+                        A good password policy helps protect accounts from hacking and weak passwords.
+
+                        <hr class="my-2" />
+
+                        <strong><i class="bi bi-shield-check me-1"></i> Why it matters:</strong>
+                        <ul class="mb-2">
+                            <li>Makes users choose stronger passwords.</li>
+                            <li>Prevents using the same old or leaked passwords.</li>
+                            <li>Reduces risk of guessing or brute-force attacks.</li>
+                        </ul>
+
+                        <strong><i class="bi bi-gear me-1"></i> Policy Rules:</strong>
+                        <ul class="mb-0">
+                            <li><b>Maximum Age</b>: How long before users must change their password.</li>
+                            <li><b>Minimum Age</b>: Stops users from changing passwords too quickly.</li>
+                            <li><b>Minimum Length</b>: Sets the fewest characters required (e.g., 8+).</li>
+                            <li><b>Password History</b>: Blocks reusing the last few old passwords.</li>
+                            <li><b>Require Complexity</b>: Needs a mix of uppercase, lowercase, numbers, and symbols.</li>
+                        </ul>
+
+                        <hr class="my-2" />
+
+                        <i class="bi bi-lightbulb me-1"></i>
+                        <em>
+                            Tip: Keep passwords strong but don’t force users to change them too often,
+                            or they may pick easy ones.
+                        </em>
+                    </div>
+                </div>
+            </div> <!-- end row -->
+        </div>
+    </div>
+</div>
+
+<!-- 🔹 Modal for Editing Policy -->
+<div class="modal fade" id="editPolicyModal" tabindex="-1" aria-labelledby="editPolicyLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <form asp-action="Index" method="post" novalidate id="policyForm">
+                @Html.AntiForgeryToken()
+                <input type="hidden" asp-for="Id" />
+
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="editPolicyLabel"><i class="bi bi-pencil-square me-1"></i> Edit Password Policy</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body row">
+                    <!-- Left column: form -->
+                    <div class="col-lg-7">
                         <div class="mb-3">
                             <label asp-for="MaxPasswordAgeDays" class="form-label">
                                 <i class="bi bi-calendar-x me-1"></i> Maximum Password Age (Days)
                             </label>
                             <input asp-for="MaxPasswordAgeDays" class="form-control policy-input" type="number" min="0" id="MaxPasswordAgeDays" />
-                            <small class="text-muted">Users must change their password after this many days. Set to <strong>0</strong> for <em>Never expires</em>.</small>
+                            <small class="text-muted">Set <strong>0</strong> for <em>Never expires</em>.</small>
                             <span asp-validation-for="MaxPasswordAgeDays" class="text-danger"></span>
                         </div>
 
@@ -43,7 +117,7 @@
                                 <i class="bi bi-calendar-check me-1"></i> Minimum Password Age (Days)
                             </label>
                             <input asp-for="MinPasswordAgeDays" class="form-control policy-input" type="number" min="0" id="MinPasswordAgeDays" />
-                            <small class="text-muted">Prevents users from changing passwords too frequently.</small>
+                            <small class="text-muted">Prevents frequent changes.</small>
                             <span asp-validation-for="MinPasswordAgeDays" class="text-danger"></span>
                         </div>
 
@@ -61,49 +135,42 @@
                                 <i class="bi bi-clock-history me-1"></i> Password History
                             </label>
                             <input asp-for="PasswordHistoryCount" class="form-control policy-input" type="number" min="0" id="PasswordHistoryCount" />
-                            <small class="text-muted">Disallows reusing the last N passwords.</small>
+                            <small class="text-muted">Disallows reusing recent passwords.</small>
                             <span asp-validation-for="PasswordHistoryCount" class="text-danger"></span>
                         </div>
 
                         <div class="form-check mb-4">
                             <input asp-for="RequireComplexity" class="form-check-input policy-input" type="checkbox" id="complexityCheck" />
                             <label class="form-check-label" for="complexityCheck">
-                                <i class="bi bi-key me-1"></i> Require Complexity (uppercase, lowercase, digit, symbol)
+                                <i class="bi bi-key me-1"></i> Require Complexity
                             </label>
                         </div>
+                    </div>
 
-                        <div class="d-flex justify-content-between">
-                            <button type="submit" class="btn btn-success">
-                                <i class="bi bi-save me-1"></i> Save Policy
-                            </button>
-                            <a asp-controller="GeneralSettings" asp-action="Security" class="btn btn-secondary">
-                                <i class="bi bi-x-circle me-1"></i> Cancel
-                            </a>
-                        </div>
-                    </form>
-                </div>
-
-                <!-- 🔹 Live Preview -->
-                <div class="col-lg-5 mt-4 mt-lg-0">
-                    <div class="card border-info shadow-sm">
-                        <div class="card-header bg-info text-white">
-                            <i class="bi bi-eye me-1"></i> Live Preview
-                        </div>
-                        <div class="card-body">
-                            <ul class="list-unstyled mb-0" id="policyPreview">
-                                <li>
-                                    <i class="bi bi-dot"></i> Password expires in
-                                    <strong>@(Model.MaxPasswordAgeDays == 0 ? "Never expires" : Model.MaxPasswordAgeDays + " days")</strong>
-                                </li>
-                                <li><i class="bi bi-dot"></i> Must wait <strong>@Model.MinPasswordAgeDays</strong> days before changing again</li>
-                                <li><i class="bi bi-dot"></i> Minimum length: <strong>@Model.MinPasswordLength</strong> characters</li>
-                                <li><i class="bi bi-dot"></i> Cannot reuse last <strong>@Model.PasswordHistoryCount</strong> passwords</li>
-                                <li><i class="bi bi-dot"></i> Complexity required: <strong>@(Model.RequireComplexity ? "Yes" : "No")</strong></li>
-                            </ul>
+                    <!-- Right column: live preview -->
+                    <div class="col-lg-5 mt-4 mt-lg-0">
+                        <div class="card border-info shadow-sm">
+                            <div class="card-header bg-info text-white">
+                                <i class="bi bi-eye me-1"></i> Live Preview
+                            </div>
+                            <div class="card-body">
+                                <ul class="list-unstyled mb-0" id="modalPolicyPreview">
+                                    <!-- will update dynamically -->
+                                </ul>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div> <!-- end row -->
+
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-success">
+                        <i class="bi bi-save me-1"></i> Save Changes
+                    </button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle me-1"></i> Cancel
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
@@ -113,7 +180,7 @@
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             const inputs = document.querySelectorAll(".policy-input");
-            const preview = document.getElementById("policyPreview");
+            const preview = document.getElementById("modalPolicyPreview");
 
             function updatePreview() {
                 const maxAge = document.getElementById("MaxPasswordAgeDays").value || 0;

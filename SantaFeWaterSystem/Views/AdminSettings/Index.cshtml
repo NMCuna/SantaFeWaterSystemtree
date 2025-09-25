@@ -31,4 +31,35 @@
     {
         <div class="alert alert-success mt-3">@TempData["Success"]</div>
     }
+
+    <!-- 🔹 Info Panel -->
+    <div class="mt-4">
+        <div class="alert alert-secondary small">
+            <i class="bi bi-info-circle me-1"></i>
+            <strong>What is the Admin Login Token?</strong><br />
+            The Admin Login Token is an extra security step for logging into the system’s admin area.
+            Only users who know this token can reach the Admin Login page.
+
+            <hr class="my-2" />
+
+            <strong><i class="bi bi-shield-check me-1"></i> Why it is used:</strong>
+            <ul class="mb-2">
+                <li>Prevents unauthorized users from even seeing the Admin Login screen.</li>
+                <li>Adds a secret layer on top of the normal username and password.</li>
+                <li>Stops bots or attackers from brute-forcing the login page directly.</li>
+            </ul>
+
+            <strong><i class="bi bi-gear me-1"></i> How it works:</strong>
+            <ul class="mb-0">
+                <li>Before reaching the Admin Login page, the system asks for the token.</li>
+                <li>If the token is wrong, access is blocked immediately.</li>
+                <li>Only admins who know the token can continue to enter their username and password.</li>
+            </ul>
+
+            <hr class="my-2" />
+
+            <i class="bi bi-lightbulb me-1"></i>
+            <em>Tip: Change the token periodically and share it only with trusted admins and staff.</em>
+        </div>
+    </div>
 </div>

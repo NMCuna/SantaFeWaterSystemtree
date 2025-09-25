@@ -41,4 +41,33 @@
     {
         <div class="alert alert-success mt-3">@TempData["Success"]</div>
     }
+
+    <!-- 🔹 Info Panel (Below Table) -->
+    <div class="alert alert-secondary small mt-4">
+        <i class="bi bi-info-circle me-1"></i>
+        <strong>What are Daily Admin Reset Tokens?</strong><br />
+        These tokens provide an extra layer of security for performing daily admin resets.
+        Each day has a unique token that must be used to authorize reset actions.
+
+        <hr class="my-2" />
+
+        <strong><i class="bi bi-shield-check me-1"></i> Why it matters:</strong>
+        <ul class="mb-2">
+            <li>Prevents unauthorized users from performing resets on admin accounts.</li>
+            <li>Limits reset actions to a single token per day for added security.</li>
+            <li>Ensures accountability by associating resets with specific tokens.</li>
+        </ul>
+
+        <strong><i class="bi bi-gear me-1"></i> How it works:</strong>
+        <ul class="mb-0">
+            <li>Every day, the system generates a new token.</li>
+            <li>Admins must use the current day’s token to authorize reset operations.</li>
+            <li>If the token is incorrect or expired, the reset is denied.</li>
+        </ul>
+
+        <hr class="my-2" />
+
+        <i class="bi bi-lightbulb me-1"></i>
+        <em>Tip: Keep tokens secure and only share with trusted admin users. Avoid using old tokens for resets.</em>
+    </div>
 </div>

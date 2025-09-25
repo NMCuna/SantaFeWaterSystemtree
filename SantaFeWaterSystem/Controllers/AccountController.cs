@@ -1206,8 +1206,6 @@ public class AccountController(
         var start = new TimeSpan(12, 0, 0);
         var end = new TimeSpan(17, 0, 0);
 
-        ViewBag.CurrentTime = DateTime.Now.ToString("hh:mm tt");
-
         var today = DateTime.Today.DayOfWeek.ToString();
         var expectedToken = await _context.AdminResetTokens
             .Where(t => t.Day == today)
@@ -1220,31 +1218,33 @@ public class AccountController(
             return RedirectToAction("AccessDenied", "Account");
         }
 
-        if (now < start || now > end)
-        {
-            ViewBag.TimeWarning = "⏰ This page is only available between 12:00 PM and 5:00 PM.";
-        }
-
-        // ✅ Load all admins to select
+        // Load admins
         var admins = await _context.Users
             .Where(u => u.Role == "Admin")
-            .Select(u => new { u.Id, u.Username })
+            .Select(u => new AdminDropdown { Id = u.Id, Username = u.Username })
             .ToListAsync();
-        ViewBag.AdminList = admins;
 
-        // ✅ Load password policy for display
+        // Load password policy
         var passwordPolicy = await _context.PasswordPolicies.FirstOrDefaultAsync();
-        ViewBag.PasswordPolicy = passwordPolicy;
 
-        ViewBag.Token = token; // pass token to form
-        return View();
+        var vm = new AdminResetPasswordViewModel
+        {
+            Token = token,
+            AdminList = admins,
+            PasswordPolicy = passwordPolicy,
+            CurrentTime = DateTime.Now.ToString("hh:mm tt"),
+            TimeWarning = (now < start || now > end) ? "⏰ This page is only available between 12:00 PM and 5:00 PM." : null
+        };
+
+        return View(vm);
     }
+
 
     // ================== MySecretEmergenceResetPasswordforAdmin (POST) ==================
     [HttpPost]
     [AllowAnonymous]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> MySecretEmergenceResetPasswordforAdmin(int AdminId, string token, string NewPassword, string ConfirmPassword)
+    public async Task<IActionResult> MySecretEmergenceResetPasswordforAdmin(AdminResetPasswordViewModel model)
     {
         var today = DateTime.Today.DayOfWeek.ToString();
         var expectedToken = await _context.AdminResetTokens
@@ -1252,44 +1252,44 @@ public class AccountController(
             .Select(t => t.Token)
             .FirstOrDefaultAsync();
 
-        if (string.IsNullOrWhiteSpace(token) || token != expectedToken)
+        if (string.IsNullOrWhiteSpace(model.Token) || model.Token != expectedToken)
         {
             TempData["Error"] = "⛔ Token expired or invalid. Please request a new one.";
             return RedirectToAction("MySecretEmergenceResetPasswordforAdmin");
         }
 
-        if (NewPassword != ConfirmPassword)
+        if (model.NewPassword != model.ConfirmPassword)
         {
             TempData["Error"] = "❌ Passwords do not match.";
-            return RedirectToAction("MySecretEmergenceResetPasswordforAdmin", new { token });
+            return RedirectToAction("MySecretEmergenceResetPasswordforAdmin", new { token = model.Token });
         }
 
-        var admin = await _context.Users.FirstOrDefaultAsync(u => u.Id == AdminId && u.Role == "Admin");
+        var admin = await _context.Users.FirstOrDefaultAsync(u => u.Id == model.AdminId && u.Role == "Admin");
         if (admin == null)
         {
             TempData["Error"] = "❌ Admin not found.";
-            return RedirectToAction("MySecretEmergenceResetPasswordforAdmin", new { token });
+            return RedirectToAction("MySecretEmergenceResetPasswordforAdmin", new { token = model.Token });
         }
 
-        // ✅ Validate password against policy
-        var isValidPassword = await _passwordPolicyService.ValidatePasswordAsync(admin.Id, NewPassword);
+        // Validate password policy
+        var isValidPassword = await _passwordPolicyService.ValidatePasswordAsync(admin.Id, model.NewPassword);
         if (!isValidPassword)
         {
             TempData["Error"] = "❌ Password does not meet security policy requirements.";
-            return RedirectToAction("MySecretEmergenceResetPasswordforAdmin", new { token, AdminId });
+            return RedirectToAction("MySecretEmergenceResetPasswordforAdmin", new { token = model.Token, AdminId = model.AdminId });
         }
 
-        // ✅ Hash new password using BCrypt
-        admin.PasswordHash = BCrypt.Net.BCrypt.HashPassword(NewPassword);
+        // Hash and save new password
+        admin.PasswordHash = BCrypt.Net.BCrypt.HashPassword(model.NewPassword);
         admin.PasswordResetToken = null;
         admin.PasswordResetExpiry = null;
         admin.AccessFailedCount = 0;
         admin.LockoutEnd = null;
 
-        // ✅ Save password history
+        // Save password history
         await _passwordPolicyService.SavePasswordHistoryAsync(admin.Id, admin.PasswordHash);
 
-        // ✅ Audit log
+        // Audit log
         _context.AuditTrails.Add(new AuditTrail
         {
             PerformedBy = "EmergencyResetAccess",
@@ -1301,7 +1301,7 @@ public class AccountController(
         await _context.SaveChangesAsync();
 
         TempData["Success"] = "✅ Password reset successfully!";
-        return RedirectToAction("MySecretEmergenceResetPasswordforAdmin", new { token, AdminId });
+        return RedirectToAction("MySecretEmergenceResetPasswordforAdmin", new { token = model.Token, AdminId = model.AdminId });
     }
 
 
